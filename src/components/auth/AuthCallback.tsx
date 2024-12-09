@@ -25,6 +25,8 @@ const AuthCallback = () => {
               description: error.message,
               variant: "destructive",
             });
+            // Redirect to login page if there's an error
+            navigate("/");
           } else {
             // Different messages based on the type of auth callback
             const messages = {
@@ -38,7 +40,16 @@ const AuthCallback = () => {
               title: "Success",
               description: messages[type] || messages.default,
             });
+            
+            // Ensure we redirect to the feed page after a short delay
+            // This gives time for the session to be properly set
+            setTimeout(() => {
+              navigate("/");
+            }, 1000);
           }
+        } else {
+          // If no access token is found, redirect to the login page
+          navigate("/");
         }
       } catch (error) {
         console.error("Error in auth callback:", error);
@@ -47,8 +58,7 @@ const AuthCallback = () => {
           description: "An error occurred during authentication",
           variant: "destructive",
         });
-      } finally {
-        // Always redirect to home page after processing
+        // Redirect to login page if there's an error
         navigate("/");
       }
     };

@@ -32,24 +32,23 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
 
   const isLiked = post.likes?.some((like: any) => like.user_id === currentUserId);
 
-  const handleBackgroundClick = () => {
-    if (!isFullView) {
+  const handleNavigateToPost = (e: React.MouseEvent) => {
+    if (isFullView) return;
+    
+    // Don't navigate if clicking on these elements
+    const clickedElement = e.target as HTMLElement;
+    const isClickingMedia = clickedElement.closest('.post-media');
+    const isClickingButton = clickedElement.closest('button');
+    const isClickingLink = clickedElement.closest('a');
+    
+    if (!isClickingMedia && !isClickingButton && !isClickingLink) {
       navigate(`/post/${post.id}`);
     }
   };
 
   return (
-    <div className="relative">
-      {/* Clickable background overlay */}
-      {!isFullView && (
-        <div 
-          className="absolute inset-0 cursor-pointer z-0"
-          onClick={handleBackgroundClick}
-        />
-      )}
-      
-      {/* Card content with higher z-index to prevent click propagation */}
-      <Card className={`overflow-hidden border-none bg-transparent relative z-10 ${isFullView ? 'max-w-4xl mx-auto' : ''}`}>
+    <Card className={`overflow-hidden border-none bg-transparent ${isFullView ? 'max-w-4xl mx-auto' : 'cursor-pointer'}`}>
+      <div onClick={handleNavigateToPost}>
         <CardHeader>
           <PostHeader 
             profile={post.profiles}
@@ -65,11 +64,13 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
             tags={post.tags}
           />
           
-          <PostMedia 
-            mediaUrl={post.media_url}
-            mediaType={post.media_type}
-            title={post.title}
-          />
+          <div className="post-media">
+            <PostMedia 
+              mediaUrl={post.media_url}
+              mediaType={post.media_type}
+              title={post.title}
+            />
+          </div>
         </CardContent>
 
         <CardFooter className="flex justify-between px-0">
@@ -84,19 +85,19 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
             isFullView={isFullView}
           />
         </CardFooter>
+      </div>
 
-        <Dialog open={isCommentsOpen} onOpenChange={setIsCommentsOpen}>
-          <DialogContent className="max-w-2xl h-[80vh]">
-            <DialogHeader>
-              <DialogTitle>Comments</DialogTitle>
-            </DialogHeader>
-            <CommentSection 
-              postId={post.id}
-              currentUserId={currentUserId}
-            />
-          </DialogContent>
-        </Dialog>
-      </Card>
-    </div>
+      <Dialog open={isCommentsOpen} onOpenChange={setIsCommentsOpen}>
+        <DialogContent className="max-w-2xl h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Comments</DialogTitle>
+          </DialogHeader>
+          <CommentSection 
+            postId={post.id}
+            currentUserId={currentUserId}
+          />
+        </DialogContent>
+      </Dialog>
+    </Card>
   );
 }

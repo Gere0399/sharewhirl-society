@@ -27,7 +27,9 @@ export function PostActions({
 
   const handleShare = async () => {
     try {
-      const url = `${window.location.origin}/post/${postId}`;
+      // Get the current origin (e.g., http://localhost:3000)
+      const origin = window.location.origin;
+      const url = `${origin}/post/${postId}`;
       await navigator.clipboard.writeText(url);
       toast({
         title: "Link copied",

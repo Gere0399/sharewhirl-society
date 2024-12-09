@@ -26,7 +26,7 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
         .from("comments")
         .select("*")
         .eq("post_id", postId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: true });
 
       if (commentsError) throw commentsError;
 
@@ -57,7 +57,7 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
     }
   };
 
-  const handleSubmit = async (content: string, file: File | null) => {
+  const handleSubmit = async (content: string, file: File | null, parentCommentId?: string) => {
     if (!currentUserId) {
       toast({
         title: "Error",
@@ -96,6 +96,7 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
         user_id: currentUserId,
         media_url: mediaUrl,
         media_type: mediaType,
+        parent_comment_id: parentCommentId || null,
       });
 
       if (error) throw error;
@@ -120,9 +121,13 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <CommentInput onSubmit={handleSubmit} loading={loading} />
+      <CommentInput onSubmit={(content, file) => handleSubmit(content, file)} loading={loading} />
       <ScrollArea className="flex-1">
-        <CommentList comments={comments} />
+        <CommentList 
+          comments={comments} 
+          currentUserId={currentUserId}
+          onCommentSubmit={handleSubmit}
+        />
       </ScrollArea>
     </div>
   );

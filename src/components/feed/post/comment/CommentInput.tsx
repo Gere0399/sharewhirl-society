@@ -7,9 +7,10 @@ import { useToast } from "@/hooks/use-toast";
 interface CommentInputProps {
   onSubmit: (content: string, file: File | null) => Promise<void>;
   loading?: boolean;
+  placeholder?: string;
 }
 
-export function CommentInput({ onSubmit, loading }: CommentInputProps) {
+export function CommentInput({ onSubmit, loading, placeholder = "Write a comment..." }: CommentInputProps) {
   const [content, setContent] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const { toast } = useToast();
@@ -46,7 +47,7 @@ export function CommentInput({ onSubmit, loading }: CommentInputProps) {
   return (
     <div className="flex gap-4 p-4 border-b">
       <Textarea
-        placeholder="Write a comment..."
+        placeholder={placeholder}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         className="flex-1"

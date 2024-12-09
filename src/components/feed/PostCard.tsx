@@ -45,7 +45,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
     if (!isClickingMedia && !isClickingButton && !isClickingLink) {
       const postUrl = `/post/${post.id}`;
       if (location.pathname !== postUrl) {
-        navigate(postUrl);
+        navigate(postUrl, { replace: true });
       }
     }
   };
@@ -92,13 +92,10 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
       </div>
 
       <Dialog open={isCommentsOpen} onOpenChange={setIsCommentsOpen}>
-        <DialogContent className="max-w-2xl h-[80vh]" aria-describedby="comment-dialog-description">
+        <DialogContent className="max-w-2xl h-[80vh]">
           <DialogHeader>
             <DialogTitle>Comments</DialogTitle>
           </DialogHeader>
-          <div id="comment-dialog-description" className="sr-only">
-            Comments section for this post where you can view and add comments
-          </div>
           <CommentSection 
             postId={post.id}
             currentUserId={currentUserId}

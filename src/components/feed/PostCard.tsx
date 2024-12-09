@@ -52,9 +52,53 @@ export function PostCard({ post, currentUserId, onLike }: PostCardProps) {
     }
   };
 
+  const renderMedia = () => {
+    if (!post.media_url) return null;
+
+    const aspectRatioClass = "aspect-video"; // Default aspect ratio
+
+    switch (post.media_type) {
+      case "image":
+        return (
+          <div className={`relative ${aspectRatioClass} rounded-lg overflow-hidden bg-muted`}>
+            <img
+              src={post.media_url}
+              alt={post.title}
+              className="object-cover w-full h-full"
+              loading="lazy"
+            />
+          </div>
+        );
+      case "video":
+        return (
+          <div className={`relative ${aspectRatioClass} rounded-lg overflow-hidden bg-muted`}>
+            <video
+              src={post.media_url}
+              controls
+              className="w-full h-full object-contain"
+              preload="metadata"
+            />
+          </div>
+        );
+      case "audio":
+        return (
+          <div className="rounded-lg overflow-hidden bg-muted p-4">
+            <audio
+              src={post.media_url}
+              controls
+              className="w-full"
+              preload="metadata"
+            />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <Card className="overflow-hidden border-border/5 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <CardHeader className="flex flex-row items-center gap-4">
+    <Card className="overflow-hidden border-none bg-transparent">
+      <CardHeader className="flex flex-row items-center gap-4 px-0">
         <HoverCard>
           <HoverCardTrigger asChild>
             <Link to={`/profile/${post.profiles?.username}`} className="flex items-center gap-2">
@@ -95,31 +139,11 @@ export function PostCard({ post, currentUserId, onLike }: PostCardProps) {
         )}
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="px-0">
         <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
         <p className="text-muted-foreground mb-4">{post.content}</p>
         
-        {post.media_url && (
-          <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
-            {post.media_type === "image" && (
-              <img
-                src={post.media_url}
-                alt={post.title}
-                className="object-cover w-full h-full"
-              />
-            )}
-            {post.media_type === "video" && (
-              <video
-                src={post.media_url}
-                controls
-                className="w-full h-full"
-              />
-            )}
-            {post.media_type === "audio" && (
-              <audio src={post.media_url} controls className="w-full mt-4" />
-            )}
-          </div>
-        )}
+        {renderMedia()}
         
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
@@ -132,7 +156,7 @@ export function PostCard({ post, currentUserId, onLike }: PostCardProps) {
         )}
       </CardContent>
 
-      <CardFooter className="flex justify-between">
+      <CardFooter className="flex justify-between px-0">
         <div className="flex gap-4">
           <Button
             variant="ghost"

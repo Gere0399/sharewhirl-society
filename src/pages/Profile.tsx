@@ -6,6 +6,7 @@ import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { PostList } from "@/components/profile/PostList";
 import { useProfileData, useProfilePosts } from "@/hooks/useProfileData";
+import { Loader } from "lucide-react";
 
 export default function Profile() {
   const { username } = useParams();
@@ -28,7 +29,6 @@ export default function Profile() {
           .single();
         setCurrentUser(profile);
       } else {
-        // Redirect to login if not authenticated
         navigate('/');
       }
     };
@@ -67,10 +67,10 @@ export default function Profile() {
     }
   };
 
-  if (isProfileLoading || isPostsLoading) {
+  if (isProfileLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p>Loading profile...</p>
+        <Loader className="h-6 w-6 animate-spin" />
       </div>
     );
   }
@@ -86,18 +86,26 @@ export default function Profile() {
   const isOwnProfile = currentUser?.user_id === profile?.user_id;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-2xl mx-auto px-4 py-8">
       <ProfileHeader
         profile={profile}
         isOwnProfile={isOwnProfile}
         onEditClick={() => setIsEditOpen(true)}
       />
 
-      <PostList
-        posts={posts}
-        currentUserId={currentUser?.user_id}
-        onLike={handleLike}
-      />
+      <div className="mt-8 border-t border-border/40">
+        {isPostsLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader className="h-6 w-6 animate-spin" />
+          </div>
+        ) : (
+          <PostList
+            posts={posts}
+            currentUserId={currentUser?.user_id}
+            onLike={handleLike}
+          />
+        )}
+      </div>
 
       <EditProfileDialog
         open={isEditOpen}

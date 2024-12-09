@@ -6,6 +6,7 @@ import { TagsBar } from "@/components/feed/TagsBar";
 import { PostCard } from "@/components/feed/PostCard";
 import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
 import { useToast } from "@/hooks/use-toast";
+import { Loader } from "lucide-react";
 
 const Index = () => {
   const [session, setSession] = useState(null);
@@ -158,20 +159,21 @@ const Index = () => {
           />
         </header>
 
-        <div className="container mx-auto px-4 pt-32 pb-8">
+        <div className="max-w-2xl mx-auto px-4 pt-32 pb-8">
           {loading ? (
             <div className="flex justify-center items-center min-h-[200px]">
-              <p>Loading posts...</p>
+              <Loader className="h-6 w-6 animate-spin" />
             </div>
           ) : (
-            <div className="grid gap-6">
+            <div className="space-y-6 divide-y divide-border/40">
               {posts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  currentUserId={session?.user?.id}
-                  onLike={handleLike}
-                />
+                <div key={post.id} className="pt-6 first:pt-0">
+                  <PostCard
+                    post={post}
+                    currentUserId={session?.user?.id}
+                    onLike={handleLike}
+                  />
+                </div>
               ))}
             </div>
           )}

@@ -78,6 +78,17 @@ export function CreatePostDialog() {
         throw new Error("User not authenticated");
       }
 
+      // First get the user's profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError || !profile) {
+        throw new Error("User profile not found");
+      }
+
       let mediaUrl = null;
       let mediaType = null;
 
@@ -106,7 +117,7 @@ export function CreatePostDialog() {
         content,
         media_url: mediaUrl,
         media_type: mediaType,
-        user_id: user.id,
+        user_id: profile.user_id, // Use the profile's user_id
         tags,
         is_ai_generated: isAiGenerated
       });

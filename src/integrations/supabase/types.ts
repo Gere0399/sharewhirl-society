@@ -9,51 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      comments: {
-        Row: {
-          content: string
-          created_at: string | null
-          id: string
-          parent_comment_id: string | null
-          post_id: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          content: string
-          created_at?: string | null
-          id?: string
-          parent_comment_id?: string | null
-          post_id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          content?: string
-          created_at?: string | null
-          id?: string
-          parent_comment_id?: string | null
-          post_id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "comments_parent_comment_id_fkey"
-            columns: ["parent_comment_id"]
-            isOneToOne: false
-            referencedRelation: "comments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       follows: {
         Row: {
           created_at: string | null
@@ -92,69 +47,36 @@ export type Database = {
       }
       posts: {
         Row: {
-          comments_count: number | null
           content: string
           created_at: string | null
           id: string
-          is_ai_generated: boolean | null
-          likes_count: number | null
           media_type: string | null
           media_url: string | null
-          reposted_from_id: string | null
-          reposted_from_user_id: string | null
-          tags: string[] | null
           title: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
-          comments_count?: number | null
           content: string
           created_at?: string | null
           id?: string
-          is_ai_generated?: boolean | null
-          likes_count?: number | null
           media_type?: string | null
           media_url?: string | null
-          reposted_from_id?: string | null
-          reposted_from_user_id?: string | null
-          tags?: string[] | null
           title?: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
-          comments_count?: number | null
           content?: string
           created_at?: string | null
           id?: string
-          is_ai_generated?: boolean | null
-          likes_count?: number | null
           media_type?: string | null
           media_url?: string | null
-          reposted_from_id?: string | null
-          reposted_from_user_id?: string | null
-          tags?: string[] | null
           title?: string
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "posts_reposted_from_id_fkey"
-            columns: ["reposted_from_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "posts_reposted_from_user_id_fkey"
-            columns: ["reposted_from_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["user_id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {

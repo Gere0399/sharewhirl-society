@@ -5,11 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Image, Video, Music, ArrowLeft, Tag } from "lucide-react";
+import { Image, Video, Music, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
 
 const CreatePost = () => {
   const [title, setTitle] = useState("");
@@ -17,25 +14,8 @@ const CreatePost = () => {
   const [file, setFile] = useState<File | null>(null);
   const [mediaType, setMediaType] = useState<"image" | "video" | "audio" | "none">("none");
   const [uploading, setUploading] = useState(false);
-  const [isAiGenerated, setIsAiGenerated] = useState(false);
-  const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && tagInput.trim()) {
-      e.preventDefault();
-      if (!tags.includes(tagInput.trim())) {
-        setTags([...tags, tagInput.trim()]);
-      }
-      setTagInput("");
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
 
   const handleFileSelect = (type: "image" | "video" | "audio") => {
     const input = document.createElement("input");
@@ -66,6 +46,7 @@ const CreatePost = () => {
     try {
       setUploading(true);
       
+      // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -90,9 +71,7 @@ const CreatePost = () => {
         content,
         media_url: mediaUrl,
         media_type: mediaType,
-        user_id: user.id,
-        tags,
-        is_ai_generated: isAiGenerated
+        user_id: user.id
       });
 
       if (error) throw error;
@@ -143,44 +122,6 @@ const CreatePost = () => {
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   rows={4}
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="ai-generated"
-                  checked={isAiGenerated}
-                  onCheckedChange={setIsAiGenerated}
-                />
-                <Label htmlFor="ai-generated">AI Generated Content</Label>
-              </div>
-
-              <div>
-                <Label>Tags</Label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {tags.map((tag) => (
-                    <Badge
-                      key={tag}
-                      variant="secondary"
-                      className="gap-1"
-                    >
-                      <Tag className="w-3 h-3" />
-                      {tag}
-                      <button
-                        onClick={() => removeTag(tag)}
-                        className="ml-1 hover:text-destructive"
-                      >
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-                <Input
-                  placeholder="Add tags (press Enter)"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={handleAddTag}
-                  className="mt-2"
                 />
               </div>
 

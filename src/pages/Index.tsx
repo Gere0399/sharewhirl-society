@@ -139,7 +139,7 @@ const Index = () => {
               }}
               providers={["google"]}
               theme="dark"
-              redirectTo={`${window.location.origin}/`}
+              redirectTo={`${window.location.origin}/auth/callback`}
               localization={{
                 variables: {
                   sign_in: {

@@ -65,6 +65,7 @@ const Index = () => {
 
   const fetchPosts = async () => {
     try {
+      console.log("Fetching posts...");
       let query = supabase
         .from("posts")
         .select(`
@@ -72,7 +73,8 @@ const Index = () => {
           profiles!posts_user_id_fkey (
             username,
             avatar_url,
-            bio
+            bio,
+            created_at
           ),
           likes (
             user_id
@@ -88,10 +90,13 @@ const Index = () => {
       }
 
       const { data, error } = await query;
+      console.log("Posts data:", data);
+      console.log("Posts error:", error);
 
       if (error) throw error;
       setPosts(data || []);
     } catch (error: any) {
+      console.error("Error in fetchPosts:", error);
       toast({
         title: "Error fetching posts",
         description: error.message,

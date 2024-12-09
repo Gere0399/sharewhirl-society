@@ -46,6 +46,9 @@ export const useProfilePosts = (userId: string | undefined) => {
           ),
           likes (
             user_id
+          ),
+          comments (
+            id
           )
         `)
         .eq("user_id", userId)
@@ -61,7 +64,8 @@ export const useProfilePosts = (userId: string | undefined) => {
       // Add likes_count and format the data
       const formattedPosts = data?.map(post => ({
         ...post,
-        likes_count: post.likes?.length || 0
+        likes_count: post.likes?.length || 0,
+        comments_count: post.comments?.length || 0
       })) || [];
 
       console.log("Formatted profile posts:", formattedPosts);

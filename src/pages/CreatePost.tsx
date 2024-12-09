@@ -11,27 +11,28 @@ import { useToast } from "@/hooks/use-toast";
 const CreatePost = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [file, setFile] = useState(null);
-  const [mediaType, setMediaType] = useState("none");
+  const [file, setFile] = useState<File | null>(null);
+  const [mediaType, setMediaType] = useState<"image" | "video" | "audio" | "none">("none");
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleFileSelect = (type) => {
+  const handleFileSelect = (type: "image" | "video" | "audio") => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = type === "image" ? "image/*" : type === "video" ? "video/*" : "audio/*";
     input.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        setFile(file);
+      const target = e.target as HTMLInputElement;
+      const selectedFile = target.files?.[0];
+      if (selectedFile) {
+        setFile(selectedFile);
         setMediaType(type);
       }
     };
     input.click();
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
       toast({
@@ -44,6 +45,14 @@ const CreatePost = () => {
 
     try {
       setUploading(true);
+      
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
       let mediaUrl = null;
 
       if (file) {
@@ -62,6 +71,7 @@ const CreatePost = () => {
         content,
         media_url: mediaUrl,
         media_type: mediaType,
+        user_id: user.id
       });
 
       if (error) throw error;
@@ -71,7 +81,7 @@ const CreatePost = () => {
         description: "Post created successfully",
       });
       navigate("/");
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error creating post",
         description: error.message,

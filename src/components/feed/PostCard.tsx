@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -27,11 +28,23 @@ interface PostCardProps {
 export function PostCard({ post, currentUserId, onLike, isFullView = false }: PostCardProps) {
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [isRepostOpen, setIsRepostOpen] = useState(false);
+  const navigate = useNavigate();
 
   const isLiked = post.likes?.some((like: any) => like.user_id === currentUserId);
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if we're already in full view or if clicking on a button/link
+    if (isFullView || e.target instanceof HTMLButtonElement || e.target instanceof HTMLAnchorElement) {
+      return;
+    }
+    navigate(`/post/${post.id}`);
+  };
+
   return (
-    <Card className={`overflow-hidden border-none bg-transparent ${isFullView ? 'max-w-4xl mx-auto' : ''}`}>
+    <Card 
+      className={`overflow-hidden border-none bg-transparent ${isFullView ? 'max-w-4xl mx-auto' : 'cursor-pointer'}`}
+      onClick={handleCardClick}
+    >
       <CardHeader>
         <PostHeader 
           profile={post.profiles}

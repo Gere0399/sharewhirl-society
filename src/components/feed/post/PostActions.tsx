@@ -1,7 +1,6 @@
 import { Heart, MessageSquare, Share2, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 
 interface PostActionsProps {
   postId: string;
@@ -25,30 +24,26 @@ export function PostActions({
   isFullView
 }: PostActionsProps) {
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const handleShare = async () => {
-    if (isFullView) {
-      try {
-        await navigator.clipboard.writeText(window.location.href);
-        toast({
-          title: "Link copied",
-          description: "Post link has been copied to clipboard",
-        });
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to copy link",
-          variant: "destructive",
-        });
-      }
-    } else {
-      navigate(`/post/${postId}`);
+    try {
+      const url = `${window.location.origin}/post/${postId}`;
+      await navigator.clipboard.writeText(url);
+      toast({
+        title: "Link copied",
+        description: "Post link has been copied to clipboard",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy link",
+        variant: "destructive",
+      });
     }
   };
 
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-4" onClick={(e) => e.stopPropagation()}>
       <Button
         variant="ghost"
         size="sm"
@@ -79,7 +74,7 @@ export function PostActions({
       
       <Button variant="ghost" size="sm" onClick={handleShare}>
         <Share2 className="w-4 h-4 mr-1" />
-        {isFullView ? 'Copy Link' : 'Share'}
+        Copy Link
       </Button>
     </div>
   );

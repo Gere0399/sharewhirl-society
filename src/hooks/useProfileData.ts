@@ -32,9 +32,11 @@ export const useProfilePosts = (userId: string | undefined) => {
         .from("posts")
         .select(`
           *,
-          profiles!inner (
+          profiles (
             username,
-            avatar_url
+            avatar_url,
+            created_at,
+            bio
           ),
           likes (
             user_id
@@ -43,8 +45,19 @@ export const useProfilePosts = (userId: string | undefined) => {
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data || [];
+      if (error) {
+        console.error("Error fetching profile posts:", error);
+        throw error;
+      }
+
+      // Add likes_count and format the data
+      const formattedPosts = data?.map(post => ({
+        ...post,
+        likes_count: post.likes?.length || 0
+      })) || [];
+
+      console.log("Fetched profile posts:", formattedPosts);
+      return formattedPosts;
     },
     enabled: !!userId,
   });

@@ -7,6 +7,7 @@ import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { PostList } from "@/components/profile/PostList";
 import { useProfileData, useProfilePosts } from "@/hooks/useProfileData";
 import { Loader } from "lucide-react";
+import { Sidebar } from "@/components/feed/Sidebar";
 
 export default function Profile() {
   const { username } = useParams();
@@ -69,52 +70,65 @@ export default function Profile() {
 
   if (isProfileLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Loader className="h-6 w-6 animate-spin" />
+      <div className="min-h-screen bg-background">
+        <Sidebar />
+        <div className="ml-64">
+          <div className="flex justify-center items-center min-h-screen">
+            <Loader className="h-6 w-6 animate-spin" />
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p>Profile not found</p>
+      <div className="min-h-screen bg-background">
+        <Sidebar />
+        <div className="ml-64">
+          <div className="flex justify-center items-center min-h-screen">
+            <p>Profile not found</p>
+          </div>
+        </div>
       </div>
     );
   }
 
-  const isOwnProfile = currentUser?.user_id === profile?.user_id;
-
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <ProfileHeader
-        profile={profile}
-        isOwnProfile={isOwnProfile}
-        onEditClick={() => setIsEditOpen(true)}
-      />
-
-      <div className="mt-8 border-t border-border/40">
-        {isPostsLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader className="h-6 w-6 animate-spin" />
-          </div>
-        ) : (
-          <PostList
-            posts={posts}
-            currentUserId={currentUser?.user_id}
-            onLike={handleLike}
+    <div className="min-h-screen bg-background">
+      <Sidebar />
+      <div className="ml-64">
+        <div className="max-w-2xl mx-auto px-4 py-8">
+          <ProfileHeader
+            profile={profile}
+            isOwnProfile={currentUser?.user_id === profile?.user_id}
+            onEditClick={() => setIsEditOpen(true)}
           />
-        )}
-      </div>
 
-      <EditProfileDialog
-        open={isEditOpen}
-        onOpenChange={setIsEditOpen}
-        profile={profile}
-        onProfileUpdate={(updatedProfile) => {
-          setIsEditOpen(false);
-        }}
-      />
+          <div className="mt-8 border-t border-border/40">
+            {isPostsLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader className="h-6 w-6 animate-spin" />
+              </div>
+            ) : (
+              <PostList
+                posts={posts}
+                currentUserId={currentUser?.user_id}
+                onLike={handleLike}
+              />
+            )}
+          </div>
+
+          <EditProfileDialog
+            open={isEditOpen}
+            onOpenChange={setIsEditOpen}
+            profile={profile}
+            onProfileUpdate={(updatedProfile) => {
+              setIsEditOpen(false);
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

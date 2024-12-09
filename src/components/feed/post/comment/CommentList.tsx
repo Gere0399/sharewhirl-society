@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { MessageCircle, ChevronDown, ChevronUp, ThumbsUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CommentInput } from "./CommentInput";
+import { useToast } from "@/hooks/use-toast";
 
 interface CommentListProps {
   comments: any[];
@@ -14,11 +15,10 @@ interface CommentListProps {
 export function CommentList({ comments, currentUserId, onCommentSubmit }: CommentListProps) {
   const [expandedComments, setExpandedComments] = useState<string[]>([]);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  // Filter top-level comments (no parent_comment_id)
   const topLevelComments = comments.filter(comment => !comment.parent_comment_id);
   
-  // Get replies for a specific comment
   const getReplies = (commentId: string) => {
     return comments.filter(comment => comment.parent_comment_id === commentId);
   };
@@ -35,6 +35,44 @@ export function CommentList({ comments, currentUserId, onCommentSubmit }: Commen
     if (replyingTo) {
       await onCommentSubmit(content, file, replyingTo);
       setReplyingTo(null);
+    }
+  };
+
+  const handleLikeComment = async (commentId: string) => {
+    if (!currentUserId) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to like comments",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data: existingLike } = await supabase
+        .from('comments_likes')
+        .select()
+        .eq('comment_id', commentId)
+        .eq('user_id', currentUserId)
+        .single();
+
+      if (existingLike) {
+        await supabase
+          .from('comments_likes')
+          .delete()
+          .eq('comment_id', commentId)
+          .eq('user_id', currentUserId);
+      } else {
+        await supabase
+          .from('comments_likes')
+          .insert({ comment_id: commentId, user_id: currentUserId });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -86,6 +124,15 @@ export function CommentList({ comments, currentUserId, onCommentSubmit }: Commen
               </div>
             )}
             <div className="flex gap-2 mt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => handleLikeComment(comment.id)}
+              >
+                <ThumbsUp className={`h-4 w-4 mr-1 ${comment.is_liked ? 'fill-current' : ''}`} />
+                {comment.likes_count || 0}
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"

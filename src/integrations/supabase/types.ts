@@ -14,6 +14,7 @@ export type Database = {
           content: string
           created_at: string | null
           id: string
+          likes_count: number | null
           media_type: string | null
           media_url: string | null
           parent_comment_id: string | null
@@ -25,6 +26,7 @@ export type Database = {
           content: string
           created_at?: string | null
           id?: string
+          likes_count?: number | null
           media_type?: string | null
           media_url?: string | null
           parent_comment_id?: string | null
@@ -36,6 +38,7 @@ export type Database = {
           content?: string
           created_at?: string | null
           id?: string
+          likes_count?: number | null
           media_type?: string | null
           media_url?: string | null
           parent_comment_id?: string | null
@@ -56,6 +59,32 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comments_likes: {
+        Row: {
+          comment_id: string
+          created_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
             referencedColumns: ["id"]
           },
         ]

@@ -24,7 +24,12 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
       console.log("Fetching comments for post:", postId);
       const { data: commentsData, error: commentsError } = await supabase
         .from("comments")
-        .select("*")
+        .select(`
+          *,
+          comments_likes (
+            user_id
+          )
+        `)
         .eq("post_id", postId)
         .order("created_at", { ascending: true });
 
@@ -39,10 +44,11 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
 
       if (profilesError) throw profilesError;
 
-      // Combine comments with profiles
+      // Combine comments with profiles and check if liked by current user
       const commentsWithProfiles = commentsData.map(comment => ({
         ...comment,
-        profiles: profilesData.find(profile => profile.user_id === comment.user_id)
+        profiles: profilesData.find(profile => profile.user_id === comment.user_id),
+        is_liked: comment.comments_likes.some((like: any) => like.user_id === currentUserId)
       }));
 
       console.log("Fetched comments with profiles:", commentsWithProfiles);
@@ -121,7 +127,9 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <CommentInput onSubmit={(content, file) => handleSubmit(content, file)} loading={loading} />
+      <div className="p-4 border-b">
+        <CommentInput onSubmit={(content, file) => handleSubmit(content, file)} loading={loading} />
+      </div>
       <ScrollArea className="flex-1">
         <CommentList 
           comments={comments} 

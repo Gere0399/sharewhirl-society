@@ -1,13 +1,15 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PostCard } from "@/components/feed/PostCard";
-import { Loader } from "lucide-react";
+import { Loader, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 const PostView = () => {
   const { postId } = useParams();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const { data: session } = useQuery({
     queryKey: ['session'],
@@ -20,6 +22,8 @@ const PostView = () => {
   const { data: post, isLoading } = useQuery({
     queryKey: ['post', postId],
     queryFn: async () => {
+      if (!postId) throw new Error('Post ID is required');
+      
       const { data, error } = await supabase
         .from('posts')
         .select(`
@@ -92,6 +96,14 @@ const PostView = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Button 
+        variant="ghost" 
+        onClick={() => navigate(-1)}
+        className="mb-4"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back
+      </Button>
       <PostCard
         post={post}
         currentUserId={session?.user?.id}

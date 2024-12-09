@@ -126,7 +126,7 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
   };
 
   return (
-    <div className="flex flex-col h-[80vh]">
+    <div className="flex flex-col h-[calc(80vh-2rem)]">
       <div className="p-4 border-b">
         <CommentInput onSubmit={(content, file) => handleSubmit(content, file)} loading={loading} />
       </div>
@@ -135,6 +135,7 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
           comments={comments} 
           currentUserId={currentUserId}
           onCommentSubmit={handleSubmit}
+          onCommentsUpdate={setComments}
         />
       </ScrollArea>
     </div>

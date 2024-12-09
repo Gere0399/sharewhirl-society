@@ -10,9 +10,10 @@ interface CommentListProps {
   comments: any[];
   currentUserId?: string;
   onCommentSubmit: (content: string, file: File | null, parentCommentId?: string) => Promise<void>;
+  onCommentsUpdate: (comments: any[]) => void;
 }
 
-export function CommentList({ comments, currentUserId, onCommentSubmit }: CommentListProps) {
+export function CommentList({ comments, currentUserId, onCommentSubmit, onCommentsUpdate }: CommentListProps) {
   const [expandedComments, setExpandedComments] = useState<string[]>([]);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const { toast } = useToast();
@@ -102,8 +103,8 @@ export function CommentList({ comments, currentUserId, onCommentSubmit }: Commen
           : comment
       );
 
-      // Update the parent component's state
-      comments.splice(0, comments.length, ...updatedComments);
+      // Update the parent component's state through the callback
+      onCommentsUpdate(updatedComments);
     } catch (error: any) {
       console.error('Error handling comment like:', error);
       toast({

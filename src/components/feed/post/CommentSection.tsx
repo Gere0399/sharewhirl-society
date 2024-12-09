@@ -21,11 +21,17 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
 
   const fetchComments = async () => {
     try {
+      console.log("Fetching comments for post:", postId);
       const { data, error } = await supabase
         .from("comments")
         .select(`
-          *,
-          profiles:user_id (
+          id,
+          content,
+          created_at,
+          media_url,
+          media_type,
+          user_id,
+          profiles!comments_user_id_fkey (
             username,
             avatar_url
           )
@@ -34,9 +40,15 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      console.log("Fetched comments:", data);
       setComments(data || []);
     } catch (error: any) {
       console.error("Error fetching comments:", error);
+      toast({
+        title: "Error fetching comments",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 

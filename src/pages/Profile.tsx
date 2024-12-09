@@ -1,17 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Edit } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PostCard } from "@/components/feed/PostCard";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
 
 export default function Profile() {
   const { username } = useParams();
@@ -26,19 +19,24 @@ export default function Profile() {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate('/');
-        return;
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        setCurrentUser(profile);
       }
-      setCurrentUser(user);
     };
 
     fetchCurrentUser();
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        if (!username) return;
+
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
@@ -57,7 +55,7 @@ export default function Profile() {
           .from('posts')
           .select(`
             *,
-            profiles!posts_user_id_fkey (
+            profiles!inner (
               username,
               avatar_url
             ),
@@ -81,18 +79,18 @@ export default function Profile() {
       }
     };
 
-    if (username) {
-      fetchProfile();
-    }
+    fetchProfile();
   }, [username, navigate, toast]);
 
   const handleLike = async (postId: string) => {
+    if (!currentUser) return;
+
     try {
       const { data: existingLike } = await supabase
         .from("likes")
         .select()
         .eq("post_id", postId)
-        .eq("user_id", currentUser?.id)
+        .eq("user_id", currentUser.user_id)
         .single();
 
       if (existingLike) {
@@ -100,11 +98,11 @@ export default function Profile() {
           .from("likes")
           .delete()
           .eq("post_id", postId)
-          .eq("user_id", currentUser?.id);
+          .eq("user_id", currentUser.user_id);
       } else {
         await supabase
           .from("likes")
-          .insert({ post_id: postId, user_id: currentUser?.id });
+          .insert({ post_id: postId, user_id: currentUser.user_id });
       }
 
       // Refresh posts
@@ -112,7 +110,7 @@ export default function Profile() {
         .from('posts')
         .select(`
           *,
-          profiles!posts_user_id_fkey (
+          profiles!inner (
             username,
             avatar_url
           ),
@@ -141,48 +139,22 @@ export default function Profile() {
     );
   }
 
-  const isOwnProfile = currentUser?.id === profile?.user_id;
+  const isOwnProfile = currentUser?.user_id === profile?.user_id;
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Card className="mb-8">
-        <CardHeader className="relative">
-          {isOwnProfile && (
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute top-4 right-4"
-              onClick={() => setIsEditOpen(true)}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-          )}
-          <div className="flex flex-col items-center gap-4">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src={profile?.avatar_url} />
-              <AvatarFallback>{profile?.username?.[0]?.toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="text-center">
-              <h1 className="text-2xl font-bold">{profile?.username}</h1>
-              {profile?.full_name && (
-                <p className="text-muted-foreground">{profile.full_name}</p>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {profile?.bio && (
-            <p className="text-center text-muted-foreground">{profile.bio}</p>
-          )}
-        </CardContent>
-      </Card>
+      <ProfileHeader
+        profile={profile}
+        isOwnProfile={isOwnProfile}
+        onEditClick={() => setIsEditOpen(true)}
+      />
 
       <div className="grid gap-6">
         {posts.map((post) => (
           <PostCard
             key={post.id}
             post={post}
-            currentUserId={currentUser?.id}
+            currentUserId={currentUser?.user_id}
             onLike={handleLike}
           />
         ))}

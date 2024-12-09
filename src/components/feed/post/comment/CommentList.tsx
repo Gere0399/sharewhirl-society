@@ -7,20 +7,25 @@ interface CommentListProps {
 
 export function CommentList({ comments }: CommentListProps) {
   return (
-    <div className="p-4 space-y-4">
+    <div className="space-y-6 p-6">
       {comments.map((comment) => (
-        <div key={comment.id} className="flex gap-4">
-          <Avatar>
+        <div key={comment.id} className="group flex gap-3">
+          <Avatar className="h-8 w-8">
             <AvatarImage src={comment.profiles?.avatar_url} />
             <AvatarFallback>
               {comment.profiles?.username?.[0]?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1">
-            <div className="font-semibold">
-              {comment.profiles?.username}
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">
+                {comment.profiles?.username}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {new Date(comment.created_at).toLocaleDateString()}
+              </span>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-foreground/90">
               {comment.content}
             </p>
             {comment.media_url && (
@@ -44,9 +49,6 @@ export function CommentList({ comments }: CommentListProps) {
                 ) : null}
               </div>
             )}
-            <div className="text-xs text-muted-foreground mt-1">
-              {new Date(comment.created_at).toLocaleDateString()}
-            </div>
           </div>
         </div>
       ))}

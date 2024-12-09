@@ -88,10 +88,13 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
       </div>
 
       <Dialog open={isCommentsOpen} onOpenChange={setIsCommentsOpen}>
-        <DialogContent className="max-w-2xl h-[80vh]">
+        <DialogContent className="max-w-2xl h-[80vh]" aria-describedby="comment-dialog-description">
           <DialogHeader>
             <DialogTitle>Comments</DialogTitle>
           </DialogHeader>
+          <div id="comment-dialog-description" className="sr-only">
+            Comments section for this post where you can view and add comments
+          </div>
           <CommentSection 
             postId={post.id}
             currentUserId={currentUserId}

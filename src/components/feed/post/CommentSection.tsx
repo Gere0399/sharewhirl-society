@@ -25,13 +25,8 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
       const { data, error } = await supabase
         .from("comments")
         .select(`
-          id,
-          content,
-          created_at,
-          media_url,
-          media_type,
-          user_id,
-          profiles!comments_user_id_fkey (
+          *,
+          profiles:user_id (
             username,
             avatar_url
           )

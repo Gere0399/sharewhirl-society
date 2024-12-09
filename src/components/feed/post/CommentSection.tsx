@@ -22,21 +22,31 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
   const fetchComments = async () => {
     try {
       console.log("Fetching comments for post:", postId);
-      const { data, error } = await supabase
+      const { data: commentsData, error: commentsError } = await supabase
         .from("comments")
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            avatar_url
-          )
-        `)
+        .select("*")
         .eq("post_id", postId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      console.log("Fetched comments:", data);
-      setComments(data || []);
+      if (commentsError) throw commentsError;
+
+      // Fetch profiles for the comments
+      const userIds = commentsData.map(comment => comment.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("*")
+        .in("user_id", userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine comments with profiles
+      const commentsWithProfiles = commentsData.map(comment => ({
+        ...comment,
+        profiles: profilesData.find(profile => profile.user_id === comment.user_id)
+      }));
+
+      console.log("Fetched comments with profiles:", commentsWithProfiles);
+      setComments(commentsWithProfiles);
     } catch (error: any) {
       console.error("Error fetching comments:", error);
       toast({

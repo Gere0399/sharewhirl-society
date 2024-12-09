@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -29,6 +29,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [isRepostOpen, setIsRepostOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const isLiked = post.likes?.some((like: any) => like.user_id === currentUserId);
 
@@ -42,7 +43,10 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
     const isClickingLink = clickedElement.closest('a');
     
     if (!isClickingMedia && !isClickingButton && !isClickingLink) {
-      navigate(`/post/${post.id}`);
+      const postUrl = `/post/${post.id}`;
+      if (location.pathname !== postUrl) {
+        navigate(postUrl);
+      }
     }
   };
 

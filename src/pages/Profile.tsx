@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
@@ -9,6 +9,7 @@ import { useProfileData, useProfilePosts } from "@/hooks/useProfileData";
 
 export default function Profile() {
   const { username } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -26,11 +27,14 @@ export default function Profile() {
           .eq('user_id', user.id)
           .single();
         setCurrentUser(profile);
+      } else {
+        // Redirect to login if not authenticated
+        navigate('/');
       }
     };
 
     fetchCurrentUser();
-  }, []);
+  }, [navigate]);
 
   const handleLike = async (postId: string) => {
     if (!currentUser) return;
@@ -67,6 +71,14 @@ export default function Profile() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <p>Loading profile...</p>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p>Profile not found</p>
       </div>
     );
   }

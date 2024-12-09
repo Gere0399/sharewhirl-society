@@ -49,25 +49,63 @@ export function CommentList({ comments, currentUserId, onCommentSubmit }: Commen
     }
 
     try {
-      const { data: existingLike } = await supabase
+      const { data: existingLike, error: fetchError } = await supabase
         .from('comments_likes')
         .select()
         .eq('comment_id', commentId)
         .eq('user_id', currentUserId)
         .single();
 
+      if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+
       if (existingLike) {
-        await supabase
+        const { error: deleteError } = await supabase
           .from('comments_likes')
           .delete()
           .eq('comment_id', commentId)
           .eq('user_id', currentUserId);
+
+        if (deleteError) throw deleteError;
       } else {
-        await supabase
+        const { error: insertError } = await supabase
           .from('comments_likes')
-          .insert({ comment_id: commentId, user_id: currentUserId });
+          .insert({ 
+            comment_id: commentId, 
+            user_id: currentUserId 
+          });
+
+        if (insertError) throw insertError;
       }
+
+      // Refresh comments to update likes
+      const { data: updatedComment, error: updateError } = await supabase
+        .from('comments')
+        .select(`
+          *,
+          comments_likes (
+            user_id
+          )
+        `)
+        .eq('id', commentId)
+        .single();
+
+      if (updateError) throw updateError;
+
+      // Update the comment in the local state
+      const updatedComments = comments.map(comment => 
+        comment.id === commentId 
+          ? {
+              ...comment,
+              likes_count: updatedComment.likes_count,
+              is_liked: updatedComment.comments_likes.some((like: any) => like.user_id === currentUserId)
+            }
+          : comment
+      );
+
+      // Update the parent component's state
+      comments.splice(0, comments.length, ...updatedComments);
     } catch (error: any) {
+      console.error('Error handling comment like:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -180,7 +218,7 @@ export function CommentList({ comments, currentUserId, onCommentSubmit }: Commen
   };
 
   return (
-    <div className="space-y-6 p-6 overflow-y-auto max-h-[calc(100vh-20rem)]">
+    <div className="p-6">
       {topLevelComments.map(comment => renderComment(comment))}
     </div>
   );

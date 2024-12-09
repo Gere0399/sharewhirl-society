@@ -126,7 +126,7 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-[80vh]">
       <div className="p-4 border-b">
         <CommentInput onSubmit={(content, file) => handleSubmit(content, file)} loading={loading} />
       </div>

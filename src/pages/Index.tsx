@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { Sidebar } from "@/components/feed/Sidebar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { TagsBar } from "@/components/feed/TagsBar";
+import { PostCard } from "@/components/feed/PostCard";
+import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [session, setSession] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [activeTag, setActiveTag] = useState("for you");
+  const [popularTags, setPopularTags] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -24,68 +24,54 @@ const Index = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (_event === 'SIGNED_IN') {
-        checkAndCreateProfile(session?.user?.id);
-      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkAndCreateProfile = async (userId) => {
-    if (!userId) return;
-
-    try {
-      const { data: profile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
-
-      if (!profile) {
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: userId,
-            username: `user_${userId.substring(0, 6)}`,
-          });
-
-        if (insertError) throw insertError;
-
-        toast({
-          title: "Welcome!",
-          description: "Your profile has been created successfully.",
-        });
-      }
-    } catch (error) {
-      console.error('Error managing profile:', error);
-      toast({
-        title: "Error",
-        description: "There was an error setting up your profile. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
   useEffect(() => {
     if (session) {
       fetchPosts();
+      fetchPopularTags();
     }
-  }, [session]);
+  }, [session, activeTag]);
+
+  const fetchPopularTags = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("posts")
+        .select("tags")
+        .not("tags", "eq", "{}");
+
+      if (error) throw error;
+
+      const allTags = data.flatMap((post) => post.tags);
+      const tagCounts = allTags.reduce((acc: any, tag: string) => {
+        acc[tag] = (acc[tag] || 0) + 1;
+        return acc;
+      }, {});
+
+      const sortedTags = Object.entries(tagCounts)
+        .sort(([, a]: any, [, b]: any) => b - a)
+        .slice(0, 10)
+        .map(([tag]) => tag);
+
+      setPopularTags(sortedTags);
+    } catch (error: any) {
+      console.error("Error fetching tags:", error);
+    }
+  };
 
   const fetchPosts = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("posts")
         .select(`
           *,
           profiles!posts_user_id_fkey (
             username,
-            avatar_url
+            avatar_url,
+            bio
           ),
           likes (
             user_id
@@ -96,9 +82,15 @@ const Index = () => {
         `)
         .order("created_at", { ascending: false });
 
+      if (activeTag !== "for you") {
+        query = query.contains("tags", [activeTag]);
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
       setPosts(data || []);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error fetching posts",
         description: error.message,
@@ -106,6 +98,43 @@ const Index = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLike = async (postId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      const { data: existingLike } = await supabase
+        .from("likes")
+        .select()
+        .eq("post_id", postId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (existingLike) {
+        await supabase
+          .from("likes")
+          .delete()
+          .eq("post_id", postId)
+          .eq("user_id", user.id);
+      } else {
+        await supabase
+          .from("likes")
+          .insert({ post_id: postId, user_id: user.id });
+      }
+
+      fetchPosts();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -120,27 +149,16 @@ const Index = () => {
         <header className="border-b border-border/40 backdrop-blur-sm fixed top-0 right-0 left-64 z-10">
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">
             <h1 className="text-xl font-bold">ShareWhirl</h1>
-            <div className="flex gap-4 items-center">
-              <Button
-                onClick={() => navigate("/create")}
-                className="gap-2"
-                size="sm"
-              >
-                <Plus className="w-4 h-4" />
-                New Post
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => supabase.auth.signOut()}
-                size="sm"
-              >
-                Sign Out
-              </Button>
-            </div>
+            <CreatePostDialog />
           </div>
+          <TagsBar
+            tags={popularTags}
+            activeTag={activeTag}
+            onTagSelect={setActiveTag}
+          />
         </header>
 
-        <div className="container mx-auto px-4 pt-20 pb-8">
+        <div className="container mx-auto px-4 pt-32 pb-8">
           {loading ? (
             <div className="flex justify-center items-center min-h-[200px]">
               <p>Loading posts...</p>
@@ -148,52 +166,12 @@ const Index = () => {
           ) : (
             <div className="grid gap-6">
               {posts.map((post) => (
-                <Card key={post.id} className="overflow-hidden border-border/5 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                  <CardHeader className="flex flex-row items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      {post.profiles?.avatar_url && (
-                        <img
-                          src={post.profiles.avatar_url}
-                          alt={post.profiles.username}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      )}
-                      <div>
-                        <h3 className="font-semibold">
-                          {post.profiles?.username || "Anonymous"}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(post.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <h4 className="text-lg font-semibold mb-2">{post.title}</h4>
-                    <p className="text-muted-foreground">{post.content}</p>
-                    {post.media_url && (
-                      <div className="mt-4">
-                        {post.media_type === "image" && (
-                          <img
-                            src={post.media_url}
-                            alt={post.title}
-                            className="rounded-lg max-h-96 w-full object-cover"
-                          />
-                        )}
-                        {post.media_type === "video" && (
-                          <video
-                            src={post.media_url}
-                            controls
-                            className="rounded-lg w-full"
-                          />
-                        )}
-                        {post.media_type === "audio" && (
-                          <audio src={post.media_url} controls className="w-full" />
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  currentUserId={session?.user?.id}
+                  onLike={handleLike}
+                />
               ))}
             </div>
           )}

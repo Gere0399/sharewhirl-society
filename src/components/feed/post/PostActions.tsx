@@ -1,6 +1,7 @@
 import { Heart, MessageSquare, Share2, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface PostActionsProps {
   postId: string;
@@ -9,6 +10,8 @@ interface PostActionsProps {
   isLiked: boolean;
   onLike: (postId: string) => void;
   onCommentClick: () => void;
+  onRepostClick: () => void;
+  isFullView?: boolean;
 }
 
 export function PostActions({ 
@@ -17,25 +20,30 @@ export function PostActions({
   commentsCount, 
   isLiked,
   onLike,
-  onCommentClick
+  onCommentClick,
+  onRepostClick,
+  isFullView
 }: PostActionsProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleShare = async () => {
-    try {
-      await navigator.clipboard.writeText(
-        `${window.location.origin}/post/${postId}`
-      );
-      toast({
-        title: "Link copied",
-        description: "Post link has been copied to clipboard",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to copy link",
-        variant: "destructive",
-      });
+    if (isFullView) {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "Link copied",
+          description: "Post link has been copied to clipboard",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to copy link",
+          variant: "destructive",
+        });
+      }
+    } else {
+      navigate(`/post/${postId}`);
     }
   };
 
@@ -60,14 +68,18 @@ export function PostActions({
         {commentsCount || 0}
       </Button>
       
-      <Button variant="ghost" size="sm">
+      <Button 
+        variant="ghost" 
+        size="sm"
+        onClick={onRepostClick}
+      >
         <Flag className="w-4 h-4 mr-1" />
         Repost
       </Button>
       
       <Button variant="ghost" size="sm" onClick={handleShare}>
         <Share2 className="w-4 h-4 mr-1" />
-        Share
+        {isFullView ? 'Copy Link' : 'Share'}
       </Button>
     </div>
   );

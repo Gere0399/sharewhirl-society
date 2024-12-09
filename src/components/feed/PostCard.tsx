@@ -15,20 +15,23 @@ import { PostHeader } from "./post/PostHeader";
 import { PostContent } from "./post/PostContent";
 import { PostMedia } from "./post/PostMedia";
 import { PostActions } from "./post/PostActions";
+import { CommentSection } from "./post/CommentSection";
 
 interface PostCardProps {
   post: any;
   currentUserId?: string;
   onLike: (postId: string) => void;
+  isFullView?: boolean;
 }
 
-export function PostCard({ post, currentUserId, onLike }: PostCardProps) {
+export function PostCard({ post, currentUserId, onLike, isFullView = false }: PostCardProps) {
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [isRepostOpen, setIsRepostOpen] = useState(false);
 
   const isLiked = post.likes?.some((like: any) => like.user_id === currentUserId);
 
   return (
-    <Card className="overflow-hidden border-none bg-transparent">
+    <Card className={`overflow-hidden border-none bg-transparent ${isFullView ? 'max-w-4xl mx-auto' : ''}`}>
       <CardHeader>
         <PostHeader 
           profile={post.profiles}
@@ -59,6 +62,8 @@ export function PostCard({ post, currentUserId, onLike }: PostCardProps) {
           isLiked={isLiked}
           onLike={onLike}
           onCommentClick={() => setIsCommentsOpen(true)}
+          onRepostClick={() => setIsRepostOpen(true)}
+          isFullView={isFullView}
         />
       </CardFooter>
 
@@ -67,11 +72,10 @@ export function PostCard({ post, currentUserId, onLike }: PostCardProps) {
           <DialogHeader>
             <DialogTitle>Comments</DialogTitle>
           </DialogHeader>
-          <div className="overflow-y-auto flex-1">
-            <p className="text-muted-foreground text-center py-8">
-              Comments feature coming soon
-            </p>
-          </div>
+          <CommentSection 
+            postId={post.id}
+            currentUserId={currentUserId}
+          />
         </DialogContent>
       </Dialog>
     </Card>

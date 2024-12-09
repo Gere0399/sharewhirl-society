@@ -8,6 +8,7 @@ import CreatePost from "./pages/CreatePost";
 import AuthCallback from "./components/auth/AuthCallback";
 import UpdatePassword from "./pages/UpdatePassword";
 import Profile from "./pages/Profile";
+import PostView from "./pages/PostView";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/update-password" element={<UpdatePassword />} />
           <Route path="/profile/:username" element={<Profile />} />
+          <Route path="/post/:postId" element={<PostView />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

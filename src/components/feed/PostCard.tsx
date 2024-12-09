@@ -32,65 +32,71 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
 
   const isLiked = post.likes?.some((like: any) => like.user_id === currentUserId);
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Don't navigate if we're already in full view or if clicking on a button/link
-    if (isFullView || e.target instanceof HTMLButtonElement || e.target instanceof HTMLAnchorElement) {
-      return;
+  const handleBackgroundClick = () => {
+    if (!isFullView) {
+      navigate(`/post/${post.id}`);
     }
-    navigate(`/post/${post.id}`);
   };
 
   return (
-    <Card 
-      className={`overflow-hidden border-none bg-transparent ${isFullView ? 'max-w-4xl mx-auto' : 'cursor-pointer'}`}
-      onClick={handleCardClick}
-    >
-      <CardHeader>
-        <PostHeader 
-          profile={post.profiles}
-          isAiGenerated={post.is_ai_generated}
-          repostedFromUsername={post.reposted_from_username}
+    <div className="relative">
+      {/* Clickable background overlay */}
+      {!isFullView && (
+        <div 
+          className="absolute inset-0 cursor-pointer z-0"
+          onClick={handleBackgroundClick}
         />
-      </CardHeader>
-
-      <CardContent className="px-0">
-        <PostContent 
-          title={post.title}
-          content={post.content}
-          tags={post.tags}
-        />
-        
-        <PostMedia 
-          mediaUrl={post.media_url}
-          mediaType={post.media_type}
-          title={post.title}
-        />
-      </CardContent>
-
-      <CardFooter className="flex justify-between px-0">
-        <PostActions 
-          postId={post.id}
-          likesCount={post.likes_count}
-          commentsCount={post.comments_count}
-          isLiked={isLiked}
-          onLike={onLike}
-          onCommentClick={() => setIsCommentsOpen(true)}
-          onRepostClick={() => setIsRepostOpen(true)}
-          isFullView={isFullView}
-        />
-      </CardFooter>
-
-      <Dialog open={isCommentsOpen} onOpenChange={setIsCommentsOpen}>
-        <DialogContent className="max-w-2xl h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>Comments</DialogTitle>
-          </DialogHeader>
-          <CommentSection 
-            postId={post.id}
-            currentUserId={currentUserId}
+      )}
+      
+      {/* Card content with higher z-index to prevent click propagation */}
+      <Card className={`overflow-hidden border-none bg-transparent relative z-10 ${isFullView ? 'max-w-4xl mx-auto' : ''}`}>
+        <CardHeader>
+          <PostHeader 
+            profile={post.profiles}
+            isAiGenerated={post.is_ai_generated}
+            repostedFromUsername={post.reposted_from_username}
           />
-        </DialogContent>
-      </Dialog>
-    </Card>
+        </CardHeader>
+
+        <CardContent className="px-0">
+          <PostContent 
+            title={post.title}
+            content={post.content}
+            tags={post.tags}
+          />
+          
+          <PostMedia 
+            mediaUrl={post.media_url}
+            mediaType={post.media_type}
+            title={post.title}
+          />
+        </CardContent>
+
+        <CardFooter className="flex justify-between px-0">
+          <PostActions 
+            postId={post.id}
+            likesCount={post.likes_count}
+            commentsCount={post.comments_count}
+            isLiked={isLiked}
+            onLike={onLike}
+            onCommentClick={() => setIsCommentsOpen(true)}
+            onRepostClick={() => setIsRepostOpen(true)}
+            isFullView={isFullView}
+          />
+        </CardFooter>
+
+        <Dialog open={isCommentsOpen} onOpenChange={setIsCommentsOpen}>
+          <DialogContent className="max-w-2xl h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>Comments</DialogTitle>
+            </DialogHeader>
+            <CommentSection 
+              postId={post.id}
+              currentUserId={currentUserId}
+            />
+          </DialogContent>
+        </Dialog>
+      </Card>
+    </div>
   );
 }

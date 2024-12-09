@@ -25,7 +25,6 @@ const Index = () => {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (_event === 'SIGNED_IN') {
-        // Check if profile exists for the user
         checkAndCreateProfile(session?.user?.id);
       }
     });
@@ -121,7 +120,7 @@ const Index = () => {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle className="text-2xl text-center">Welcome</CardTitle>
+            <CardTitle className="text-2xl text-center">Welcome to ShareWhirl</CardTitle>
           </CardHeader>
           <CardContent>
             <Auth
@@ -137,9 +136,6 @@ const Index = () => {
                   },
                 },
               }}
-              providers={["google"]}
-              theme="dark"
-              redirectTo={`${window.location.origin}/auth/callback`}
               localization={{
                 variables: {
                   sign_in: {
@@ -154,7 +150,7 @@ const Index = () => {
                   },
                   sign_up: {
                     email_input_placeholder: "Your email address",
-                    password_input_placeholder: "Create a password",
+                    password_input_placeholder: "Create a password (min 6 characters)",
                     email_label: "Email address",
                     password_label: "Create a password",
                     button_label: "Sign up",
@@ -163,6 +159,16 @@ const Index = () => {
                     link_text: "Don't have an account? Sign up",
                   },
                 },
+              }}
+              providers={["google"]}
+              redirectTo={`${window.location.origin}/auth/callback`}
+              onError={(error) => {
+                console.error("Auth error:", error);
+                toast({
+                  title: "Authentication Error",
+                  description: error.message,
+                  variant: "destructive",
+                });
               }}
             />
           </CardContent>

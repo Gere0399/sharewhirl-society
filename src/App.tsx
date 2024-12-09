@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import CreatePost from "./pages/CreatePost";
 import AuthCallback from "./components/auth/AuthCallback";
+import UpdatePassword from "./pages/UpdatePassword";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/create" element={<CreatePost />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/update-password" element={<UpdatePassword />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

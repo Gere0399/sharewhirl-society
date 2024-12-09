@@ -10,11 +10,11 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the access token from the URL
+        // Get the access token and type from the URL
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
         const type = hashParams.get('type');
-
+        
         if (accessToken) {
           const { error } = await supabase.auth.getSession();
           
@@ -25,13 +25,12 @@ const AuthCallback = () => {
               description: error.message,
               variant: "destructive",
             });
-            // Redirect to login page if there's an error
             navigate("/");
           } else {
             // Different messages based on the type of auth callback
             const messages = {
-              signup: "Email confirmed successfully!",
-              recovery: "Password reset successful!",
+              signup: "Email confirmed successfully! Welcome to ShareWhirl!",
+              recovery: "Password reset successful! You can now log in with your new password.",
               magiclink: "Logged in successfully!",
               default: "Authentication successful!"
             };
@@ -41,11 +40,15 @@ const AuthCallback = () => {
               description: messages[type] || messages.default,
             });
             
-            // Ensure we redirect to the feed page after a short delay
-            // This gives time for the session to be properly set
-            setTimeout(() => {
-              navigate("/");
-            }, 1000);
+            // If it's a password recovery, redirect to password change page
+            if (type === 'recovery') {
+              navigate("/update-password");
+            } else {
+              // For all other cases, redirect to the feed after a short delay
+              setTimeout(() => {
+                navigate("/");
+              }, 1000);
+            }
           }
         } else {
           // If no access token is found, redirect to the login page
@@ -58,7 +61,6 @@ const AuthCallback = () => {
           description: "An error occurred during authentication",
           variant: "destructive",
         });
-        // Redirect to login page if there's an error
         navigate("/");
       }
     };

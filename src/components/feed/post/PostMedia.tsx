@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 interface PostMediaProps {
   mediaUrl?: string;
   mediaType?: string;
@@ -7,6 +9,12 @@ interface PostMediaProps {
 export function PostMedia({ mediaUrl, mediaType, title }: PostMediaProps) {
   if (!mediaUrl) return null;
 
+  // Get the full URL from Supabase storage
+  const fullUrl = supabase.storage
+    .from('media')
+    .getPublicUrl(mediaUrl)
+    .data.publicUrl;
+
   const aspectRatioClass = "aspect-video";
 
   switch (mediaType) {
@@ -14,7 +22,7 @@ export function PostMedia({ mediaUrl, mediaType, title }: PostMediaProps) {
       return (
         <div className={`relative ${aspectRatioClass} rounded-lg overflow-hidden bg-muted`}>
           <img
-            src={mediaUrl}
+            src={fullUrl}
             alt={title}
             className="object-cover w-full h-full"
             loading="lazy"
@@ -25,7 +33,7 @@ export function PostMedia({ mediaUrl, mediaType, title }: PostMediaProps) {
       return (
         <div className={`relative ${aspectRatioClass} rounded-lg overflow-hidden bg-muted`}>
           <video
-            src={mediaUrl}
+            src={fullUrl}
             controls
             className="w-full h-full object-contain"
             preload="metadata"
@@ -36,7 +44,7 @@ export function PostMedia({ mediaUrl, mediaType, title }: PostMediaProps) {
       return (
         <div className="rounded-lg overflow-hidden bg-muted p-4">
           <audio
-            src={mediaUrl}
+            src={fullUrl}
             controls
             className="w-full"
             preload="metadata"

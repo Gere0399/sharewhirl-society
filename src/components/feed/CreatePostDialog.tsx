@@ -59,25 +59,6 @@ export function CreatePostDialog() {
     input.click();
   };
 
-  const createProfileIfNeeded = async (userId: string) => {
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    if (!existingProfile) {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: userId,
-          username: `user_${Math.random().toString(36).substring(2, 9)}`, // Generate a random username
-        });
-
-      if (profileError) throw profileError;
-    }
-  };
-
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) {
       toast({
@@ -91,14 +72,28 @@ export function CreatePostDialog() {
     try {
       setUploading(true);
       
+      // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         throw new Error("User not authenticated");
       }
 
-      // Ensure profile exists
-      await createProfileIfNeeded(user.id);
+      // Get the user's profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        throw new Error("Could not fetch user profile");
+      }
+
+      if (!profile) {
+        throw new Error("Profile not found");
+      }
 
       let mediaUrl = null;
       let mediaType = null;
@@ -123,17 +118,18 @@ export function CreatePostDialog() {
         mediaUrl = data.path;
       }
 
-      const { error } = await supabase.from("posts").insert({
+      // Create the post using the profile's user_id
+      const { error: postError } = await supabase.from("posts").insert({
         title,
         content,
         media_url: mediaUrl,
         media_type: mediaType,
-        user_id: user.id,
+        user_id: profile.user_id, // Use the profile's user_id
         tags,
         is_ai_generated: isAiGenerated
       });
 
-      if (error) throw error;
+      if (postError) throw postError;
 
       toast({
         title: "Success",

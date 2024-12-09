@@ -16,6 +16,7 @@ export const useProfileData = (username: string | undefined) => {
       if (error) throw error;
       if (!data) throw new Error("Profile not found");
       
+      console.log("Fetched profile data:", data);
       return data;
     },
     enabled: !!username,
@@ -26,7 +27,12 @@ export const useProfilePosts = (userId: string | undefined) => {
   return useQuery({
     queryKey: ["profilePosts", userId],
     queryFn: async () => {
-      if (!userId) throw new Error("User ID is required");
+      if (!userId) {
+        console.log("No userId provided to useProfilePosts");
+        throw new Error("User ID is required");
+      }
+      
+      console.log("Fetching posts for userId:", userId);
       
       const { data, error } = await supabase
         .from("posts")
@@ -50,13 +56,15 @@ export const useProfilePosts = (userId: string | undefined) => {
         throw error;
       }
 
+      console.log("Raw posts data:", data);
+
       // Add likes_count and format the data
       const formattedPosts = data?.map(post => ({
         ...post,
         likes_count: post.likes?.length || 0
       })) || [];
 
-      console.log("Fetched profile posts:", formattedPosts);
+      console.log("Formatted profile posts:", formattedPosts);
       return formattedPosts;
     },
     enabled: !!userId,

@@ -15,60 +15,53 @@ export default function Profile() {
   const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
 
   const { data: profile, isLoading: isProfileLoading } = useProfileData(username);
   const { data: posts = [], isLoading: isPostsLoading } = useProfilePosts(profile?.user_id);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-        setCurrentUser(profile);
-      } else {
-        navigate('/');
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+          setCurrentUser(profile);
+        }
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load user data",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSessionLoading(false);
       }
     };
 
-    fetchCurrentUser();
-  }, [navigate]);
-
-  const handleLike = async (postId: string) => {
-    if (!currentUser) return;
-
-    try {
-      const { data: existingLike } = await supabase
-        .from("likes")
-        .select()
-        .eq("post_id", postId)
-        .eq("user_id", currentUser.user_id)
-        .single();
-
-      if (existingLike) {
-        await supabase
-          .from("likes")
-          .delete()
-          .eq("post_id", postId)
-          .eq("user_id", currentUser.user_id);
-      } else {
-        await supabase
-          .from("likes")
-          .insert({ post_id: postId, user_id: currentUser.user_id });
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN') {
+        fetchCurrentUser();
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentUser(null);
+        navigate('/');
       }
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
+    });
 
-  if (isProfileLoading) {
+    fetchCurrentUser();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, toast]);
+
+  if (isSessionLoading || isProfileLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Sidebar />

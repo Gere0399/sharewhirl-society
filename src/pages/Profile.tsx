@@ -61,6 +61,37 @@ export default function Profile() {
     };
   }, [navigate, toast]);
 
+  const handleLike = async (postId: string) => {
+    if (!currentUser) return;
+
+    try {
+      const { data: existingLike } = await supabase
+        .from("likes")
+        .select()
+        .eq("post_id", postId)
+        .eq("user_id", currentUser.user_id)
+        .single();
+
+      if (existingLike) {
+        await supabase
+          .from("likes")
+          .delete()
+          .eq("post_id", postId)
+          .eq("user_id", currentUser.user_id);
+      } else {
+        await supabase
+          .from("likes")
+          .insert({ post_id: postId, user_id: currentUser.user_id });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isSessionLoading || isProfileLoading) {
     return (
       <div className="min-h-screen bg-background">

@@ -24,10 +24,55 @@ const Index = () => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (_event === 'SIGNED_IN') {
+        // Check if profile exists for the user
+        checkAndCreateProfile(session?.user?.id);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const checkAndCreateProfile = async (userId: string | undefined) => {
+    if (!userId) return;
+
+    try {
+      // Check if profile exists
+      const { data: profile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
+
+      // If no profile exists, create one
+      if (!profile) {
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: userId,
+            username: `user_${userId.substring(0, 6)}`,
+          });
+
+        if (insertError) throw insertError;
+
+        toast({
+          title: "Welcome!",
+          description: "Your profile has been created successfully.",
+        });
+      }
+    } catch (error) {
+      console.error('Error managing profile:', error);
+      toast({
+        title: "Error",
+        description: "There was an error setting up your profile. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     if (session) {
@@ -94,6 +139,30 @@ const Index = () => {
               }}
               providers={["google"]}
               theme="dark"
+              localization={{
+                variables: {
+                  sign_in: {
+                    email_input_placeholder: "Your email address",
+                    password_input_placeholder: "Your password",
+                    email_label: "Email address",
+                    password_label: "Password",
+                    button_label: "Sign in",
+                    loading_button_label: "Signing in ...",
+                    social_provider_text: "Sign in with {{provider}}",
+                    link_text: "Already have an account? Sign in",
+                  },
+                  sign_up: {
+                    email_input_placeholder: "Your email address",
+                    password_input_placeholder: "Create a password",
+                    email_label: "Email address",
+                    password_label: "Create a password",
+                    button_label: "Sign up",
+                    loading_button_label: "Signing up ...",
+                    social_provider_text: "Sign up with {{provider}}",
+                    link_text: "Don't have an account? Sign up",
+                  },
+                },
+              }}
             />
           </CardContent>
         </Card>

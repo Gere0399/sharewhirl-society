@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Upload } from "lucide-react";
+import { CommentInput } from "./comment/CommentInput";
+import { CommentList } from "./comment/CommentList";
 
 interface CommentSectionProps {
   postId: string;
@@ -14,9 +12,7 @@ interface CommentSectionProps {
 
 export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
   const [comments, setComments] = useState<any[]>([]);
-  const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -44,34 +40,11 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
     }
   };
 
-  const handleFileSelect = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*,audio/*";
-    input.onchange = (e) => {
-      const target = e.target as HTMLInputElement;
-      const selectedFile = target.files?.[0];
-      if (selectedFile) {
-        setFile(selectedFile);
-      }
-    };
-    input.click();
-  };
-
-  const handleSubmit = async () => {
+  const handleSubmit = async (content: string, file: File | null) => {
     if (!currentUserId) {
       toast({
         title: "Error",
         description: "You must be logged in to comment",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!newComment.trim() && !file) {
-      toast({
-        title: "Error",
-        description: "Please enter a comment or attach a file",
         variant: "destructive",
       });
       return;
@@ -101,7 +74,7 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
       }
 
       const { error } = await supabase.from("comments").insert({
-        content: newComment,
+        content,
         post_id: postId,
         user_id: currentUserId,
         media_url: mediaUrl,
@@ -110,8 +83,6 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
 
       if (error) throw error;
 
-      setNewComment("");
-      setFile(null);
       fetchComments();
       
       toast({
@@ -132,82 +103,9 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex gap-4 p-4 border-b">
-        <Textarea
-          placeholder="Write a comment..."
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          className="flex-1"
-        />
-        <div className="flex flex-col gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleFileSelect}
-            className="h-10 w-10"
-          >
-            <Upload className="h-4 w-4" />
-          </Button>
-          <Button 
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            Post
-          </Button>
-        </div>
-      </div>
-      
-      {file && (
-        <div className="px-4 py-2 text-sm text-muted-foreground">
-          Selected file: {file.name}
-        </div>
-      )}
-
+      <CommentInput onSubmit={handleSubmit} loading={loading} />
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
-          {comments.map((comment) => (
-            <div key={comment.id} className="flex gap-4">
-              <Avatar>
-                <AvatarImage src={comment.profiles?.avatar_url} />
-                <AvatarFallback>
-                  {comment.profiles?.username?.[0]?.toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="font-semibold">
-                  {comment.profiles?.username}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {comment.content}
-                </p>
-                {comment.media_url && (
-                  <div className="mt-2">
-                    {comment.media_type === "image" ? (
-                      <img
-                        src={supabase.storage
-                          .from("media")
-                          .getPublicUrl(comment.media_url).data.publicUrl}
-                        alt="Comment attachment"
-                        className="rounded-lg max-w-sm"
-                      />
-                    ) : comment.media_type === "audio" ? (
-                      <audio
-                        src={supabase.storage
-                          .from("media")
-                          .getPublicUrl(comment.media_url).data.publicUrl}
-                        controls
-                        className="w-full"
-                      />
-                    ) : null}
-                  </div>
-                )}
-                <div className="text-xs text-muted-foreground mt-1">
-                  {new Date(comment.created_at).toLocaleDateString()}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <CommentList comments={comments} />
       </ScrollArea>
     </div>
   );

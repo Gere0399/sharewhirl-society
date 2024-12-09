@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, ChevronDown, ChevronUp, ThumbsUp } from "lucide-react";
+import { MessageCircle, ChevronDown, ChevronUp, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CommentInput } from "./CommentInput";
 import { useToast } from "@/hooks/use-toast";
@@ -127,10 +127,10 @@ export function CommentList({ comments, currentUserId, onCommentSubmit }: Commen
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2"
+                className={`h-8 px-2 ${comment.is_liked ? 'text-red-500' : ''}`}
                 onClick={() => handleLikeComment(comment.id)}
               >
-                <ThumbsUp className={`h-4 w-4 mr-1 ${comment.is_liked ? 'fill-current' : ''}`} />
+                <Heart className={`h-4 w-4 mr-1 ${comment.is_liked ? 'fill-current' : ''}`} />
                 {comment.likes_count || 0}
               </Button>
               <Button
@@ -180,7 +180,7 @@ export function CommentList({ comments, currentUserId, onCommentSubmit }: Commen
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 overflow-y-auto max-h-[calc(100vh-20rem)]">
       {topLevelComments.map(comment => renderComment(comment))}
     </div>
   );

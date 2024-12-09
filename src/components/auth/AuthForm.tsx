@@ -71,14 +71,6 @@ export function AuthForm() {
             }}
             providers={["google"]}
             redirectTo={`${window.location.origin}/auth/callback`}
-            onAuthError={(error) => {
-              console.error("Auth error:", error);
-              toast({
-                title: "Authentication Error",
-                description: error.message,
-                variant: "destructive",
-              });
-            }}
           />
         </CardContent>
       </Card>

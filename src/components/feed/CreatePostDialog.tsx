@@ -59,6 +59,25 @@ export function CreatePostDialog() {
     input.click();
   };
 
+  const createProfileIfNeeded = async (userId: string) => {
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (!existingProfile) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: userId,
+          username: `user_${Math.random().toString(36).substring(2, 9)}`, // Generate a random username
+        });
+
+      if (profileError) throw profileError;
+    }
+  };
+
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) {
       toast({
@@ -78,16 +97,8 @@ export function CreatePostDialog() {
         throw new Error("User not authenticated");
       }
 
-      // First get the user's profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profileError || !profile) {
-        throw new Error("User profile not found");
-      }
+      // Ensure profile exists
+      await createProfileIfNeeded(user.id);
 
       let mediaUrl = null;
       let mediaType = null;
@@ -117,7 +128,7 @@ export function CreatePostDialog() {
         content,
         media_url: mediaUrl,
         media_type: mediaType,
-        user_id: profile.user_id, // Use the profile's user_id
+        user_id: user.id,
         tags,
         is_ai_generated: isAiGenerated
       });
@@ -136,6 +147,7 @@ export function CreatePostDialog() {
       setFile(null);
       setIsAiGenerated(false);
     } catch (error: any) {
+      console.error("Post creation error:", error);
       toast({
         title: "Error creating post",
         description: error.message,

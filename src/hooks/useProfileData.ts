@@ -38,7 +38,7 @@ export const useProfilePosts = (userId: string | undefined) => {
         .from("posts")
         .select(`
           *,
-          profiles (
+          profiles!posts_user_id_fkey (
             username,
             avatar_url,
             created_at,

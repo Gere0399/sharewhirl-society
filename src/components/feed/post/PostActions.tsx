@@ -27,7 +27,6 @@ export function PostActions({
 
   const handleShare = async () => {
     try {
-      // Get the current origin (e.g., http://localhost:3000)
       const origin = window.location.origin;
       const url = `${origin}/post/${postId}`;
       await navigator.clipboard.writeText(url);
@@ -44,12 +43,26 @@ export function PostActions({
     }
   };
 
+  const handleLike = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await onLike(postId);
+    } catch (error) {
+      console.error("Error liking post:", error);
+      toast({
+        title: "Error",
+        description: "Failed to like post",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="flex gap-4" onClick={(e) => e.stopPropagation()}>
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => onLike(postId)}
+        onClick={handleLike}
         className={isLiked ? "text-red-500" : ""}
       >
         <Heart className="w-4 h-4 mr-1" />

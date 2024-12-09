@@ -91,7 +91,6 @@ const Index = () => {
 
       const { data, error } = await query;
       console.log("Posts data:", data);
-      console.log("Posts error:", error);
 
       if (error) throw error;
       setPosts(data || []);
@@ -115,27 +114,37 @@ const Index = () => {
         throw new Error("User not authenticated");
       }
 
-      const { data: existingLike } = await supabase
+      const { data: existingLike, error: likeCheckError } = await supabase
         .from("likes")
-        .select()
+        .select("*")
         .eq("post_id", postId)
         .eq("user_id", user.id)
         .single();
 
+      if (likeCheckError && likeCheckError.code !== 'PGRST116') {
+        throw likeCheckError;
+      }
+
       if (existingLike) {
-        await supabase
+        const { error: deleteError } = await supabase
           .from("likes")
           .delete()
           .eq("post_id", postId)
           .eq("user_id", user.id);
+
+        if (deleteError) throw deleteError;
       } else {
-        await supabase
+        const { error: insertError } = await supabase
           .from("likes")
-          .insert({ post_id: postId, user_id: user.id });
+          .insert([{ post_id: postId, user_id: user.id }]);
+
+        if (insertError) throw insertError;
       }
 
-      fetchPosts();
+      // Refresh posts to update likes count
+      await fetchPosts();
     } catch (error: any) {
+      console.error("Error handling like:", error);
       toast({
         title: "Error",
         description: error.message,

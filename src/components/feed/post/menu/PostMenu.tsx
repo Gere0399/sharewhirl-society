@@ -40,6 +40,14 @@ export function PostMenu({
 
       if (notificationsError) throw notificationsError;
 
+      // Then, delete all comments associated with the post
+      const { error: commentsError } = await supabase
+        .from('comments')
+        .delete()
+        .eq('post_id', postId);
+
+      if (commentsError) throw commentsError;
+
       // Then, delete all likes associated with the post
       const { error: likesError } = await supabase
         .from('likes')

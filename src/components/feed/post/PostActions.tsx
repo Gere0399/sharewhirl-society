@@ -42,19 +42,23 @@ export function PostActions({
   };
 
   const handleCopyLink = async () => {
-    // Get the base URL from the environment or default to localhost in development
-    const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
-    const postUrl = `${baseUrl}/post/${postId}`;
-    
     try {
+      // Get the current window location and construct the absolute URL
+      const currentUrl = window.location.href;
+      // Get the base part of the URL (everything up to the path)
+      const baseUrl = currentUrl.split('/').slice(0, 3).join('/');
+      const postUrl = `${baseUrl}/post/${postId}`;
+      
+      console.log('Attempting to copy URL:', postUrl);
+      
       await navigator.clipboard.writeText(postUrl);
-      console.log('Copied URL:', postUrl); // Add logging to help debug
+      
       toast({
         title: "Link copied!",
         description: "The post link has been copied to your clipboard.",
       });
     } catch (err) {
-      console.error('Copy failed:', err); // Add error logging
+      console.error('Copy failed:', err);
       toast({
         title: "Failed to copy link",
         description: "Please try again.",

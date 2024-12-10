@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Link as LinkIcon, MoreVertical, Trash2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -105,9 +106,21 @@ export function PostActions({
         commentsCount={commentsCount}
         repostCount={repostCount}
         isLiked={isLiked}
-        onLike={onLike}
-        onComment={onCommentClick}
-        onRepost={onRepostClick}
+        onLike={(e: React.MouseEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onLike(postId);
+        }}
+        onComment={(e: React.MouseEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onCommentClick();
+        }}
+        onRepost={(e: React.MouseEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onRepostClick();
+        }}
       />
 
       <div className="ml-auto flex items-center gap-2">

@@ -45,7 +45,7 @@ export function PostMenu({
         .from('posts')
         .delete()
         .eq('id', postId)
-        .eq('reposted_from_id', 'is not', null);
+        .not('reposted_from_id', 'is', null);
 
       if (repostDeleteError) throw repostDeleteError;
 

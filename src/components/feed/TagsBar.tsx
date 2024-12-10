@@ -1,5 +1,13 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Plus, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface TagsBarProps {
   tags: string[];
@@ -8,6 +16,22 @@ interface TagsBarProps {
 }
 
 export function TagsBar({ tags, activeTag, onTagSelect }: TagsBarProps) {
+  const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  const handleTagSelect = (tag: string) => {
+    if (selectedTags.includes(tag)) {
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
+    } else {
+      setSelectedTags([...selectedTags, tag]);
+    }
+  };
+
+  const handleApplyTags = () => {
+    // Here you would implement the logic to filter posts by multiple tags
+    setIsTagDialogOpen(false);
+  };
+
   return (
     <div className="w-full border-b border-border/40 backdrop-blur-sm">
       <ScrollArea className="w-full whitespace-nowrap">
@@ -29,9 +53,44 @@ export function TagsBar({ tags, activeTag, onTagSelect }: TagsBarProps) {
               #{tag}
             </Button>
           ))}
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full"
+            onClick={() => setIsTagDialogOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
+
+      <Dialog open={isTagDialogOpen} onOpenChange={setIsTagDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Multiple Tags</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-2 py-4">
+            {tags.map((tag) => (
+              <Button
+                key={tag}
+                variant={selectedTags.includes(tag) ? "default" : "outline"}
+                onClick={() => handleTagSelect(tag)}
+                className="justify-between"
+              >
+                #{tag}
+                {selectedTags.includes(tag) && <X className="h-4 w-4 ml-2" />}
+              </Button>
+            ))}
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsTagDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleApplyTags}>Apply Tags</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

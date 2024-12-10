@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/hover-card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatDistanceToNow } from "date-fns";
 
 interface PostHeaderProps {
   profile: any;
@@ -14,6 +15,17 @@ interface PostHeaderProps {
 }
 
 export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: PostHeaderProps) {
+  const getTimeDisplay = (date: string) => {
+    const postDate = new Date(date);
+    const now = new Date();
+    const diffInHours = (now.getTime() - postDate.getTime()) / (1000 * 60 * 60);
+    
+    if (diffInHours <= 24) {
+      return formatDistanceToNow(postDate, { addSuffix: true });
+    }
+    return new Date(profile?.created_at).toLocaleDateString();
+  };
+
   return (
     <div className="flex flex-row items-center gap-4 px-0">
       <HoverCard>
@@ -26,7 +38,7 @@ export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: Pos
             <div className="flex flex-col">
               <span className="font-semibold">{profile?.username}</span>
               <span className="text-sm text-muted-foreground">
-                {new Date(profile?.created_at).toLocaleDateString()}
+                {getTimeDisplay(profile?.created_at)}
               </span>
             </div>
           </Link>

@@ -86,7 +86,16 @@ const Index = () => {
         .order("created_at", { ascending: false });
 
       if (activeTag !== "for you") {
-        query = query.contains("tags", [activeTag]);
+        // Enhanced tag filtering with similarity matching
+        query = query.or(`tags.cs.{${activeTag}},title.ilike.%${activeTag}%`);
+      } else {
+        // For You feed - implement personalized content logic
+        // This is a simple example - you might want to enhance this based on:
+        // - User's viewing history
+        // - Posts they've liked
+        // - Users they follow
+        // - Content engagement patterns
+        query = query.limit(20);
       }
 
       const { data, error } = await query;

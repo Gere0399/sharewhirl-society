@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -75,6 +75,13 @@ export function SearchBar() {
     enabled: search.length > 0
   });
 
+  // Keep popover open when typing
+  useEffect(() => {
+    if (search.length > 0) {
+      setOpen(true);
+    }
+  }, [search]);
+
   const handleSelect = (result: SearchResult) => {
     if (result.type === "profile") {
       navigate(`/profile/${result.username}`);
@@ -82,6 +89,7 @@ export function SearchBar() {
       navigate(`/post/${result.id}`);
     }
     setOpen(false);
+    setSearch("");
   };
 
   return (
@@ -93,10 +101,9 @@ export function SearchBar() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-[300px]"
-          onFocus={() => setOpen(true)}
         />
       </PopoverTrigger>
-      {open && search && (
+      {search && (
         <PopoverContent className="w-[300px] p-0" align="start">
           <Command>
             <CommandList>

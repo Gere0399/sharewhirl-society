@@ -46,6 +46,33 @@ export function PostActions({
   const { toast } = useToast();
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Post deleted",
+        description: "Your post has been successfully deleted",
+      });
+
+      onDeleteClick?.();
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete post",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleCopyLink = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -78,21 +105,9 @@ export function PostActions({
         commentsCount={commentsCount}
         repostCount={repostCount}
         isLiked={isLiked}
-        onLike={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onLike(postId);
-        }}
-        onComment={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onCommentClick();
-        }}
-        onRepost={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onRepostClick();
-        }}
+        onLike={onLike}
+        onComment={onCommentClick}
+        onRepost={onRepostClick}
       />
 
       <div className="ml-auto flex items-center gap-2">
@@ -122,11 +137,7 @@ export function PostActions({
             {isOwnPost ? (
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onDeleteClick?.();
-                }}
+                onClick={handleDelete}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete post

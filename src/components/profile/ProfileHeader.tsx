@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Edit, UserPlus, UserMinus } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,7 +15,51 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHeaderProps) {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [followersCount, setFollowersCount] = useState(profile?.followers_count || 0);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const checkIfFollowing = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('follows')
+        .select()
+        .eq('follower_id', user.id)
+        .eq('following_id', profile.user_id)
+        .single();
+
+      setIsFollowing(!!data);
+    };
+
+    checkIfFollowing();
+
+    // Subscribe to follows changes
+    const channel = supabase.channel('follows_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'follows',
+          filter: `following_id=eq.${profile.user_id}`,
+        },
+        (payload) => {
+          console.log('Follows change received:', payload);
+          if (payload.eventType === 'INSERT') {
+            setFollowersCount(prev => prev + 1);
+          } else if (payload.eventType === 'DELETE') {
+            setFollowersCount(prev => prev - 1);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [profile.user_id]);
 
   const handleFollow = async () => {
     setIsLoading(true);
@@ -36,6 +80,7 @@ export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHea
           .delete()
           .eq('follower_id', user.id)
           .eq('following_id', profile.user_id);
+        setIsFollowing(false);
       } else {
         await supabase
           .from('follows')
@@ -43,9 +88,9 @@ export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHea
             follower_id: user.id,
             following_id: profile.user_id,
           });
+        setIsFollowing(true);
       }
 
-      setIsFollowing(!isFollowing);
       toast({
         title: isFollowing ? "Unfollowed" : "Following",
         description: isFollowing ? `Unfollowed ${profile.username}` : `Now following ${profile.username}`,
@@ -100,7 +145,7 @@ export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHea
           </Avatar>
           <div className="text-center">
             <h1 className="text-2xl font-bold">{profile?.username}</h1>
-            <p className="text-muted-foreground mt-1">{profile?.followers_count || 0} followers</p>
+            <p className="text-muted-foreground mt-1">{followersCount} followers</p>
           </div>
         </div>
       </CardHeader>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -28,12 +28,13 @@ interface SearchResult {
   media_type?: string;
 }
 
-const MAX_RESULTS_PER_TYPE = 5; // Increased to 5 results per category
+const MAX_RESULTS_PER_TYPE = 5;
 
 export function SearchBar() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: searchResults = [], isLoading } = useQuery({
     queryKey: ["search", search],
@@ -79,6 +80,7 @@ export function SearchBar() {
   useEffect(() => {
     if (search.length > 0) {
       setOpen(true);
+      inputRef.current?.focus();
     }
   }, [search]);
 
@@ -96,11 +98,13 @@ export function SearchBar() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Input
+          ref={inputRef}
           type="text"
           placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-[300px]"
+          onFocus={() => setOpen(true)}
         />
       </PopoverTrigger>
       {search && (

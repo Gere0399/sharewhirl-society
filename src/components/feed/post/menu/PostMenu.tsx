@@ -32,7 +32,15 @@ export function PostMenu({
     e.stopPropagation();
     
     try {
-      // First, delete all likes associated with the post
+      // First, delete all notifications associated with the post
+      const { error: notificationsError } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('post_id', postId);
+
+      if (notificationsError) throw notificationsError;
+
+      // Then, delete all likes associated with the post
       const { error: likesError } = await supabase
         .from('likes')
         .delete()
@@ -40,7 +48,7 @@ export function PostMenu({
 
       if (likesError) throw likesError;
 
-      // Then delete the post itself
+      // Finally delete the post itself
       const { error: postError } = await supabase
         .from('posts')
         .delete()

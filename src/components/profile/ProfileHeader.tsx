@@ -20,17 +20,26 @@ export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHea
 
   useEffect(() => {
     const checkIfFollowing = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
 
-      const { data } = await supabase
-        .from('follows')
-        .select()
-        .eq('follower_id', user.id)
-        .eq('following_id', profile.user_id)
-        .single();
+        const { data, error } = await supabase
+          .from('follows')
+          .select('*')
+          .eq('follower_id', user.id)
+          .eq('following_id', profile.user_id)
+          .single();
 
-      setIsFollowing(!!data);
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error checking follow status:', error);
+          return;
+        }
+
+        setIsFollowing(!!data);
+      } catch (error) {
+        console.error('Error in checkIfFollowing:', error);
+      }
     };
 
     checkIfFollowing();
@@ -75,19 +84,23 @@ export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHea
       }
 
       if (isFollowing) {
-        await supabase
+        const { error: deleteError } = await supabase
           .from('follows')
           .delete()
           .eq('follower_id', user.id)
           .eq('following_id', profile.user_id);
+
+        if (deleteError) throw deleteError;
         setIsFollowing(false);
       } else {
-        await supabase
+        const { error: insertError } = await supabase
           .from('follows')
-          .insert({
+          .insert([{
             follower_id: user.id,
             following_id: profile.user_id,
-          });
+          }]);
+
+        if (insertError) throw insertError;
         setIsFollowing(true);
       }
 
@@ -96,6 +109,7 @@ export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHea
         description: isFollowing ? `Unfollowed ${profile.username}` : `Now following ${profile.username}`,
       });
     } catch (error: any) {
+      console.error('Error in handleFollow:', error);
       toast({
         title: "Error",
         description: error.message,

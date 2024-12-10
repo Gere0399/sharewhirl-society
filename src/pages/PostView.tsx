@@ -15,6 +15,7 @@ const PostView = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  // Get session data
   const { data: session } = useQuery({
     queryKey: ['session'],
     queryFn: async () => {
@@ -23,10 +24,13 @@ const PostView = () => {
     },
   });
 
-  const { data: post, isLoading } = useQuery({
+  // Fetch post data with error handling
+  const { data: post, isLoading, error } = useQuery({
     queryKey: ['post', postId],
     queryFn: async () => {
       if (!postId) throw new Error('Post ID is required');
+      
+      console.log('Fetching post with ID:', postId);
       
       const { data, error } = await supabase
         .from('posts')
@@ -48,8 +52,17 @@ const PostView = () => {
         .eq('id', postId)
         .single();
 
-      if (error) throw error;
-      if (!data) throw new Error('Post not found');
+      console.log('Post fetch result:', { data, error });
+
+      if (error) {
+        console.error('Error fetching post:', error);
+        throw error;
+      }
+      
+      if (!data) {
+        console.error('Post not found');
+        throw new Error('Post not found');
+      }
 
       return {
         ...data,
@@ -57,7 +70,7 @@ const PostView = () => {
         comments_count: data.comments?.length || 0
       };
     },
-    retry: false,
+    retry: 1,
   });
 
   // Add view mutation
@@ -118,6 +131,28 @@ const PostView = () => {
     }
   };
 
+  // Handle error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Sidebar />
+        <div className="ml-64">
+          <div className="flex flex-col items-center justify-center min-h-screen">
+            <p className="text-muted-foreground mb-4">Failed to load post</p>
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/')}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Go Home
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -131,13 +166,21 @@ const PostView = () => {
     );
   }
 
+  // Handle not found state
   if (!post) {
     return (
       <div className="min-h-screen bg-background">
         <Sidebar />
         <div className="ml-64">
-          <div className="flex justify-center items-center min-h-screen">
-            <p className="text-muted-foreground">Post not found</p>
+          <div className="flex flex-col items-center justify-center min-h-screen">
+            <p className="text-muted-foreground mb-4">Post not found</p>
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/')}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Go Home
+            </Button>
           </div>
         </div>
       </div>

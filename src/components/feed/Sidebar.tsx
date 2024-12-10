@@ -11,13 +11,33 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CreatePostDialog } from "./CreatePostDialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (data) {
+          setUsername(data.username);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -89,11 +109,11 @@ export function Sidebar() {
         </Button>
 
         <Button
-          variant={location.pathname === "/profile" ? "default" : "ghost"}
+          variant={location.pathname.startsWith("/profile") ? "default" : "ghost"}
           size="icon"
           asChild
         >
-          <Link to="/profile">
+          <Link to={username ? `/profile/${username}` : "#"}>
             <User className="h-5 w-5" />
             <span className="sr-only">Profile</span>
           </Link>

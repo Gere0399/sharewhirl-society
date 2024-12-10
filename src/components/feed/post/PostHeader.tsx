@@ -7,6 +7,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PostHeaderProps {
   profile: any;
@@ -15,6 +17,37 @@ interface PostHeaderProps {
 }
 
 export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: PostHeaderProps) {
+  const [followersCount, setFollowersCount] = useState(profile?.followers_count || 0);
+
+  useEffect(() => {
+    // Subscribe to follows changes
+    const channel = supabase.channel('follows_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'follows',
+          filter: `following_id=eq.${profile?.user_id}`,
+        },
+        (payload) => {
+          console.log('PostHeader - Follows change received:', payload);
+          if (payload.eventType === 'INSERT') {
+            console.log('PostHeader - Follow added, updating count from', followersCount, 'to', followersCount + 1);
+            setFollowersCount(prev => prev + 1);
+          } else if (payload.eventType === 'DELETE') {
+            console.log('PostHeader - Follow removed, updating count from', followersCount, 'to', followersCount - 1);
+            setFollowersCount(prev => prev - 1);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [profile?.user_id]);
+
   const getTimeDisplay = (date: string) => {
     const postDate = new Date(date);
     const now = new Date();
@@ -52,7 +85,7 @@ export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: Pos
             <h4 className="text-lg font-semibold">{profile?.username}</h4>
             <div className="text-sm text-muted-foreground">
               <p className="mb-2">{profile?.bio}</p>
-              <p>{profile?.followers_count || 0} followers</p>
+              <p>{followersCount} followers</p>
             </div>
           </div>
         </HoverCardContent>

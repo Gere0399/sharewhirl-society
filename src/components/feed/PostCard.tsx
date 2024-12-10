@@ -116,8 +116,8 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
 
   return (
     <Card className={`overflow-hidden border-none bg-transparent ${isFullView ? 'max-w-2xl mx-auto' : 'cursor-pointer'}`}>
-      <div onClick={handleNavigateToPost} ref={postRef}>
-        <CardHeader className="px-0 pt-0">
+      <div onClick={handleNavigateToPost} ref={postRef} className="space-y-2">
+        <CardHeader className="px-0 pt-0 pb-2">
           <PostHeader 
             profile={post.profiles}
             isAiGenerated={post.is_ai_generated}
@@ -132,7 +132,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
             tags={post.tags}
           />
           
-          <div className="post-media">
+          <div className="post-media -mx-4 sm:mx-0">
             <PostMedia 
               mediaUrl={post.media_url}
               mediaType={post.media_type}

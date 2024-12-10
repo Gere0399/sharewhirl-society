@@ -4,7 +4,6 @@ import { AuthForm } from "@/components/auth/AuthForm";
 import { Sidebar } from "@/components/feed/Sidebar";
 import { TagsBar } from "@/components/feed/TagsBar";
 import { PostCard } from "@/components/feed/PostCard";
-import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
 import { SearchBar } from "@/components/feed/SearchBar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader } from "lucide-react";
@@ -142,40 +141,43 @@ const Index = () => {
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
-      <main className="flex-1">
-        <header className="fixed top-0 right-0 left-0 z-10 border-b border-border/40 backdrop-blur-sm">
+      <main className="flex-1 ml-16">
+        <header className="fixed top-0 right-0 left-16 z-10 border-b border-border/40 backdrop-blur-sm">
           <div className="container mx-auto flex flex-col items-center justify-center gap-4 px-4 py-3">
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-bold">neoaistudios</h1>
               <SearchBar />
             </div>
-            <TagsBar
-              tags={userTags}
-              activeTag={activeTag}
-              onTagSelect={setActiveTag}
-              onTagRemove={handleRemoveTag}
-            />
+            <div className="w-full max-w-2xl">
+              <TagsBar
+                tags={userTags}
+                activeTag={activeTag}
+                onTagSelect={setActiveTag}
+                onTagRemove={handleRemoveTag}
+              />
+            </div>
           </div>
         </header>
 
         <div className="container mx-auto px-4 pt-32 pb-8">
-          {loading ? (
-            <div className="flex justify-center items-center min-h-[200px]">
-              <Loader className="h-6 w-6 animate-spin" />
-            </div>
-          ) : (
-            <div className="space-y-2 divide-y divide-border/40">
-              {posts.map((post) => (
-                <div key={post.id} className="pt-2 first:pt-0">
+          <div className="max-w-2xl mx-auto">
+            {loading ? (
+              <div className="flex justify-center items-center min-h-[200px]">
+                <Loader className="h-6 w-6 animate-spin" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {posts.map((post) => (
                   <PostCard
+                    key={post.id}
                     post={post}
                     currentUserId={session?.user?.id}
                     onLike={handleLike}
                   />
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </div>

@@ -1,12 +1,14 @@
-import { Home, Bell, User, Settings, LogOut, LogIn, Share2 } from "lucide-react";
+import { Home, Bell, User, Settings, LogOut, LogIn, Share2, Plus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { CreatePostDialog } from "./CreatePostDialog";
 
 export function Sidebar() {
   const [profile, setProfile] = useState<any>(null);
+  const [isPostDialogOpen, setIsPostDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -44,8 +46,8 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-16 flex flex-col items-center justify-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-r border-border/40">
-      <nav className="flex flex-col gap-4">
+    <aside className="fixed left-0 top-0 h-screen w-16 flex flex-col justify-between bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-r border-border/40 py-8">
+      <div className="flex flex-col items-center gap-4">
         <Button 
           variant="ghost" 
           size="icon"
@@ -74,7 +76,7 @@ export function Sidebar() {
           </Link>
         </Button>
 
-        {profile ? (
+        {profile && (
           <>
             <Button 
               variant="ghost" 
@@ -94,6 +96,18 @@ export function Sidebar() {
               variant="ghost" 
               size="icon"
               className="relative group"
+              onClick={() => setIsPostDialogOpen(true)}
+            >
+              <Plus className="h-5 w-5" />
+              <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-50">
+                New Post
+              </span>
+            </Button>
+
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="relative group"
               asChild
             >
               <Link to="/share">
@@ -103,7 +117,13 @@ export function Sidebar() {
                 </span>
               </Link>
             </Button>
+          </>
+        )}
+      </div>
 
+      <div className="flex flex-col items-center gap-4">
+        {profile ? (
+          <>
             <Button 
               variant="ghost" 
               size="icon"
@@ -145,7 +165,9 @@ export function Sidebar() {
             </Link>
           </Button>
         )}
-      </nav>
+      </div>
+
+      <CreatePostDialog open={isPostDialogOpen} onOpenChange={setIsPostDialogOpen} />
     </aside>
   );
 }

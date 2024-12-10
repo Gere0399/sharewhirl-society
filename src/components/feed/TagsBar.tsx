@@ -8,14 +8,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 
 interface TagsBarProps {
   tags: string[];
   activeTag: string;
   onTagSelect: (tag: string) => void;
+  onTagRemove: (tag: string) => void;
 }
 
-export function TagsBar({ tags, activeTag, onTagSelect }: TagsBarProps) {
+export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarProps) {
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
@@ -43,15 +45,28 @@ export function TagsBar({ tags, activeTag, onTagSelect }: TagsBarProps) {
           >
             For You
           </Button>
+          
+          <Separator orientation="vertical" className="h-8 mx-2" />
+          
           {tags.map((tag) => (
-            <Button
-              key={tag}
-              variant={activeTag === tag ? "default" : "ghost"}
-              onClick={() => onTagSelect(tag)}
-              className="rounded-full"
-            >
-              #{tag}
-            </Button>
+            <div key={tag} className="flex items-center">
+              <Button
+                variant={activeTag === tag ? "default" : "ghost"}
+                onClick={() => onTagSelect(tag)}
+                className="rounded-full group relative"
+              >
+                #{tag}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTagRemove(tag);
+                  }}
+                  className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Button>
+            </div>
           ))}
           <Button
             variant="outline"

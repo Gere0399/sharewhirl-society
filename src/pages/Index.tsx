@@ -13,6 +13,7 @@ const Index = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState("for you");
+  const [userTags, setUserTags] = useState<string[]>([]);
   const [popularTags, setPopularTags] = useState<string[]>([]);
   const { toast } = useToast();
 
@@ -36,6 +37,13 @@ const Index = () => {
       fetchPopularTags();
     }
   }, [session, activeTag]);
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setUserTags(userTags.filter(tag => tag !== tagToRemove));
+    if (activeTag === tagToRemove) {
+      setActiveTag("for you");
+    }
+  };
 
   const fetchPopularTags = async () => {
     try {
@@ -176,9 +184,10 @@ const Index = () => {
             <CreatePostDialog />
           </div>
           <TagsBar
-            tags={popularTags}
+            tags={userTags}
             activeTag={activeTag}
             onTagSelect={setActiveTag}
+            onTagRemove={handleRemoveTag}
           />
         </header>
 

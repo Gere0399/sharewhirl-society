@@ -9,6 +9,7 @@ import AuthCallback from "./components/auth/AuthCallback";
 import UpdatePassword from "./pages/UpdatePassword";
 import Profile from "./pages/Profile";
 import PostView from "./pages/PostView";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/update-password" element={<UpdatePassword />} />
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/post/:postId" element={<PostView />} />
+          <Route path="/notifications" element={<Notifications />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

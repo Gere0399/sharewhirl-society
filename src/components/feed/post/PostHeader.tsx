@@ -20,14 +20,12 @@ export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: Pos
   const [followersCount, setFollowersCount] = useState(0);
 
   useEffect(() => {
-    // Initialize followers count from profile
     if (profile?.followers_count !== undefined) {
       setFollowersCount(profile.followers_count);
     }
 
     if (!profile?.user_id) return;
 
-    // Subscribe to follows changes
     const channel = supabase.channel(`follows_changes_${profile.user_id}`)
       .on(
         'postgres_changes',

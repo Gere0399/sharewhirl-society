@@ -74,7 +74,6 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
   const handleNavigateToPost = (e: React.MouseEvent) => {
     if (isFullView) return;
     
-    // Don't navigate if clicking on these elements
     const clickedElement = e.target as HTMLElement;
     const isClickingMedia = clickedElement.closest('.post-media');
     const isClickingButton = clickedElement.closest('button');

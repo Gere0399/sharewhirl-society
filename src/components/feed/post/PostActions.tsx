@@ -1,14 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Heart,
-  MessageCircle,
-  Link as LinkIcon,
-  Eye,
-  Repeat,
-  MoreVertical,
-  Trash2,
-} from "lucide-react";
+import { Link as LinkIcon, MoreVertical, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +9,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 import { ReportPostDialog } from "./ReportPostDialog";
+import { PostStats } from "./PostStats";
+import { PostActionButtons } from "./PostActionButtons";
 
 interface PostActionsProps {
   postId: string;
@@ -52,10 +46,6 @@ export function PostActions({
   const { toast } = useToast();
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
-  const handleLike = () => {
-    onLike(postId);
-  };
-
   const handleCopyLink = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -80,59 +70,30 @@ export function PostActions({
   };
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-1 text-muted-foreground">
-          <Eye className="h-4 w-4" />
-          <span className="text-sm">{viewsCount}</span>
-        </div>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className="group"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            handleLike();
-          }}
-        >
-          <Heart
-            className={`mr-1 h-4 w-4 ${
-              isLiked ? "fill-current text-red-500" : ""
-            }`}
-          />
-          <span className="text-sm">{likesCount}</span>
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className="group"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onCommentClick();
-          }}
-        >
-          <MessageCircle className="mr-1 h-4 w-4" />
-          <span className="text-sm">{commentsCount}</span>
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className="group"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onRepostClick();
-          }}
-        >
-          <Repeat className="mr-1 h-4 w-4" />
-          <span className="text-sm">{repostCount}</span>
-        </Button>
-      </div>
+    <div className="flex items-center gap-2">
+      <PostStats viewsCount={viewsCount} />
+      
+      <PostActionButtons
+        likesCount={likesCount}
+        commentsCount={commentsCount}
+        repostCount={repostCount}
+        isLiked={isLiked}
+        onLike={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onLike(postId);
+        }}
+        onComment={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onCommentClick();
+        }}
+        onRepost={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onRepostClick();
+        }}
+      />
 
       <div className="ml-auto flex items-center gap-2">
         <Button

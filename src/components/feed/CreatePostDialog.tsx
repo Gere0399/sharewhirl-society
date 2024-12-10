@@ -5,15 +5,16 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CreatePostForm } from "./post/create/CreatePostForm";
 
-export function CreatePostDialog() {
-  const [isOpen, setIsOpen] = useState(false);
+interface CreatePostDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function CreatePostDialog({ isOpen, onOpenChange }: CreatePostDialogProps) {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
@@ -95,7 +96,7 @@ export function CreatePostDialog() {
         description: "Post created successfully",
       });
       
-      setIsOpen(false);
+      onOpenChange(false);
     } catch (error: any) {
       console.error("Post creation error:", error);
       toast({
@@ -109,13 +110,7 @@ export function CreatePostDialog() {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="w-4 h-4" />
-          New Post
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Create New Post</DialogTitle>

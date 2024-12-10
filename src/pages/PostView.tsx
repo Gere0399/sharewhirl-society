@@ -2,14 +2,22 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Sidebar } from "@/components/feed/Sidebar";
 import { PostCard } from "@/components/feed/PostCard";
-import { CommentSection } from "@/components/feed/post/comment/CommentSection";
+import { CommentSection } from "@/components/feed/post/CommentSection";
 import { Loader } from "lucide-react";
+import { usePostActions } from "@/hooks/usePostActions";
 
 const PostView = () => {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const session = supabase.auth.session();
+  const [session, setSession] = useState(null);
+  const { handleLike } = usePostActions();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+  }, []);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -66,7 +74,7 @@ const PostView = () => {
                   isFullView
                 />
                 <CommentSection
-                  post={post}
+                  postId={post.id}
                   currentUserId={session?.user?.id}
                 />
               </>

@@ -28,7 +28,7 @@ export function EditProfileDialog({
 }: EditProfileDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    full_name: profile?.full_name || "",
+    username: profile?.username || "",
     bio: profile?.bio || "",
     avatar_url: profile?.avatar_url || "",
   });
@@ -39,10 +39,27 @@ export function EditProfileDialog({
     setIsLoading(true);
 
     try {
+      // Check if username is already taken
+      const { data: existingUser } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("username", formData.username)
+        .neq("user_id", profile.user_id)
+        .single();
+
+      if (existingUser) {
+        toast({
+          title: "Username taken",
+          description: "This username is already taken. Please choose another one.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from("profiles")
         .update({
-          full_name: formData.full_name,
+          username: formData.username,
           bio: formData.bio,
           avatar_url: formData.avatar_url,
           updated_at: new Date().toISOString(),
@@ -59,6 +76,7 @@ export function EditProfileDialog({
       });
 
       onProfileUpdate(data);
+      onOpenChange(false);
     } catch (error: any) {
       toast({
         title: "Error updating profile",
@@ -108,7 +126,7 @@ export function EditProfileDialog({
           <div className="flex flex-col items-center gap-4">
             <Avatar className="h-24 w-24">
               <AvatarImage src={formData.avatar_url} />
-              <AvatarFallback>{profile?.username?.[0]?.toUpperCase()}</AvatarFallback>
+              <AvatarFallback>{formData.username?.[0]?.toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="flex items-center gap-2">
               <Input
@@ -121,12 +139,12 @@ export function EditProfileDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="full_name">Full Name</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
-              id="full_name"
-              value={formData.full_name}
+              id="username"
+              value={formData.username}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, full_name: e.target.value }))
+                setFormData((prev) => ({ ...prev, username: e.target.value }))
               }
             />
           </div>

@@ -8,6 +8,7 @@ import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
 import { SearchBar } from "@/components/feed/SearchBar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const [session, setSession] = useState(null);

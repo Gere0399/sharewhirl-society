@@ -32,13 +32,22 @@ export function PostMenu({
     e.stopPropagation();
     
     try {
-      // First, delete all reposts of this post
+      // First, delete all reposts that reference this post
       const { error: repostsError } = await supabase
         .from('posts')
         .delete()
         .eq('reposted_from_id', postId);
 
       if (repostsError) throw repostsError;
+
+      // Delete all reposts made by this post
+      const { error: repostDeleteError } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postId)
+        .eq('reposted_from_id', 'is not', null);
+
+      if (repostDeleteError) throw repostDeleteError;
 
       // Delete post views
       const { error: viewsError } = await supabase

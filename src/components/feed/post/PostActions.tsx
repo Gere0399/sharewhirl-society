@@ -3,38 +3,54 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Heart,
   MessageCircle,
-  Share2,
   Link as LinkIcon,
   Eye,
-  Repeat
+  Repeat,
+  MoreVertical,
+  Trash2,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import { ReportPostDialog } from "./ReportPostDialog";
 
 interface PostActionsProps {
   postId: string;
+  postTitle: string;
   likesCount: number;
   commentsCount: number;
   viewsCount?: number;
   repostCount?: number;
   isLiked?: boolean;
+  isOwnPost?: boolean;
   onLike: (postId: string) => void;
   onCommentClick: () => void;
   onRepostClick: () => void;
+  onDeleteClick?: () => void;
   isFullView?: boolean;
 }
 
 export function PostActions({
   postId,
+  postTitle,
   likesCount,
   commentsCount,
   viewsCount = 0,
   repostCount = 0,
   isLiked,
+  isOwnPost,
   onLike,
   onCommentClick,
   onRepostClick,
+  onDeleteClick,
   isFullView = false,
 }: PostActionsProps) {
   const { toast } = useToast();
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
 
   const handleLike = () => {
     onLike(postId);
@@ -42,16 +58,8 @@ export function PostActions({
 
   const handleCopyLink = async () => {
     try {
-      // Get the base URL from window.location.origin
       const baseUrl = window.location.origin;
       const postUrl = `${baseUrl}/post/${postId}`;
-      
-      console.log('Copy link debug:', {
-        baseUrl,
-        postUrl,
-        postId,
-        windowLocation: window.location,
-      });
       
       await navigator.clipboard.writeText(postUrl);
       
@@ -71,55 +79,89 @@ export function PostActions({
 
   return (
     <div className="flex items-center gap-4">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="group"
-        onClick={handleLike}
-      >
-        <Heart
-          className={`mr-1 h-4 w-4 ${
-            isLiked ? "fill-current text-red-500" : ""
-          }`}
-        />
-        <span className="text-sm">{likesCount}</span>
-      </Button>
+      <div className="flex items-center gap-4 flex-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="group"
+          onClick={handleLike}
+        >
+          <Heart
+            className={`mr-1 h-4 w-4 ${
+              isLiked ? "fill-current text-red-500" : ""
+            }`}
+          />
+          <span className="text-sm">{likesCount}</span>
+        </Button>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        className="group"
-        onClick={onCommentClick}
-      >
-        <MessageCircle className="mr-1 h-4 w-4" />
-        <span className="text-sm">{commentsCount}</span>
-      </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="group"
+          onClick={onCommentClick}
+        >
+          <MessageCircle className="mr-1 h-4 w-4" />
+          <span className="text-sm">{commentsCount}</span>
+        </Button>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        className="group"
-        onClick={onRepostClick}
-      >
-        <Repeat className="mr-1 h-4 w-4" />
-        <span className="text-sm">{repostCount}</span>
-      </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="group"
+          onClick={onRepostClick}
+        >
+          <Repeat className="mr-1 h-4 w-4" />
+          <span className="text-sm">{repostCount}</span>
+        </Button>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        className="group"
-        onClick={handleCopyLink}
-      >
-        <LinkIcon className="mr-1 h-4 w-4" />
-      </Button>
+        {!isFullView && (
+          <div className="flex items-center gap-1 text-muted-foreground">
+            <Eye className="h-4 w-4" />
+            <span className="text-sm">{viewsCount}</span>
+          </div>
+        )}
+      </div>
 
-      {!isFullView && (
-        <div className="flex items-center gap-1 ml-auto text-muted-foreground">
-          <Eye className="h-4 w-4" />
-          <span className="text-sm">{viewsCount}</span>
-        </div>
-      )}
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="group"
+          onClick={handleCopyLink}
+        >
+          <LinkIcon className="h-4 w-4" />
+        </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {isOwnPost ? (
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={onDeleteClick}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete post
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={() => setIsReportDialogOpen(true)}>
+                Report post
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <ReportPostDialog
+        isOpen={isReportDialogOpen}
+        onClose={() => setIsReportDialogOpen(false)}
+        postId={postId}
+        postTitle={postTitle}
+      />
     </div>
   );
 }

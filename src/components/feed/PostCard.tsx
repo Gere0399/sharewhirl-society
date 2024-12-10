@@ -12,6 +12,8 @@ import { PostMedia } from "./post/PostMedia";
 import { PostActions } from "./post/PostActions";
 import { trackPostView } from "@/utils/viewTracking";
 import { RepostDialog } from "./post/RepostDialog";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PostCardProps {
   post: any;
@@ -27,6 +29,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
   const navigate = useNavigate();
   const location = useLocation();
   const viewTimeoutRef = useRef<NodeJS.Timeout>();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!postRef.current || hasBeenViewed || !currentUserId) return;
@@ -85,6 +88,32 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', post.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Post deleted",
+        description: "Your post has been successfully deleted",
+      });
+
+      if (isFullView) {
+        navigate('/');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to delete post",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card className={`overflow-hidden border-none bg-transparent ${isFullView ? 'max-w-4xl mx-auto' : 'cursor-pointer'}`}>
       <div onClick={handleNavigateToPost} ref={postRef}>
@@ -103,23 +132,37 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
             tags={post.tags}
           />
           
-          <div className="post-media">
-            <PostMedia 
-              mediaUrl={post.media_url}
-              mediaType={post.media_type}
-              title={post.title}
-            />
-          </div>
+          {!isFullView && (
+            <div className="post-media">
+              <PostMedia 
+                mediaUrl={post.media_url}
+                mediaType={post.media_type}
+                title={post.title}
+              />
+            </div>
+          )}
         </CardContent>
 
         <CardFooter className="flex justify-between px-0">
+          {isFullView && (
+            <div className="post-media mb-4 w-full">
+              <PostMedia 
+                mediaUrl={post.media_url}
+                mediaType={post.media_type}
+                title={post.title}
+              />
+            </div>
+          )}
+          
           <PostActions 
             postId={post.id}
+            postTitle={post.title}
             likesCount={post.likes_count}
             commentsCount={post.comments_count}
             viewsCount={post.views_count}
             repostCount={post.repost_count}
             isLiked={post.likes?.some((like: any) => like.user_id === currentUserId)}
+            isOwnPost={post.user_id === currentUserId}
             onLike={onLike}
             onCommentClick={() => {
               if (!isFullView) {
@@ -127,6 +170,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
               }
             }}
             onRepostClick={() => setIsRepostOpen(true)}
+            onDeleteClick={handleDelete}
             isFullView={isFullView}
           />
         </CardFooter>

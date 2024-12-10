@@ -1,17 +1,14 @@
-import { Home, Bell, User, Settings, LogOut, LogIn, Menu } from "lucide-react";
+import { Home, Bell, User, Settings, LogOut, LogIn, Share2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export function Sidebar() {
   const [profile, setProfile] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchProfile();
@@ -46,78 +43,109 @@ export function Sidebar() {
     }
   };
 
-  const SidebarContent = () => (
-    <nav className="space-y-2">
-      <Button variant="ghost" className="w-full justify-start" asChild>
-        <Link to="/">
-          <Home className="mr-2 h-4 w-4" />
-          Home
-        </Link>
-      </Button>
-      <Button variant="ghost" className="w-full justify-start" asChild>
-        <Link to="/notifications">
-          <Bell className="mr-2 h-4 w-4" />
-          Notifications
-        </Link>
-      </Button>
-      {profile ? (
-        <>
-          <Button variant="ghost" className="w-full justify-start" asChild>
-            <Link to={`/profile/${profile.username}`}>
-              <User className="mr-2 h-4 w-4" />
-              Profile
-            </Link>
-          </Button>
-          <Button variant="ghost" className="w-full justify-start" asChild>
-            <Link to="/settings">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Link>
-          </Button>
-          <Button 
-            variant="ghost" 
-            className="w-full justify-start text-destructive hover:text-destructive"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
-        </>
-      ) : (
-        <Button variant="ghost" className="w-full justify-start" asChild>
+  return (
+    <aside className="fixed left-0 top-0 h-screen flex flex-col items-center justify-center gap-4 px-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <nav className="space-y-2">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="relative group w-12 h-12"
+          asChild
+        >
           <Link to="/">
-            <LogIn className="mr-2 h-4 w-4" />
-            Login
+            <Home className="h-5 w-5" />
+            <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+              Home
+            </span>
           </Link>
         </Button>
-      )}
-    </nav>
-  );
 
-  if (isMobile) {
-    return (
-      <Sheet>
-        <SheetTrigger asChild>
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="relative group w-12 h-12"
+          asChild
+        >
+          <Link to="/notifications">
+            <Bell className="h-5 w-5" />
+            <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+              Notifications
+            </span>
+          </Link>
+        </Button>
+
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="relative group w-12 h-12"
+          asChild
+        >
+          <Link to="/share">
+            <Share2 className="h-5 w-5" />
+            <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+              Share
+            </span>
+          </Link>
+        </Button>
+
+        {profile ? (
+          <>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="relative group w-12 h-12"
+              asChild
+            >
+              <Link to={`/profile/${profile.username}`}>
+                <User className="h-5 w-5" />
+                <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+                  Profile
+                </span>
+              </Link>
+            </Button>
+
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="relative group w-12 h-12"
+              asChild
+            >
+              <Link to="/settings">
+                <Settings className="h-5 w-5" />
+                <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+                  Settings
+                </span>
+              </Link>
+            </Button>
+
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="relative group w-12 h-12 text-destructive hover:text-destructive"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+                Logout
+              </span>
+            </Button>
+          </>
+        ) : (
           <Button 
             variant="ghost" 
             size="icon"
-            className="fixed top-4 left-4 z-50"
+            className="relative group w-12 h-12"
+            asChild
           >
-            <Menu className="h-5 w-5" />
+            <Link to="/">
+              <LogIn className="h-5 w-5" />
+              <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+                Login
+              </span>
+            </Link>
           </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-64">
-          <div className="py-4">
-            <SidebarContent />
-          </div>
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
-  return (
-    <aside className="w-64 border-r border-border/5 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 h-screen fixed left-0 top-0 p-4">
-      <SidebarContent />
+        )}
+      </nav>
     </aside>
   );
 }

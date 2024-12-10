@@ -15,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface SearchResult {
   type: "profile" | "post";
@@ -23,9 +24,11 @@ interface SearchResult {
   username?: string;
   avatar_url?: string;
   content?: string;
+  media_url?: string;
+  media_type?: string;
 }
 
-const MAX_RESULTS_PER_TYPE = 3; // Limit results to 3 per category
+const MAX_RESULTS_PER_TYPE = 5; // Increased to 5 results per category
 
 export function SearchBar() {
   const [open, setOpen] = useState(false);
@@ -45,7 +48,7 @@ export function SearchBar() {
           .limit(MAX_RESULTS_PER_TYPE),
         supabase
           .from("posts")
-          .select("id, title, content")
+          .select("id, title, content, media_url, media_type")
           .or(`title.ilike.%${search}%,content.ilike.%${search}%,tags.cs.{${search}}`)
           .order('created_at', { ascending: false })
           .limit(MAX_RESULTS_PER_TYPE)
@@ -62,7 +65,9 @@ export function SearchBar() {
         type: "post",
         id: post.id,
         title: post.title,
-        content: post.content?.substring(0, 50) + (post.content?.length > 50 ? "..." : "")
+        content: post.content?.substring(0, 50) + (post.content?.length > 50 ? "..." : ""),
+        media_url: post.media_url,
+        media_type: post.media_type
       }));
 
       return [...profiles, ...posts];
@@ -105,9 +110,15 @@ export function SearchBar() {
                         <CommandItem
                           key={result.id}
                           onSelect={() => handleSelect(result)}
-                          className="flex items-center gap-2"
+                          className="flex items-center gap-2 p-2"
                         >
-                          {result.username}
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={result.avatar_url} />
+                            <AvatarFallback>
+                              {result.username?.[0]?.toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{result.username}</span>
                         </CommandItem>
                       ))}
                   </CommandGroup>
@@ -118,8 +129,17 @@ export function SearchBar() {
                         <CommandItem
                           key={result.id}
                           onSelect={() => handleSelect(result)}
+                          className="flex flex-col items-start gap-1 p-2"
                         >
-                          {result.title}
+                          <span className="font-medium">{result.title}</span>
+                          {result.media_url && result.media_type === 'image' && (
+                            <img 
+                              src={supabase.storage.from('media').getPublicUrl(result.media_url).data.publicUrl} 
+                              alt={result.title}
+                              className="h-12 w-12 object-cover rounded"
+                            />
+                          )}
+                          <span className="text-sm text-muted-foreground">{result.content}</span>
                         </CommandItem>
                       ))}
                   </CommandGroup>

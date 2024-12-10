@@ -142,14 +142,14 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Sidebar />
-      <main className={`${isMobile ? 'ml-0' : 'ml-64'}`}>
-        <header className={`border-b border-border/40 backdrop-blur-sm fixed top-0 right-0 ${isMobile ? 'left-0' : 'left-64'} z-10`}>
+      <main className="ml-16">
+        <header className="border-b border-border/40 backdrop-blur-sm fixed top-0 right-0 left-16 z-10">
           <div className="container mx-auto px-4 py-3 flex justify-between items-center gap-4">
-            <h1 className="text-xl font-bold">ShareWhirl</h1>
-            <div className="flex items-center gap-4 flex-1 justify-end">
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl font-bold">ShareWhirl</h1>
               <SearchBar />
-              <CreatePostDialog />
             </div>
+            <CreatePostDialog />
           </div>
           <TagsBar
             tags={userTags}

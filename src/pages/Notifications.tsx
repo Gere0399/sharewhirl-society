@@ -56,7 +56,8 @@ const Notifications = () => {
             updated_at
           )
         `)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .returns<NotificationWithProfiles[]>();
 
       if (error) {
         console.error("Error fetching notifications:", error);
@@ -69,7 +70,7 @@ const Notifications = () => {
       }
 
       console.log("Fetched notifications:", data);
-      return data as NotificationWithProfiles[];
+      return data;
     },
     enabled: !!session,
   });

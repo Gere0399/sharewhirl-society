@@ -79,7 +79,12 @@ export function PostActions({
 
   return (
     <div className="flex items-center gap-4">
-      <div className="flex items-center gap-4 flex-1">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1 text-muted-foreground">
+          <Eye className="h-4 w-4" />
+          <span className="text-sm">{viewsCount}</span>
+        </div>
+
         <Button
           variant="ghost"
           size="sm"
@@ -113,16 +118,9 @@ export function PostActions({
           <Repeat className="mr-1 h-4 w-4" />
           <span className="text-sm">{repostCount}</span>
         </Button>
-
-        {!isFullView && (
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Eye className="h-4 w-4" />
-            <span className="text-sm">{viewsCount}</span>
-          </div>
-        )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="ml-auto flex items-center gap-2">
         <Button
           variant="ghost"
           size="sm"

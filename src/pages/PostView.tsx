@@ -1,19 +1,19 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PostCard } from "@/components/feed/PostCard";
 import { CommentSection } from "@/components/feed/post/CommentSection";
 import { Loader, ArrowLeft } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/feed/Sidebar";
-import { useEffect } from "react";
+import { PostViewError } from "@/components/post/PostViewError";
+import { PostViewLoading } from "@/components/post/PostViewLoading";
+import { usePostActions } from "@/hooks/usePostActions";
 
 const PostView = () => {
   const { postId } = useParams();
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const { handleLike } = usePostActions();
 
   // Get session data
   const { data: session } = useQuery({
@@ -24,14 +24,11 @@ const PostView = () => {
     },
   });
 
-  // Fetch post data with error handling and retries
+  // Fetch post data
   const { data: post, isLoading, error } = useQuery({
     queryKey: ['post', postId],
     queryFn: async () => {
       if (!postId) throw new Error('Post ID is required');
-      
-      console.log('Fetching post with ID:', postId);
-      console.log('Current URL:', window.location.href);
       
       const { data, error } = await supabase
         .from('posts')
@@ -53,17 +50,8 @@ const PostView = () => {
         .eq('id', postId)
         .single();
 
-      console.log('Post fetch result:', { data, error });
-
-      if (error) {
-        console.error('Error fetching post:', error);
-        throw error;
-      }
-      
-      if (!data) {
-        console.error('Post not found');
-        throw new Error('Post not found');
-      }
+      if (error) throw error;
+      if (!data) throw new Error('Post not found');
 
       return {
         ...data,
@@ -75,118 +63,19 @@ const PostView = () => {
     retryDelay: 1000,
   });
 
-  // Add view mutation
-  const addView = useMutation({
-    mutationFn: async () => {
-      if (!session?.user?.id || !postId) return;
-      
-      const { error } = await supabase
-        .from('post_views')
-        .insert({ post_id: postId, user_id: session.user.id })
-        .select()
-        .single();
-
-      if (error && error.code !== '23505') { // Ignore unique violation errors
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['post', postId] });
-    },
-  });
-
-  // Add view when post is loaded
-  useEffect(() => {
-    if (session?.user?.id && postId) {
-      addView.mutate();
-    }
-  }, [session?.user?.id, postId]);
-
-  const handleLike = async (postId: string) => {
-    try {
-      const { data: existingLike } = await supabase
-        .from('likes')
-        .select()
-        .eq('post_id', postId)
-        .eq('user_id', session?.user.id)
-        .single();
-
-      if (existingLike) {
-        await supabase
-          .from('likes')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', session?.user.id);
-      } else {
-        await supabase
-          .from('likes')
-          .insert({ post_id: postId, user_id: session?.user.id });
-      }
-
-      queryClient.invalidateQueries({ queryKey: ['post', postId] });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   // Handle error state
   if (error) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Sidebar />
-        <div className="ml-64">
-          <div className="flex flex-col items-center justify-center min-h-screen">
-            <p className="text-muted-foreground mb-4">Failed to load post</p>
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/')}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Go Home
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return <PostViewError onGoHome={() => navigate('/')} />;
   }
 
   // Handle loading state
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Sidebar />
-        <div className="ml-64">
-          <div className="flex justify-center items-center min-h-screen">
-            <Loader className="h-6 w-6 animate-spin" />
-          </div>
-        </div>
-      </div>
-    );
+    return <PostViewLoading />;
   }
 
   // Handle not found state
   if (!post) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Sidebar />
-        <div className="ml-64">
-          <div className="flex flex-col items-center justify-center min-h-screen">
-            <p className="text-muted-foreground mb-4">Post not found</p>
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/')}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Go Home
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return <PostViewError onGoHome={() => navigate('/')} isNotFound />;
   }
 
   return (

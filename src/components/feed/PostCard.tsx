@@ -115,7 +115,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
   };
 
   return (
-    <Card className={`overflow-hidden border-none bg-transparent ${isFullView ? 'max-w-4xl mx-auto' : 'cursor-pointer'}`}>
+    <Card className={`overflow-hidden border-none bg-transparent ${isFullView ? 'max-w-2xl mx-auto' : 'cursor-pointer'}`}>
       <div onClick={handleNavigateToPost} ref={postRef}>
         <CardHeader>
           <PostHeader 
@@ -132,28 +132,16 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
             tags={post.tags}
           />
           
-          {!isFullView && (
-            <div className="post-media">
-              <PostMedia 
-                mediaUrl={post.media_url}
-                mediaType={post.media_type}
-                title={post.title}
-              />
-            </div>
-          )}
+          <div className="post-media mb-4">
+            <PostMedia 
+              mediaUrl={post.media_url}
+              mediaType={post.media_type}
+              title={post.title}
+            />
+          </div>
         </CardContent>
 
         <CardFooter className="flex justify-between px-0">
-          {isFullView && (
-            <div className="post-media mb-4 w-full">
-              <PostMedia 
-                mediaUrl={post.media_url}
-                mediaType={post.media_type}
-                title={post.title}
-              />
-            </div>
-          )}
-          
           <PostActions 
             postId={post.id}
             postTitle={post.title}

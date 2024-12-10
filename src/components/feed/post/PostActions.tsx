@@ -6,7 +6,8 @@ import {
   MessageCircle, 
   Share2, 
   Link as LinkIcon,
-  Eye
+  Eye,
+  Repeat
 } from "lucide-react";
 
 interface PostActionsProps {
@@ -14,6 +15,7 @@ interface PostActionsProps {
   likesCount: number;
   commentsCount: number;
   viewsCount?: number;
+  repostCount?: number;
   isLiked?: boolean;
   onLike: (postId: string) => void;
   onCommentClick: () => void;
@@ -26,6 +28,7 @@ export function PostActions({
   likesCount, 
   commentsCount,
   viewsCount = 0,
+  repostCount = 0,
   isLiked, 
   onLike,
   onCommentClick,
@@ -43,20 +46,15 @@ export function PostActions({
 
   const handleCopyLink = async () => {
     try {
-      // Get the current URL from the window location
-      const currentLocation = window.location;
-      
-      // Construct the absolute URL ensuring we maintain the same protocol (http/https)
-      const baseUrl = `${currentLocation.protocol}//${currentLocation.host}`;
+      // Get the base URL from window.location.origin
+      const baseUrl = window.location.origin;
       const postUrl = `${baseUrl}/post/${postId}`;
       
       console.log('Copy link debug:', {
-        currentLocation,
         baseUrl,
         postUrl,
-        protocol: currentLocation.protocol,
-        host: currentLocation.host,
-        postId
+        postId,
+        windowLocation: window.location,
       });
       
       await navigator.clipboard.writeText(postUrl);
@@ -107,7 +105,8 @@ export function PostActions({
         className="group"
         onClick={onRepostClick}
       >
-        <Share2 className="mr-1 h-4 w-4" />
+        <Repeat className="mr-1 h-4 w-4" />
+        <span className="text-sm">{repostCount}</span>
       </Button>
 
       <Button

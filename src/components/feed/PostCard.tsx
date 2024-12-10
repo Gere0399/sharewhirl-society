@@ -103,6 +103,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
             likesCount={post.likes_count}
             commentsCount={post.comments_count}
             viewsCount={post.views_count}
+            repostCount={post.repost_count}
             isLiked={post.likes?.some((like: any) => like.user_id === currentUserId)}
             onLike={onLike}
             onCommentClick={() => {

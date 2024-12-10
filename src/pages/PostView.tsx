@@ -24,13 +24,14 @@ const PostView = () => {
     },
   });
 
-  // Fetch post data with error handling
+  // Fetch post data with error handling and retries
   const { data: post, isLoading, error } = useQuery({
     queryKey: ['post', postId],
     queryFn: async () => {
       if (!postId) throw new Error('Post ID is required');
       
       console.log('Fetching post with ID:', postId);
+      console.log('Current URL:', window.location.href);
       
       const { data, error } = await supabase
         .from('posts')
@@ -70,7 +71,8 @@ const PostView = () => {
         comments_count: data.comments?.length || 0
       };
     },
-    retry: 1,
+    retry: 2,
+    retryDelay: 1000,
   });
 
   // Add view mutation

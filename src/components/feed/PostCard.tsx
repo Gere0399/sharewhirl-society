@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Card,
@@ -10,6 +10,8 @@ import { PostHeader } from "./post/PostHeader";
 import { PostContent } from "./post/PostContent";
 import { PostMedia } from "./post/PostMedia";
 import { PostActions } from "./post/PostActions";
+import { trackPostView } from "@/utils/viewTracking";
+import { RepostDialog } from "./post/RepostDialog";
 
 interface PostCardProps {
   post: any;
@@ -20,10 +22,36 @@ interface PostCardProps {
 
 export function PostCard({ post, currentUserId, onLike, isFullView = false }: PostCardProps) {
   const [isRepostOpen, setIsRepostOpen] = useState(false);
+  const [hasBeenViewed, setHasBeenViewed] = useState(false);
+  const postRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isLiked = post.likes?.some((like: any) => like.user_id === currentUserId);
+  useEffect(() => {
+    if (!postRef.current || hasBeenViewed || !currentUserId) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Start a timer when the post comes into view
+            const timer = setTimeout(() => {
+              trackPostView(post.id, currentUserId);
+              setHasBeenViewed(true);
+            }, 2000); // 2 seconds delay
+
+            return () => clearTimeout(timer);
+          }
+        });
+      },
+      {
+        threshold: 0.5, // 50% of the post must be visible
+      }
+    );
+
+    observer.observe(postRef.current);
+    return () => observer.disconnect();
+  }, [post.id, currentUserId, hasBeenViewed]);
 
   const handleNavigateToPost = (e: React.MouseEvent) => {
     if (isFullView) return;
@@ -44,7 +72,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
 
   return (
     <Card className={`overflow-hidden border-none bg-transparent ${isFullView ? 'max-w-4xl mx-auto' : 'cursor-pointer'}`}>
-      <div onClick={handleNavigateToPost}>
+      <div onClick={handleNavigateToPost} ref={postRef}>
         <CardHeader>
           <PostHeader 
             profile={post.profiles}
@@ -75,7 +103,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
             likesCount={post.likes_count}
             commentsCount={post.comments_count}
             viewsCount={post.views_count}
-            isLiked={isLiked}
+            isLiked={post.likes?.some((like: any) => like.user_id === currentUserId)}
             onLike={onLike}
             onCommentClick={() => {
               if (!isFullView) {
@@ -87,6 +115,12 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
           />
         </CardFooter>
       </div>
+
+      <RepostDialog
+        isOpen={isRepostOpen}
+        onClose={() => setIsRepostOpen(false)}
+        post={post}
+      />
     </Card>
   );
 }

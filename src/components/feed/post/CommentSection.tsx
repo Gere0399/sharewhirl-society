@@ -126,11 +126,11 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
   };
 
   return (
-    <div className="flex flex-col h-[calc(80vh-2rem)]">
-      <div className="p-4 border-b">
+    <div className="space-y-4">
+      <div className="mb-6">
         <CommentInput onSubmit={(content, file) => handleSubmit(content, file)} loading={loading} />
       </div>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="h-[600px] pr-4">
         <CommentList 
           comments={comments} 
           currentUserId={currentUserId}

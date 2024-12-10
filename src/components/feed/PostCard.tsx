@@ -6,17 +6,10 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { PostHeader } from "./post/PostHeader";
 import { PostContent } from "./post/PostContent";
 import { PostMedia } from "./post/PostMedia";
 import { PostActions } from "./post/PostActions";
-import { CommentSection } from "./post/CommentSection";
 
 interface PostCardProps {
   post: any;
@@ -26,7 +19,6 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, currentUserId, onLike, isFullView = false }: PostCardProps) {
-  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [isRepostOpen, setIsRepostOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,7 +37,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
     if (!isClickingMedia && !isClickingButton && !isClickingLink) {
       const postUrl = `/post/${post.id}`;
       if (location.pathname !== postUrl) {
-        navigate(postUrl, { replace: true });
+        navigate(postUrl);
       }
     }
   };
@@ -84,24 +76,16 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
             commentsCount={post.comments_count}
             isLiked={isLiked}
             onLike={onLike}
-            onCommentClick={() => setIsCommentsOpen(true)}
+            onCommentClick={() => {
+              if (!isFullView) {
+                navigate(`/post/${post.id}`);
+              }
+            }}
             onRepostClick={() => setIsRepostOpen(true)}
             isFullView={isFullView}
           />
         </CardFooter>
       </div>
-
-      <Dialog open={isCommentsOpen} onOpenChange={setIsCommentsOpen}>
-        <DialogContent className="max-w-2xl h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>Comments</DialogTitle>
-          </DialogHeader>
-          <CommentSection 
-            postId={post.id}
-            currentUserId={currentUserId}
-          />
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 }

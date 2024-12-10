@@ -56,7 +56,9 @@ export function PostActions({
     onLike(postId);
   };
 
-  const handleCopyLink = async () => {
+  const handleCopyLink = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     try {
       const baseUrl = window.location.origin;
       const postUrl = `${baseUrl}/post/${postId}`;
@@ -89,7 +91,11 @@ export function PostActions({
           variant="ghost"
           size="sm"
           className="group"
-          onClick={handleLike}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleLike();
+          }}
         >
           <Heart
             className={`mr-1 h-4 w-4 ${
@@ -103,7 +109,11 @@ export function PostActions({
           variant="ghost"
           size="sm"
           className="group"
-          onClick={onCommentClick}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onCommentClick();
+          }}
         >
           <MessageCircle className="mr-1 h-4 w-4" />
           <span className="text-sm">{commentsCount}</span>
@@ -113,7 +123,11 @@ export function PostActions({
           variant="ghost"
           size="sm"
           className="group"
-          onClick={onRepostClick}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onRepostClick();
+          }}
         >
           <Repeat className="mr-1 h-4 w-4" />
           <span className="text-sm">{repostCount}</span>
@@ -132,7 +146,14 @@ export function PostActions({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -140,13 +161,23 @@ export function PostActions({
             {isOwnPost ? (
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
-                onClick={onDeleteClick}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDeleteClick?.();
+                }}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete post
               </DropdownMenuItem>
             ) : (
-              <DropdownMenuItem onClick={() => setIsReportDialogOpen(true)}>
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsReportDialogOpen(true);
+                }}
+              >
                 Report post
               </DropdownMenuItem>
             )}

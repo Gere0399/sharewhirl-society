@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -14,10 +15,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 
 interface SearchResult {
   type: "profile" | "post";
@@ -27,6 +24,8 @@ interface SearchResult {
   avatar_url?: string;
   content?: string;
 }
+
+const MAX_RESULTS_PER_TYPE = 3; // Limit results to 3 per category
 
 export function SearchBar() {
   const [open, setOpen] = useState(false);
@@ -43,12 +42,13 @@ export function SearchBar() {
           .from("profiles")
           .select("user_id, username, avatar_url")
           .ilike("username", `%${search}%`)
-          .limit(5),
+          .limit(MAX_RESULTS_PER_TYPE),
         supabase
           .from("posts")
           .select("id, title, content")
           .or(`title.ilike.%${search}%,content.ilike.%${search}%,tags.cs.{${search}}`)
-          .limit(5)
+          .order('created_at', { ascending: false })
+          .limit(MAX_RESULTS_PER_TYPE)
       ]);
 
       const profiles: SearchResult[] = (profilesResponse.data || []).map(profile => ({
@@ -62,7 +62,7 @@ export function SearchBar() {
         type: "post",
         id: post.id,
         title: post.title,
-        content: post.content
+        content: post.content?.substring(0, 50) + (post.content?.length > 50 ? "..." : "")
       }));
 
       return [...profiles, ...posts];
@@ -82,58 +82,53 @@ export function SearchBar() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button 
-          variant="outline" 
-          role="combobox" 
-          aria-expanded={open}
-          className="w-[300px] justify-between"
-        >
-          <Search className="mr-2 h-4 w-4" />
-          <span className="text-muted-foreground">
-            Search...
-          </span>
-        </Button>
+        <Input
+          type="text"
+          placeholder="Search..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-[300px]"
+          onFocus={() => setOpen(true)}
+        />
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
-        <Command>
-          <CommandInput 
-            placeholder="Search profiles and posts..." 
-            value={search}
-            onValueChange={setSearch}
-          />
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            {searchResults.length > 0 && (
-              <>
-                <CommandGroup heading="Profiles">
-                  {searchResults
-                    .filter(result => result.type === "profile")
-                    .map(result => (
-                      <CommandItem
-                        key={result.id}
-                        onSelect={() => handleSelect(result)}
-                      >
-                        {result.username}
-                      </CommandItem>
-                    ))}
-                </CommandGroup>
-                <CommandGroup heading="Posts">
-                  {searchResults
-                    .filter(result => result.type === "post")
-                    .map(result => (
-                      <CommandItem
-                        key={result.id}
-                        onSelect={() => handleSelect(result)}
-                      >
-                        {result.title}
-                      </CommandItem>
-                    ))}
-                </CommandGroup>
-              </>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
+      {open && search && (
+        <PopoverContent className="w-[300px] p-0" align="start">
+          <Command>
+            <CommandList>
+              <CommandEmpty>No results found.</CommandEmpty>
+              {searchResults.length > 0 && (
+                <>
+                  <CommandGroup heading="Profiles">
+                    {searchResults
+                      .filter(result => result.type === "profile")
+                      .map(result => (
+                        <CommandItem
+                          key={result.id}
+                          onSelect={() => handleSelect(result)}
+                          className="flex items-center gap-2"
+                        >
+                          {result.username}
+                        </CommandItem>
+                      ))}
+                  </CommandGroup>
+                  <CommandGroup heading="Posts">
+                    {searchResults
+                      .filter(result => result.type === "post")
+                      .map(result => (
+                        <CommandItem
+                          key={result.id}
+                          onSelect={() => handleSelect(result)}
+                        >
+                          {result.title}
+                        </CommandItem>
+                      ))}
+                  </CommandGroup>
+                </>
+              )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      )}
     </Popover>
   );
 }

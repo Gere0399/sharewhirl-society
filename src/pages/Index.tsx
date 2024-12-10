@@ -146,8 +146,10 @@ const Index = () => {
         <header className={`border-b border-border/40 backdrop-blur-sm fixed top-0 right-0 ${isMobile ? 'left-0' : 'left-64'} z-10`}>
           <div className="container mx-auto px-4 py-3 flex justify-between items-center gap-4">
             <h1 className="text-xl font-bold">ShareWhirl</h1>
-            <SearchBar />
-            <CreatePostDialog />
+            <div className="flex items-center gap-4 flex-1 justify-end">
+              <SearchBar />
+              <CreatePostDialog />
+            </div>
           </div>
           <TagsBar
             tags={userTags}

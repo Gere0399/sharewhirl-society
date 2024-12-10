@@ -33,17 +33,27 @@ const Notifications = () => {
   const { data: notifications, isLoading } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
+      console.log("Fetching notifications...");
       const { data, error } = await supabase
         .from("notifications")
         .select(`
           *,
-          actor:actor_id(
+          actor:profiles!notifications_actor_id_fkey (
+            id,
+            user_id,
             username,
-            avatar_url
+            full_name,
+            avatar_url,
+            bio,
+            created_at,
+            updated_at
           ),
-          post:post_id(
+          post:posts!notifications_post_id_fkey (
+            id,
             title,
-            content
+            content,
+            created_at,
+            updated_at
           )
         `)
         .order("created_at", { ascending: false });
@@ -58,6 +68,7 @@ const Notifications = () => {
         return [];
       }
 
+      console.log("Fetched notifications:", data);
       return data as NotificationWithProfiles[];
     },
     enabled: !!session,

@@ -32,7 +32,15 @@ export function PostMenu({
     e.stopPropagation();
     
     try {
-      // First, delete all notifications associated with the post
+      // First, delete all post_views
+      const { error: viewsError } = await supabase
+        .from('post_views')
+        .delete()
+        .eq('post_id', postId);
+
+      if (viewsError) throw viewsError;
+
+      // Then, delete all notifications
       const { error: notificationsError } = await supabase
         .from('notifications')
         .delete()
@@ -40,7 +48,23 @@ export function PostMenu({
 
       if (notificationsError) throw notificationsError;
 
-      // Then, delete all comments associated with the post
+      // Then, delete all comments_likes related to comments of this post
+      const { data: comments } = await supabase
+        .from('comments')
+        .select('id')
+        .eq('post_id', postId);
+
+      if (comments && comments.length > 0) {
+        const commentIds = comments.map(comment => comment.id);
+        const { error: commentLikesError } = await supabase
+          .from('comments_likes')
+          .delete()
+          .in('comment_id', commentIds);
+
+        if (commentLikesError) throw commentLikesError;
+      }
+
+      // Then, delete all comments
       const { error: commentsError } = await supabase
         .from('comments')
         .delete()
@@ -48,7 +72,7 @@ export function PostMenu({
 
       if (commentsError) throw commentsError;
 
-      // Then, delete all likes associated with the post
+      // Then, delete all likes
       const { error: likesError } = await supabase
         .from('likes')
         .delete()

@@ -115,7 +115,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
 
   return (
     <Card className={`overflow-hidden border-none bg-transparent ${isFullView ? 'max-w-2xl mx-auto' : 'cursor-pointer'}`}>
-      <div onClick={handleNavigateToPost} ref={postRef} className="space-y-1">
+      <div onClick={handleNavigateToPost} ref={postRef} className="space-y-2">
         <CardHeader className="px-0 pt-0 pb-2">
           <PostHeader 
             profile={post.profiles}
@@ -142,7 +142,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
           )}
         </CardContent>
 
-        <CardFooter className="flex justify-between px-0 pt-1">
+        <CardFooter className="flex justify-between px-0 pt-0">
           <PostActions 
             postId={post.id}
             postTitle={post.title}

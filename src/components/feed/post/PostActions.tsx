@@ -43,15 +43,20 @@ export function PostActions({
 
   const handleCopyLink = async () => {
     try {
-      // Get the window location origin (protocol + hostname + port)
-      const origin = window.location.origin;
-      const postUrl = `${origin}/post/${postId}`;
+      // Get the current URL from the window location
+      const currentLocation = window.location;
       
-      console.log('Window location:', {
-        href: window.location.href,
-        origin: window.location.origin,
-        pathname: window.location.pathname,
-        generatedUrl: postUrl
+      // Construct the absolute URL ensuring we maintain the same protocol (http/https)
+      const baseUrl = `${currentLocation.protocol}//${currentLocation.host}`;
+      const postUrl = `${baseUrl}/post/${postId}`;
+      
+      console.log('Copy link debug:', {
+        currentLocation,
+        baseUrl,
+        postUrl,
+        protocol: currentLocation.protocol,
+        host: currentLocation.host,
+        postId
       });
       
       await navigator.clipboard.writeText(postUrl);

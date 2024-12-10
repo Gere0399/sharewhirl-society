@@ -1,10 +1,9 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Heart, 
-  MessageCircle, 
-  Share2, 
+import {
+  Heart,
+  MessageCircle,
+  Share2,
   Link as LinkIcon,
   Eye,
   Repeat
@@ -23,25 +22,22 @@ interface PostActionsProps {
   isFullView?: boolean;
 }
 
-export function PostActions({ 
-  postId, 
-  likesCount, 
+export function PostActions({
+  postId,
+  likesCount,
   commentsCount,
   viewsCount = 0,
   repostCount = 0,
-  isLiked, 
+  isLiked,
   onLike,
   onCommentClick,
   onRepostClick,
-  isFullView = false
+  isFullView = false,
 }: PostActionsProps) {
-  const [isLikeAnimating, setIsLikeAnimating] = useState(false);
   const { toast } = useToast();
 
-  const handleLikeClick = () => {
-    setIsLikeAnimating(true);
+  const handleLike = () => {
     onLike(postId);
-    setTimeout(() => setIsLikeAnimating(false), 1000);
   };
 
   const handleCopyLink = async () => {
@@ -60,31 +56,31 @@ export function PostActions({
       await navigator.clipboard.writeText(postUrl);
       
       toast({
-        title: "Link copied!",
-        description: "The post link has been copied to your clipboard.",
+        title: "Link copied",
+        description: "Post link has been copied to clipboard",
       });
-    } catch (err) {
-      console.error('Copy failed:', err);
+    } catch (error) {
+      console.error('Error copying link:', error);
       toast({
-        title: "Failed to copy link",
-        description: "Please try again.",
+        title: "Error",
+        description: "Failed to copy link",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="flex items-center gap-4 w-full">
+    <div className="flex items-center gap-4">
       <Button
         variant="ghost"
         size="sm"
-        className={`group ${isLiked ? 'text-red-500' : ''}`}
-        onClick={handleLikeClick}
+        className="group"
+        onClick={handleLike}
       >
         <Heart
           className={`mr-1 h-4 w-4 ${
-            isLiked ? 'fill-current' : 'group-hover:fill-current'
-          } ${isLikeAnimating ? 'animate-ping' : ''}`}
+            isLiked ? "fill-current text-red-500" : ""
+          }`}
         />
         <span className="text-sm">{likesCount}</span>
       </Button>
@@ -112,17 +108,18 @@ export function PostActions({
       <Button
         variant="ghost"
         size="sm"
-        className="group ml-auto"
+        className="group"
         onClick={handleCopyLink}
       >
         <LinkIcon className="mr-1 h-4 w-4" />
-        <span className="text-sm">Copy link</span>
       </Button>
 
-      <div className="flex items-center gap-1 text-muted-foreground">
-        <Eye className="h-4 w-4" />
-        <span className="text-sm">{viewsCount}</span>
-      </div>
+      {!isFullView && (
+        <div className="flex items-center gap-1 ml-auto text-muted-foreground">
+          <Eye className="h-4 w-4" />
+          <span className="text-sm">{viewsCount}</span>
+        </div>
+      )}
     </div>
   );
 }

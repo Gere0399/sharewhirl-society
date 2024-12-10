@@ -76,22 +76,13 @@ export function SearchBar() {
     enabled: search.length > 0
   });
 
-  // Keep popover open when typing
-  useEffect(() => {
-    if (search.length > 0) {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    if (e.target.value.length > 0) {
       setOpen(true);
-      inputRef.current?.focus();
-    }
-  }, [search]);
-
-  const handleSelect = (result: SearchResult) => {
-    if (result.type === "profile") {
-      navigate(`/profile/${result.username}`);
     } else {
-      navigate(`/post/${result.id}`);
+      setOpen(false);
     }
-    setOpen(false);
-    setSearch("");
   };
 
   return (
@@ -102,8 +93,8 @@ export function SearchBar() {
           type="text"
           placeholder="Search..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-[300px]"
+          onChange={handleInputChange}
+          className="w-[300px] mx-auto"
           onFocus={() => setOpen(true)}
         />
       </PopoverTrigger>

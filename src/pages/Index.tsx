@@ -144,10 +144,7 @@ const Index = () => {
       <main className="flex-1 ml-16">
         <header className="fixed top-0 right-0 left-16 z-10 border-b border-border/40 backdrop-blur-sm">
           <div className="container mx-auto flex flex-col items-center justify-center gap-4 px-4 py-3">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold">neoaistudios</h1>
-              <SearchBar />
-            </div>
+            <SearchBar />
             <div className="w-full max-w-2xl">
               <TagsBar
                 tags={userTags}

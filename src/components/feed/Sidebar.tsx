@@ -52,7 +52,16 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-16 flex flex-col justify-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-r border-border/40">
+    <aside className="fixed left-0 top-0 h-screen w-16 flex flex-col bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-r border-border/40">
+      <div className="p-2">
+        <Link to="/" className="block">
+          <img 
+            src="/neo-ai-logo.png" 
+            alt="Neo AI Studios"
+            className="w-12 h-12 mx-auto"
+          />
+        </Link>
+      </div>
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <Button 
           variant="ghost" 

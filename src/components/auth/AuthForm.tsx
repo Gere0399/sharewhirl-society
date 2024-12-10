@@ -11,7 +11,7 @@ export function AuthForm() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md border-border/5 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <CardHeader>
-          <CardTitle className="text-2xl text-center text-foreground">Welcome to ShareWhirl</CardTitle>
+          <CardTitle className="text-2xl text-center text-foreground">Welcome to Neo AI Studios</CardTitle>
         </CardHeader>
         <CardContent>
           <Auth

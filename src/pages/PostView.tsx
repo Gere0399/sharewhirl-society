@@ -1,112 +1,79 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { PostCard } from "@/components/feed/PostCard";
-import { CommentSection } from "@/components/feed/post/CommentSection";
-import { Loader, ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/feed/Sidebar";
-import { PostViewError } from "@/components/post/PostViewError";
-import { PostViewLoading } from "@/components/post/PostViewLoading";
-import { usePostActions } from "@/hooks/usePostActions";
+import { PostCard } from "@/components/feed/PostCard";
+import { CommentSection } from "@/components/feed/post/comment/CommentSection";
+import { Loader } from "lucide-react";
 
 const PostView = () => {
-  const { postId } = useParams();
-  const navigate = useNavigate();
-  const { handleLike } = usePostActions();
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const session = supabase.auth.session();
 
-  // Get session data
-  const { data: session } = useQuery({
-    queryKey: ['session'],
-    queryFn: async () => {
-      const { data } = await supabase.auth.getSession();
-      return data.session;
-    },
-  });
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const postId = window.location.pathname.split("/").pop();
+        const { data, error } = await supabase
+          .from("posts")
+          .select(`
+            *,
+            profiles!posts_user_id_fkey (
+              username,
+              avatar_url
+            ),
+            likes (
+              user_id
+            ),
+            comments (
+              id
+            )
+          `)
+          .eq("id", postId)
+          .single();
 
-  // Fetch post data
-  const { data: post, isLoading, error } = useQuery({
-    queryKey: ['post', postId],
-    queryFn: async () => {
-      if (!postId) throw new Error('Post ID is required');
-      
-      const { data, error } = await supabase
-        .from('posts')
-        .select(`
-          *,
-          profiles!posts_user_id_fkey (
-            username,
-            avatar_url,
-            bio,
-            created_at
-          ),
-          likes (
-            user_id
-          ),
-          comments (
-            id
-          )
-        `)
-        .eq('id', postId)
-        .single();
+        if (error) throw error;
+        setPost(data);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      if (error) throw error;
-      if (!data) throw new Error('Post not found');
-
-      return {
-        ...data,
-        likes_count: data.likes?.length || 0,
-        comments_count: data.comments?.length || 0
-      };
-    },
-    retry: 2,
-    retryDelay: 1000,
-  });
-
-  // Handle error state
-  if (error) {
-    return <PostViewError onGoHome={() => navigate('/')} />;
-  }
-
-  // Handle loading state
-  if (isLoading) {
-    return <PostViewLoading />;
-  }
-
-  // Handle not found state
-  if (!post) {
-    return <PostViewError onGoHome={() => navigate('/')} isNotFound />;
-  }
+    fetchPost();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
-      <div className="ml-16">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate(-1)}
-            className="mb-2"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-
-          <PostCard
-            post={post}
-            currentUserId={session?.user?.id}
-            onLike={handleLike}
-            isFullView={true}
-          />
-
-          <div className="mt-4 border-t border-border/40 pt-4">
-            <CommentSection 
-              postId={post.id}
-              currentUserId={session?.user?.id}
-            />
+      <main className="flex-1 ml-16">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto">
+            {loading ? (
+              <Loader className="h-6 w-6 animate-spin" />
+            ) : error ? (
+              <div className="text-center py-8 text-destructive">
+                {error}
+              </div>
+            ) : post ? (
+              <>
+                <PostCard
+                  post={post}
+                  currentUserId={session?.user?.id}
+                  onLike={handleLike}
+                  isFullView
+                />
+                <CommentSection
+                  post={post}
+                  currentUserId={session?.user?.id}
+                />
+              </>
+            ) : null}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

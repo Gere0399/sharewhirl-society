@@ -1,89 +1,129 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
+import { Sidebar } from "@/components/feed/Sidebar";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { PostList } from "@/components/profile/PostList";
-import { useProfileData, useProfilePosts } from "@/hooks/useProfileData";
+import { useToast } from "@/hooks/use-toast";
 import { Loader } from "lucide-react";
-import { Sidebar } from "@/components/feed/Sidebar";
 
-export default function Profile() {
+const Profile = () => {
   const { username } = useParams();
-  const navigate = useNavigate();
+  const [session, setSession] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
   const { toast } = useToast();
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isSessionLoading, setIsSessionLoading] = useState(true);
-
-  const { data: profile, isLoading: isProfileLoading } = useProfileData(username);
-  const { data: posts = [], isLoading: isPostsLoading } = useProfilePosts(profile?.user_id);
 
   useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('user_id', user.id)
-            .single();
-          setCurrentUser(profile);
-        }
-      } catch (error) {
-        console.error('Error fetching current user:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load user data",
-          variant: "destructive",
-        });
-      } finally {
-        setIsSessionLoading(false);
-      }
-    };
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN') {
-        fetchCurrentUser();
-      } else if (event === 'SIGNED_OUT') {
-        setCurrentUser(null);
-        navigate('/');
-      }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
     });
 
-    fetchCurrentUser();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate, toast]);
+    return () => subscription.unsubscribe();
+  }, []);
 
-  const handleLike = async (postId: string) => {
-    if (!currentUser) return;
+  useEffect(() => {
+    if (username) {
+      fetchProfile();
+    }
+  }, [username, session]);
 
+  const fetchProfile = async () => {
     try {
-      const { data: existingLike } = await supabase
-        .from("likes")
-        .select()
-        .eq("post_id", postId)
-        .eq("user_id", currentUser.user_id)
+      setLoading(true);
+      setError(null);
+
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("username", username)
         .single();
 
-      if (existingLike) {
-        await supabase
-          .from("likes")
-          .delete()
-          .eq("post_id", postId)
-          .eq("user_id", currentUser.user_id);
-      } else {
-        await supabase
-          .from("likes")
-          .insert({ post_id: postId, user_id: currentUser.user_id });
+      if (profileError) throw profileError;
+      if (!profileData) throw new Error("Profile not found");
+
+      setProfile(profileData);
+
+      const { data: posts, error: postsError } = await supabase
+        .from("posts")
+        .select(`
+          *,
+          profiles!posts_user_id_fkey (
+            username,
+            avatar_url
+          ),
+          likes (
+            user_id
+          ),
+          comments (
+            id
+          )
+        `)
+        .eq("user_id", profileData.user_id)
+        .order("created_at", { ascending: false });
+
+      if (postsError) throw postsError;
+      setPosts(posts || []);
+
+      if (session?.user?.id) {
+        const { data: followData, error: followError } = await supabase
+          .from("follows")
+          .select("*")
+          .eq("follower_id", session.user.id)
+          .eq("following_id", profileData.user_id)
+          .single();
+
+        if (followError && followError.code !== "PGRST116") throw followError;
+        setIsFollowing(!!followData);
       }
     } catch (error: any) {
+      console.error("Error fetching profile:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFollowToggle = async () => {
+    if (!session) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to follow users",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (isFollowing) {
+        const { error } = await supabase
+          .from("follows")
+          .delete()
+          .eq("follower_id", session.user.id)
+          .eq("following_id", profile.user_id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("follows").insert({
+          follower_id: session.user.id,
+          following_id: profile.user_id,
+        });
+
+        if (error) throw error;
+      }
+
+      setIsFollowing(!isFollowing);
+    } catch (error: any) {
+      console.error("Error toggling follow:", error);
       toast({
         title: "Error",
         description: error.message,
@@ -92,67 +132,86 @@ export default function Profile() {
     }
   };
 
-  if (isSessionLoading || isProfileLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Sidebar />
-        <div className="ml-64">
-          <div className="flex justify-center items-center min-h-screen">
-            <Loader className="h-6 w-6 animate-spin" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleLike = async (postId: string) => {
+    try {
+      if (!session?.user?.id) {
+        throw new Error("User not authenticated");
+      }
 
-  if (!profile) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Sidebar />
-        <div className="ml-64">
-          <div className="flex justify-center items-center min-h-screen">
-            <p>Profile not found</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+      const { data: existingLike, error: likeCheckError } = await supabase
+        .from("likes")
+        .select("*")
+        .eq("post_id", postId)
+        .eq("user_id", session.user.id)
+        .single();
+
+      if (likeCheckError && likeCheckError.code !== "PGRST116") {
+        throw likeCheckError;
+      }
+
+      if (existingLike) {
+        const { error: deleteError } = await supabase
+          .from("likes")
+          .delete()
+          .eq("post_id", postId)
+          .eq("user_id", session.user.id);
+
+        if (deleteError) throw deleteError;
+      } else {
+        const { error: insertError } = await supabase
+          .from("likes")
+          .insert([{ post_id: postId, user_id: session.user.id }]);
+
+        if (insertError) throw insertError;
+      }
+
+      await fetchProfile();
+    } catch (error: any) {
+      console.error("Error handling like:", error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const isOwnProfile = session?.user?.id === profile?.user_id;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
-      <div className="ml-64">
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          <ProfileHeader
-            profile={profile}
-            isOwnProfile={currentUser?.user_id === profile?.user_id}
-            onEditClick={() => setIsEditOpen(true)}
-          />
-
-          <div className="mt-8 border-t border-border/40">
-            {isPostsLoading ? (
-              <div className="flex justify-center py-8">
+      <main className="flex-1 ml-16">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto">
+            {loading ? (
+              <div className="flex justify-center items-center min-h-[200px]">
                 <Loader className="h-6 w-6 animate-spin" />
               </div>
+            ) : error ? (
+              <div className="text-center py-8 text-destructive">
+                {error}
+              </div>
             ) : (
-              <PostList
-                posts={posts}
-                currentUserId={currentUser?.user_id}
-                onLike={handleLike}
-              />
+              <>
+                <ProfileHeader
+                  profile={profile}
+                  isOwnProfile={isOwnProfile}
+                  isFollowing={isFollowing}
+                  onFollowToggle={handleFollowToggle}
+                />
+                <PostList
+                  posts={posts}
+                  currentUserId={session?.user?.id}
+                  onLike={handleLike}
+                />
+              </>
             )}
           </div>
-
-          <EditProfileDialog
-            open={isEditOpen}
-            onOpenChange={setIsEditOpen}
-            profile={profile}
-            onProfileUpdate={(updatedProfile) => {
-              setIsEditOpen(false);
-            }}
-          />
         </div>
-      </div>
+      </main>
     </div>
   );
-}
+};
+
+export default Profile;

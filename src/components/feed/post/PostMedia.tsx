@@ -17,18 +17,18 @@ export function PostMedia({ mediaUrl, mediaType, title }: PostMediaProps) {
   switch (mediaType) {
     case "image":
       return (
-        <div className="relative w-full rounded-lg overflow-hidden bg-muted">
+        <div className="relative w-full rounded-lg overflow-hidden bg-muted aspect-[16/9]">
           <img
             src={fullUrl}
             alt={title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             loading="lazy"
           />
         </div>
       );
     case "video":
       return (
-        <div className="relative w-full rounded-lg overflow-hidden bg-muted">
+        <div className="relative w-full rounded-lg overflow-hidden bg-muted aspect-[16/9]">
           <video
             src={fullUrl}
             controls

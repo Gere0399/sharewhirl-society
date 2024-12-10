@@ -85,6 +85,16 @@ export function SearchBar() {
     }
   };
 
+  const handleSelect = (result: SearchResult) => {
+    if (result.type === "profile") {
+      navigate(`/profile/${result.username}`);
+    } else {
+      navigate(`/post/${result.id}`);
+    }
+    setOpen(false);
+    setSearch("");
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>

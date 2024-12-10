@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -9,61 +8,30 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Plus, Upload, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { CreatePostForm } from "./post/create/CreatePostForm";
 
 export function CreatePostDialog() {
   const [isOpen, setIsOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [currentTag, setCurrentTag] = useState("");
-  const [isAiGenerated, setIsAiGenerated] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleTagKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.key === "Enter" || e.key === ",") && currentTag.trim()) {
-      e.preventDefault();
-      const newTag = currentTag.trim().toLowerCase();
-      if (!tags.includes(newTag)) {
-        setTags([...tags, newTag]);
-      }
-      setCurrentTag("");
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
-  };
-
-  const handleFileSelect = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*,video/*,audio/*";
-    input.multiple = false;
-    input.onchange = (e) => {
-      const target = e.target as HTMLInputElement;
-      const selectedFile = target.files?.[0];
-      if (selectedFile) {
-        setFile(selectedFile);
-      }
-    };
-    input.click();
-  };
-
-  const handleSubmit = async () => {
-    if (!title.trim() || !content.trim()) {
+  const handleSubmit = async ({
+    title,
+    tags,
+    isAiGenerated,
+    file,
+  }: {
+    title: string;
+    tags: string[];
+    isAiGenerated: boolean;
+    file: File | null;
+  }) => {
+    if (!title.trim()) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields",
+        description: "Please fill in the title",
         variant: "destructive",
       });
       return;
@@ -72,28 +40,20 @@ export function CreatePostDialog() {
     try {
       setUploading(true);
       
-      // Get the current user
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         throw new Error("User not authenticated");
       }
 
-      // Get the user's profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
-      if (profileError) {
-        console.error("Error fetching profile:", profileError);
-        throw new Error("Could not fetch user profile");
-      }
-
-      if (!profile) {
-        throw new Error("Profile not found");
-      }
+      if (profileError) throw profileError;
+      if (!profile) throw new Error("Profile not found");
 
       let mediaUrl = null;
       let mediaType = null;
@@ -118,13 +78,12 @@ export function CreatePostDialog() {
         mediaUrl = data.path;
       }
 
-      // Create the post using the profile's user_id
       const { error: postError } = await supabase.from("posts").insert({
         title,
-        content,
+        content: title, // Using title as content since we removed the separate content field
         media_url: mediaUrl,
         media_type: mediaType,
-        user_id: profile.user_id, // Use the profile's user_id
+        user_id: profile.user_id,
         tags,
         is_ai_generated: isAiGenerated
       });
@@ -137,11 +96,6 @@ export function CreatePostDialog() {
       });
       
       setIsOpen(false);
-      setTitle("");
-      setContent("");
-      setTags([]);
-      setFile(null);
-      setIsAiGenerated(false);
     } catch (error: any) {
       console.error("Post creation error:", error);
       toast({
@@ -166,77 +120,7 @@ export function CreatePostDialog() {
         <DialogHeader>
           <DialogTitle>Create New Post</DialogTitle>
         </DialogHeader>
-        <div className="space-y-6">
-          <Input
-            placeholder="Post Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          
-          <Textarea
-            placeholder="What's on your mind?"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={4}
-          />
-          
-          <div className="space-y-2">
-            <Label>Tags</Label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="gap-1">
-                  #{tag}
-                  <button
-                    onClick={() => removeTag(tag)}
-                    className="ml-1 hover:text-destructive"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-            <Input
-              placeholder="Add tags (press Enter or comma to add)"
-              value={currentTag}
-              onChange={(e) => setCurrentTag(e.target.value)}
-              onKeyDown={handleTagKeyDown}
-            />
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="ai-generated"
-              checked={isAiGenerated}
-              onCheckedChange={setIsAiGenerated}
-            />
-            <Label htmlFor="ai-generated">AI Generated Content</Label>
-          </div>
-          
-          <div className="space-y-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleFileSelect}
-              className="w-full"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              {file ? file.name : "Upload Media"}
-            </Button>
-            {file && (
-              <p className="text-sm text-muted-foreground">
-                Selected file: {file.name}
-              </p>
-            )}
-          </div>
-
-          <Button
-            onClick={handleSubmit}
-            disabled={uploading}
-            className="w-full"
-          >
-            {uploading ? "Creating Post..." : "Create Post"}
-          </Button>
-        </div>
+        <CreatePostForm onSubmit={handleSubmit} uploading={uploading} />
       </DialogContent>
     </Dialog>
   );

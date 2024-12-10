@@ -50,7 +50,10 @@ export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: Pos
               <AvatarFallback>{profile?.username?.[0]?.toUpperCase()}</AvatarFallback>
             </Avatar>
             <h4 className="text-lg font-semibold">{profile?.username}</h4>
-            <p className="text-sm text-muted-foreground">{profile?.bio}</p>
+            <div className="text-sm text-muted-foreground">
+              <p className="mb-2">{profile?.bio}</p>
+              <p>{profile?.followers_count || 0} followers</p>
+            </div>
           </div>
         </HoverCardContent>
       </HoverCard>

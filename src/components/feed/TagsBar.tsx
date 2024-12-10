@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Tag } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 
 interface TagsBarProps {
   tags: string[];
@@ -17,8 +18,27 @@ interface TagsBarProps {
   onTagRemove: (tag: string) => void;
 }
 
+const SUGGESTED_TAGS = [
+  "technology",
+  "art",
+  "music",
+  "gaming",
+  "sports",
+  "food",
+  "travel",
+  "fashion",
+  "science",
+  "books",
+  "movies",
+  "photography",
+  "design",
+  "coding",
+  "nature",
+];
+
 export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarProps) {
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const handleTagSelect = (tag: string) => {
@@ -30,14 +50,26 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
   };
 
   const handleApplyTags = () => {
-    // Here you would implement the logic to filter posts by multiple tags
+    selectedTags.forEach((tag) => {
+      if (!tags.includes(tag)) {
+        onTagSelect(tag);
+      }
+    });
     setIsTagDialogOpen(false);
+    setSelectedTags([]);
+    setSearchQuery("");
   };
 
+  const filteredTags = SUGGESTED_TAGS.filter(
+    (tag) => 
+      tag.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !tags.includes(tag)
+  );
+
   return (
-    <div className="w-full border-b border-border/40 backdrop-blur-sm">
+    <div className="w-full">
       <ScrollArea className="w-full whitespace-nowrap">
-        <div className="flex w-max space-x-2 p-4">
+        <div className="flex w-max space-x-2 p-2">
           <Button
             variant={activeTag === "for you" ? "default" : "ghost"}
             onClick={() => onTagSelect("for you")}
@@ -46,7 +78,7 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
             For You
           </Button>
           
-          <Separator orientation="vertical" className="h-8 mx-2" />
+          <Separator orientation="vertical" className="h-8" />
           
           {tags.map((tag) => (
             <div key={tag} className="flex items-center">
@@ -55,7 +87,8 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
                 onClick={() => onTagSelect(tag)}
                 className="rounded-full group relative"
               >
-                #{tag}
+                <Tag className="mr-1 h-3 w-3" />
+                {tag}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -83,26 +116,41 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
       <Dialog open={isTagDialogOpen} onOpenChange={setIsTagDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Select Multiple Tags</DialogTitle>
+            <DialogTitle>Add Tags to Your Feed</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-2 py-4">
-            {tags.map((tag) => (
-              <Button
-                key={tag}
-                variant={selectedTags.includes(tag) ? "default" : "outline"}
-                onClick={() => handleTagSelect(tag)}
-                className="justify-between"
-              >
-                #{tag}
-                {selectedTags.includes(tag) && <X className="h-4 w-4 ml-2" />}
+          <div className="space-y-4">
+            <Input
+              placeholder="Search tags..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              {filteredTags.map((tag) => (
+                <Button
+                  key={tag}
+                  variant={selectedTags.includes(tag) ? "default" : "outline"}
+                  onClick={() => handleTagSelect(tag)}
+                  className="justify-between"
+                >
+                  <span className="flex items-center">
+                    <Tag className="mr-2 h-4 w-4" />
+                    {tag}
+                  </span>
+                  {selectedTags.includes(tag) && <X className="h-4 w-4 ml-2" />}
+                </Button>
+              ))}
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => {
+                setIsTagDialogOpen(false);
+                setSelectedTags([]);
+                setSearchQuery("");
+              }}>
+                Cancel
               </Button>
-            ))}
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => setIsTagDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleApplyTags}>Apply Tags</Button>
+              <Button onClick={handleApplyTags}>Add Tags</Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

@@ -44,17 +44,17 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-screen flex flex-col items-center justify-center gap-4 px-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <nav className="space-y-2">
+    <aside className="fixed left-0 top-0 h-screen w-16 flex flex-col items-center justify-center bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-r border-border/40">
+      <nav className="flex flex-col gap-4">
         <Button 
           variant="ghost" 
           size="icon"
-          className="relative group w-12 h-12"
+          className="relative group"
           asChild
         >
           <Link to="/">
             <Home className="h-5 w-5" />
-            <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+            <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-50">
               Home
             </span>
           </Link>
@@ -63,27 +63,13 @@ export function Sidebar() {
         <Button 
           variant="ghost" 
           size="icon"
-          className="relative group w-12 h-12"
+          className="relative group"
           asChild
         >
           <Link to="/notifications">
             <Bell className="h-5 w-5" />
-            <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+            <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-50">
               Notifications
-            </span>
-          </Link>
-        </Button>
-
-        <Button 
-          variant="ghost" 
-          size="icon"
-          className="relative group w-12 h-12"
-          asChild
-        >
-          <Link to="/share">
-            <Share2 className="h-5 w-5" />
-            <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
-              Share
             </span>
           </Link>
         </Button>
@@ -93,12 +79,12 @@ export function Sidebar() {
             <Button 
               variant="ghost" 
               size="icon"
-              className="relative group w-12 h-12"
+              className="relative group"
               asChild
             >
               <Link to={`/profile/${profile.username}`}>
                 <User className="h-5 w-5" />
-                <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+                <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-50">
                   Profile
                 </span>
               </Link>
@@ -107,12 +93,26 @@ export function Sidebar() {
             <Button 
               variant="ghost" 
               size="icon"
-              className="relative group w-12 h-12"
+              className="relative group"
+              asChild
+            >
+              <Link to="/share">
+                <Share2 className="h-5 w-5" />
+                <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-50">
+                  Share
+                </span>
+              </Link>
+            </Button>
+
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="relative group"
               asChild
             >
               <Link to="/settings">
                 <Settings className="h-5 w-5" />
-                <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+                <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-50">
                   Settings
                 </span>
               </Link>
@@ -121,11 +121,11 @@ export function Sidebar() {
             <Button 
               variant="ghost" 
               size="icon"
-              className="relative group w-12 h-12 text-destructive hover:text-destructive"
+              className="relative group text-destructive hover:text-destructive"
               onClick={handleLogout}
             >
               <LogOut className="h-5 w-5" />
-              <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+              <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-50">
                 Logout
               </span>
             </Button>
@@ -134,12 +134,12 @@ export function Sidebar() {
           <Button 
             variant="ghost" 
             size="icon"
-            className="relative group w-12 h-12"
+            className="relative group"
             asChild
           >
             <Link to="/">
               <LogIn className="h-5 w-5" />
-              <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap">
+              <span className="absolute left-14 bg-popover px-2 py-1 rounded invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 whitespace-nowrap z-50">
                 Login
               </span>
             </Link>

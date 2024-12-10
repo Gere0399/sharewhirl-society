@@ -8,7 +8,6 @@ import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
 import { SearchBar } from "@/components/feed/SearchBar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const [session, setSession] = useState(null);
@@ -140,34 +139,33 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
-      <main className="ml-16">
-        <header className="border-b border-border/40 backdrop-blur-sm fixed top-0 right-0 left-16 z-10">
-          <div className="container mx-auto px-4 py-3 flex justify-center items-center gap-4">
+      <main className="flex-1">
+        <header className="fixed top-0 right-0 left-0 z-10 border-b border-border/40 backdrop-blur-sm">
+          <div className="container mx-auto flex flex-col items-center justify-center gap-4 px-4 py-3">
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-bold">neoaistudios</h1>
               <SearchBar />
             </div>
-            <CreatePostDialog />
+            <TagsBar
+              tags={userTags}
+              activeTag={activeTag}
+              onTagSelect={setActiveTag}
+              onTagRemove={handleRemoveTag}
+            />
           </div>
-          <TagsBar
-            tags={userTags}
-            activeTag={activeTag}
-            onTagSelect={setActiveTag}
-            onTagRemove={handleRemoveTag}
-          />
         </header>
 
-        <div className="max-w-2xl mx-auto px-4 pt-32 pb-8">
+        <div className="container mx-auto px-4 pt-32 pb-8">
           {loading ? (
             <div className="flex justify-center items-center min-h-[200px]">
               <Loader className="h-6 w-6 animate-spin" />
             </div>
           ) : (
-            <div className="space-y-3 divide-y divide-border/40">
+            <div className="space-y-2 divide-y divide-border/40">
               {posts.map((post) => (
-                <div key={post.id} className="pt-3 first:pt-0">
+                <div key={post.id} className="pt-2 first:pt-0">
                   <PostCard
                     post={post}
                     currentUserId={session?.user?.id}

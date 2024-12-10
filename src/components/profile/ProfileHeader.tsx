@@ -57,8 +57,10 @@ export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHea
         (payload) => {
           console.log('Follows change received:', payload);
           if (payload.eventType === 'INSERT') {
+            console.log('Follow added, updating count from', followersCount, 'to', followersCount + 1);
             setFollowersCount(prev => prev + 1);
           } else if (payload.eventType === 'DELETE') {
+            console.log('Follow removed, updating count from', followersCount, 'to', followersCount - 1);
             setFollowersCount(prev => prev - 1);
           }
         }
@@ -83,6 +85,9 @@ export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHea
         return;
       }
 
+      console.log('Current follow status:', isFollowing);
+      console.log('Attempting to follow/unfollow user:', profile.user_id);
+
       if (isFollowing) {
         const { error: deleteError } = await supabase
           .from('follows')
@@ -91,6 +96,7 @@ export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHea
           .eq('following_id', profile.user_id);
 
         if (deleteError) throw deleteError;
+        console.log('Successfully unfollowed');
         setIsFollowing(false);
       } else {
         const { error: insertError } = await supabase
@@ -101,6 +107,7 @@ export function ProfileHeader({ profile, isOwnProfile, onEditClick }: ProfileHea
           }]);
 
         if (insertError) throw insertError;
+        console.log('Successfully followed');
         setIsFollowing(true);
       }
 

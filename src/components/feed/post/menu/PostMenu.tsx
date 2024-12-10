@@ -30,13 +30,23 @@ export function PostMenu({
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
     try {
-      const { error } = await supabase
+      // First, delete all likes associated with the post
+      const { error: likesError } = await supabase
+        .from('likes')
+        .delete()
+        .eq('post_id', postId);
+
+      if (likesError) throw likesError;
+
+      // Then delete the post itself
+      const { error: postError } = await supabase
         .from('posts')
         .delete()
         .eq('id', postId);
 
-      if (error) throw error;
+      if (postError) throw postError;
 
       toast({
         title: "Post deleted",

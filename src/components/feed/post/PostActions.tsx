@@ -1,12 +1,20 @@
-import { Heart, MessageSquare, Share2, Flag } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  Heart, 
+  MessageCircle, 
+  Share2, 
+  Link as LinkIcon,
+  Eye
+} from "lucide-react";
 
 interface PostActionsProps {
   postId: string;
   likesCount: number;
   commentsCount: number;
-  isLiked: boolean;
+  viewsCount?: number;
+  isLiked?: boolean;
   onLike: (postId: string) => void;
   onCommentClick: () => void;
   onRepostClick: () => void;
@@ -16,81 +24,89 @@ interface PostActionsProps {
 export function PostActions({ 
   postId, 
   likesCount, 
-  commentsCount, 
-  isLiked,
+  commentsCount,
+  viewsCount = 0,
+  isLiked, 
   onLike,
   onCommentClick,
   onRepostClick,
-  isFullView
+  isFullView = false
 }: PostActionsProps) {
+  const [isLikeAnimating, setIsLikeAnimating] = useState(false);
   const { toast } = useToast();
 
-  const handleShare = async () => {
-    try {
-      const origin = window.location.origin;
-      const url = `${origin}/post/${postId}`;
-      await navigator.clipboard.writeText(url);
-      toast({
-        title: "Link copied",
-        description: "Post link has been copied to clipboard",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to copy link",
-        variant: "destructive",
-      });
-    }
+  const handleLikeClick = () => {
+    setIsLikeAnimating(true);
+    onLike(postId);
+    setTimeout(() => setIsLikeAnimating(false), 1000);
   };
 
-  const handleLike = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCopyLink = async () => {
+    const url = `${window.location.origin}/post/${postId}`;
     try {
-      await onLike(postId);
-    } catch (error) {
-      console.error("Error liking post:", error);
+      await navigator.clipboard.writeText(url);
       toast({
-        title: "Error",
-        description: "Failed to like post",
+        title: "Link copied!",
+        description: "The post link has been copied to your clipboard.",
+      });
+    } catch (err) {
+      toast({
+        title: "Failed to copy link",
+        description: "Please try again.",
         variant: "destructive",
       });
     }
   };
 
   return (
-    <div className="flex gap-4" onClick={(e) => e.stopPropagation()}>
+    <div className="flex items-center gap-4 w-full">
       <Button
         variant="ghost"
         size="sm"
-        onClick={handleLike}
-        className={isLiked ? "text-red-500" : ""}
+        className={`group ${isLiked ? 'text-red-500' : ''}`}
+        onClick={handleLikeClick}
       >
-        <Heart className="w-4 h-4 mr-1" />
-        {likesCount || 0}
+        <Heart
+          className={`mr-1 h-4 w-4 ${
+            isLiked ? 'fill-current' : 'group-hover:fill-current'
+          } ${isLikeAnimating ? 'animate-ping' : ''}`}
+        />
+        <span className="text-sm">{likesCount}</span>
       </Button>
-      
+
       <Button
         variant="ghost"
         size="sm"
+        className="group"
         onClick={onCommentClick}
       >
-        <MessageSquare className="w-4 h-4 mr-1" />
-        {commentsCount || 0}
+        <MessageCircle className="mr-1 h-4 w-4" />
+        <span className="text-sm">{commentsCount}</span>
       </Button>
-      
-      <Button 
-        variant="ghost" 
+
+      <Button
+        variant="ghost"
         size="sm"
+        className="group"
         onClick={onRepostClick}
       >
-        <Flag className="w-4 h-4 mr-1" />
-        Repost
+        <Share2 className="mr-1 h-4 w-4" />
       </Button>
-      
-      <Button variant="ghost" size="sm" onClick={handleShare}>
-        <Share2 className="w-4 h-4 mr-1" />
-        Copy Link
+
+      <Button
+        variant="ghost"
+        size="sm"
+        className="group ml-auto"
+        onClick={handleCopyLink}
+      >
+        <LinkIcon className="mr-1 h-4 w-4" />
+        <span className="text-sm">Copy link</span>
       </Button>
+
+      <div className="flex items-center gap-1 text-muted-foreground">
+        <Eye className="h-4 w-4" />
+        <span className="text-sm">{viewsCount}</span>
+      </div>
     </div>
   );
 }

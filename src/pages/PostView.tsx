@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PostCard } from "@/components/feed/PostCard";
 import { CommentSection } from "@/components/feed/post/CommentSection";
@@ -7,11 +7,13 @@ import { Loader, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Sidebar } from "@/components/feed/Sidebar";
+import { useEffect } from "react";
 
 const PostView = () => {
   const { postId } = useParams();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: session } = useQuery({
     queryKey: ['session'],
@@ -58,6 +60,33 @@ const PostView = () => {
     retry: false,
   });
 
+  // Add view mutation
+  const addView = useMutation({
+    mutationFn: async () => {
+      if (!session?.user?.id || !postId) return;
+      
+      const { error } = await supabase
+        .from('post_views')
+        .insert({ post_id: postId, user_id: session.user.id })
+        .select()
+        .single();
+
+      if (error && error.code !== '23505') { // Ignore unique violation errors
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['post', postId] });
+    },
+  });
+
+  // Add view when post is loaded
+  useEffect(() => {
+    if (session?.user?.id && postId) {
+      addView.mutate();
+    }
+  }, [session?.user?.id, postId]);
+
   const handleLike = async (postId: string) => {
     try {
       const { data: existingLike } = await supabase
@@ -78,6 +107,8 @@ const PostView = () => {
           .from('likes')
           .insert({ post_id: postId, user_id: session?.user.id });
       }
+
+      queryClient.invalidateQueries({ queryKey: ['post', postId] });
     } catch (error: any) {
       toast({
         title: "Error",

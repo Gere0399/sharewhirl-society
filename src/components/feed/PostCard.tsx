@@ -74,6 +74,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
             postId={post.id}
             likesCount={post.likes_count}
             commentsCount={post.comments_count}
+            viewsCount={post.views_count}
             isLiked={isLiked}
             onLike={onLike}
             onCommentClick={() => {

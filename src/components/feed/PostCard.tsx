@@ -26,6 +26,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
   const postRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const viewTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     if (!postRef.current || hasBeenViewed || !currentUserId) return;
@@ -34,13 +35,21 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Start a timer when the post comes into view
-            const timer = setTimeout(() => {
-              trackPostView(post.id, currentUserId);
+            // Clear any existing timeout
+            if (viewTimeoutRef.current) {
+              clearTimeout(viewTimeoutRef.current);
+            }
+
+            // Start a new timer when the post comes into view
+            viewTimeoutRef.current = setTimeout(async () => {
+              await trackPostView(post.id, currentUserId);
               setHasBeenViewed(true);
             }, 2000); // 2 seconds delay
-
-            return () => clearTimeout(timer);
+          } else {
+            // Clear the timeout if the post goes out of view
+            if (viewTimeoutRef.current) {
+              clearTimeout(viewTimeoutRef.current);
+            }
           }
         });
       },
@@ -50,7 +59,13 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
     );
 
     observer.observe(postRef.current);
-    return () => observer.disconnect();
+    
+    return () => {
+      observer.disconnect();
+      if (viewTimeoutRef.current) {
+        clearTimeout(viewTimeoutRef.current);
+      }
+    };
   }, [post.id, currentUserId, hasBeenViewed]);
 
   const handleNavigateToPost = (e: React.MouseEvent) => {

@@ -81,12 +81,12 @@ const PostView = () => {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="ml-64">
-        <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="ml-16">
+        <div className="max-w-2xl mx-auto px-4 py-4">
           <Button 
             variant="ghost" 
             onClick={() => navigate(-1)}
-            className="mb-4"
+            className="mb-2"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
@@ -99,7 +99,7 @@ const PostView = () => {
             isFullView={true}
           />
 
-          <div className="mt-8 border-t border-border/40 pt-8">
+          <div className="mt-4 border-t border-border/40 pt-4">
             <CommentSection 
               postId={post.id}
               currentUserId={session?.user?.id}

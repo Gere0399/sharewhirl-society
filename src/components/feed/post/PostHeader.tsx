@@ -27,7 +27,7 @@ export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: Pos
   };
 
   return (
-    <div className="flex flex-row items-center gap-4 px-0">
+    <div className="flex flex-row items-start gap-4 px-0">
       <HoverCard>
         <HoverCardTrigger asChild>
           <Link to={`/profile/${profile?.username}`} className="flex items-center gap-2">
@@ -35,7 +35,7 @@ export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: Pos
               <AvatarImage src={profile?.avatar_url} />
               <AvatarFallback>{profile?.username?.[0]?.toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div className="flex flex-col">
+            <div className="flex flex-col items-start">
               <span className="font-semibold">{profile?.username}</span>
               <span className="text-sm text-muted-foreground">
                 {getTimeDisplay(profile?.created_at)}

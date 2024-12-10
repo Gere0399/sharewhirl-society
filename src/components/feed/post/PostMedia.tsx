@@ -9,29 +9,26 @@ interface PostMediaProps {
 export function PostMedia({ mediaUrl, mediaType, title }: PostMediaProps) {
   if (!mediaUrl) return null;
 
-  // Get the full URL from Supabase storage
   const fullUrl = supabase.storage
     .from('media')
     .getPublicUrl(mediaUrl)
     .data.publicUrl;
 
-  const aspectRatioClass = "aspect-video";
-
   switch (mediaType) {
     case "image":
       return (
-        <div className={`relative ${aspectRatioClass} rounded-lg overflow-hidden bg-muted`}>
+        <div className="relative w-full rounded-lg overflow-hidden bg-muted">
           <img
             src={fullUrl}
             alt={title}
-            className="object-cover w-full h-full"
+            className="w-full h-full object-cover"
             loading="lazy"
           />
         </div>
       );
     case "video":
       return (
-        <div className={`relative ${aspectRatioClass} rounded-lg overflow-hidden bg-muted`}>
+        <div className="relative w-full rounded-lg overflow-hidden bg-muted">
           <video
             src={fullUrl}
             controls

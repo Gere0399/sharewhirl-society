@@ -144,9 +144,9 @@ const Index = () => {
       <Sidebar />
       <main className="ml-16">
         <header className="border-b border-border/40 backdrop-blur-sm fixed top-0 right-0 left-16 z-10">
-          <div className="container mx-auto px-4 py-3 flex justify-between items-center gap-4">
+          <div className="container mx-auto px-4 py-3 flex justify-center items-center gap-4">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold">ShareWhirl</h1>
+              <h1 className="text-xl font-bold">neoaistudios</h1>
               <SearchBar />
             </div>
             <CreatePostDialog />
@@ -165,9 +165,9 @@ const Index = () => {
               <Loader className="h-6 w-6 animate-spin" />
             </div>
           ) : (
-            <div className="space-y-6 divide-y divide-border/40">
+            <div className="space-y-3 divide-y divide-border/40">
               {posts.map((post) => (
-                <div key={post.id} className="pt-6 first:pt-0">
+                <div key={post.id} className="pt-3 first:pt-0">
                   <PostCard
                     post={post}
                     currentUserId={session?.user?.id}

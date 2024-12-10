@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -81,7 +82,7 @@ export function CreatePostDialog({ isOpen, onOpenChange }: CreatePostDialogProps
 
       const { error: postError } = await supabase.from("posts").insert({
         title,
-        content: title, // Using title as content since we removed the separate content field
+        content: title,
         media_url: mediaUrl,
         media_type: mediaType,
         user_id: profile.user_id,
@@ -114,6 +115,9 @@ export function CreatePostDialog({ isOpen, onOpenChange }: CreatePostDialogProps
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Create New Post</DialogTitle>
+          <DialogDescription>
+            Share your thoughts, images, or videos with the community.
+          </DialogDescription>
         </DialogHeader>
         <CreatePostForm onSubmit={handleSubmit} uploading={uploading} />
       </DialogContent>

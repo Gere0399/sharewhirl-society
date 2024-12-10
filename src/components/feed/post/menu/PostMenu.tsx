@@ -32,7 +32,15 @@ export function PostMenu({
     e.stopPropagation();
     
     try {
-      // First, delete all post_views
+      // First, delete all reposts of this post
+      const { error: repostsError } = await supabase
+        .from('posts')
+        .delete()
+        .eq('reposted_from_id', postId);
+
+      if (repostsError) throw repostsError;
+
+      // Delete post views
       const { error: viewsError } = await supabase
         .from('post_views')
         .delete()
@@ -40,7 +48,7 @@ export function PostMenu({
 
       if (viewsError) throw viewsError;
 
-      // Then, delete all notifications
+      // Delete notifications
       const { error: notificationsError } = await supabase
         .from('notifications')
         .delete()
@@ -48,7 +56,7 @@ export function PostMenu({
 
       if (notificationsError) throw notificationsError;
 
-      // Then, delete all comments_likes related to comments of this post
+      // Delete comments likes
       const { data: comments } = await supabase
         .from('comments')
         .select('id')
@@ -64,7 +72,7 @@ export function PostMenu({
         if (commentLikesError) throw commentLikesError;
       }
 
-      // Then, delete all comments
+      // Delete comments
       const { error: commentsError } = await supabase
         .from('comments')
         .delete()
@@ -72,7 +80,7 @@ export function PostMenu({
 
       if (commentsError) throw commentsError;
 
-      // Then, delete all likes
+      // Delete likes
       const { error: likesError } = await supabase
         .from('likes')
         .delete()

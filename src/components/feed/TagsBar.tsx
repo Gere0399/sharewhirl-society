@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Plus, X, Tag, Home } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { Plus, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -32,10 +31,12 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
   };
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-background border-b border-border/10 sticky top-0 z-10">
-      <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4 py-2 px-4 bg-background/95 backdrop-blur-sm border-b border-border/10">
+      <div className="flex items-center gap-2 min-w-fit">
         <span 
-          className={`text-sm cursor-pointer ${activeTag === "for you" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
+          className={`text-sm cursor-pointer whitespace-nowrap ${
+            activeTag === "for you" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+          }`}
           onClick={() => onTagSelect("for you")}
         >
           For You
@@ -44,14 +45,14 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 px-2"
+          className="h-6 w-6 p-0"
           onClick={() => setIsTagDialogOpen(true)}
         >
           <Plus className="h-3.5 w-3.5" />
         </Button>
       </div>
       
-      <ScrollArea className="w-full whitespace-nowrap">
+      <ScrollArea className="w-full">
         <div className="flex gap-4">
           {tags.map((tag) => (
             <div key={tag} className="group flex items-center gap-1">
@@ -96,10 +97,8 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
                 {searchQuery && (
                   <CommandItem
                     onSelect={() => handleTagSelect(searchQuery.toLowerCase())}
-                    className="flex items-center"
                   >
-                    <Tag className="mr-2 h-4 w-4" />
-                    {searchQuery.toLowerCase()}
+                    #{searchQuery.toLowerCase()}
                   </CommandItem>
                 )}
               </CommandGroup>

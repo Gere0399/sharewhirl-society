@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -23,12 +22,11 @@ export function ProfileHeader({ profile, isOwnProfile, isFollowing, onFollowTogg
   };
 
   const handleProfileUpdate = (updatedProfile: any) => {
-    // Update the profile data in the parent component
     Object.assign(profile, updatedProfile);
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-4">
           <Avatar className="h-20 w-20">
@@ -36,17 +34,14 @@ export function ProfileHeader({ profile, isOwnProfile, isFollowing, onFollowTogg
             <AvatarFallback>{profile.username?.[0]?.toUpperCase()}</AvatarFallback>
           </Avatar>
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold">{profile.username}</h1>
-            {profile.bio && (
-              <p className="text-sm text-muted-foreground max-w-md">{profile.bio}</p>
-            )}
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span>{profile.followers_count || 0} followers</span>
+            <div className="flex items-center justify-between gap-4">
+              <h1 className="text-2xl font-bold">{profile.username}</h1>
               {isOwnProfile ? (
                 <Button 
                   onClick={() => setIsEditProfileOpen(true)}
                   variant="outline"
                   size="sm"
+                  className="h-8"
                 >
                   Edit Profile
                 </Button>
@@ -56,15 +51,22 @@ export function ProfileHeader({ profile, isOwnProfile, isFollowing, onFollowTogg
                   disabled={loading}
                   variant={isFollowing ? "secondary" : "default"}
                   size="sm"
+                  className="h-8"
                 >
                   {isFollowing ? "Unfollow" : "Follow"}
                 </Button>
               )}
             </div>
+            {profile.bio && (
+              <p className="text-sm text-muted-foreground max-w-md">{profile.bio}</p>
+            )}
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span>{profile.followers_count || 0} followers</span>
+            </div>
           </div>
         </div>
       </div>
-      <Separator />
+      <Separator className="bg-border/10" />
 
       <EditProfileDialog
         open={isEditProfileOpen}

@@ -107,6 +107,42 @@ export type Database = {
         }
         Relationships: []
       }
+      generations: {
+        Row: {
+          cost: number
+          created_at: string | null
+          id: string
+          model_name: string
+          model_type: string
+          output_url: string | null
+          prompt: string | null
+          settings: Json | null
+          user_id: string
+        }
+        Insert: {
+          cost?: number
+          created_at?: string | null
+          id?: string
+          model_name: string
+          model_type: string
+          output_url?: string | null
+          prompt?: string | null
+          settings?: Json | null
+          user_id: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string | null
+          id?: string
+          model_name?: string
+          model_type?: string
+          output_url?: string | null
+          prompt?: string | null
+          settings?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string | null

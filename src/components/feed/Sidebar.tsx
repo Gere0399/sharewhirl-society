@@ -4,6 +4,7 @@ import {
   PlusCircle,
   Bell,
   User,
+  Paintbrush,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,6 +57,13 @@ export function Sidebar() {
           label="Create Post"
           asButton
           onClick={() => setIsCreatePostOpen(true)}
+        />
+
+        <SidebarNavItem
+          to="/generate"
+          icon={Paintbrush}
+          label="Generate"
+          isActive={location.pathname === "/generate"}
         />
 
         <SidebarNavItem

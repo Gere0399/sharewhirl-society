@@ -32,22 +32,22 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
   };
 
   return (
-    <div className="flex items-center gap-2 p-2 bg-background/60 backdrop-blur-sm">
+    <div className="flex items-center gap-2 p-2 bg-background/60 backdrop-blur-sm border-b border-border/10">
       <div className="flex items-center shrink-0 gap-2">
         <Button
           variant={activeTag === "for you" ? "default" : "ghost"}
           onClick={() => onTagSelect("for you")}
           size="sm"
-          className="shrink-0"
+          className="shrink-0 text-sm font-medium"
         >
           <Home className="h-4 w-4 mr-1" />
           For You
         </Button>
         
-        <Separator orientation="vertical" className="h-6" />
+        <Separator orientation="vertical" className="h-6 bg-border/10" />
         
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
           className="shrink-0"
           onClick={() => setIsTagDialogOpen(true)}
@@ -63,7 +63,7 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
               key={tag}
               variant={activeTag === tag ? "default" : "secondary"}
               size="sm"
-              className="shrink-0 group"
+              className="shrink-0 group text-sm font-medium"
               onClick={() => onTagSelect(tag)}
             >
               <Tag className="h-3 w-3 mr-1" />
@@ -84,11 +84,11 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
       </ScrollArea>
 
       <Dialog open={isTagDialogOpen} onOpenChange={setIsTagDialogOpen}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm bg-background border border-border/10">
           <DialogHeader>
             <DialogTitle>Add Tags to Your Feed</DialogTitle>
           </DialogHeader>
-          <Command>
+          <Command className="rounded-lg border border-border/10">
             <Input
               placeholder="Search tags..."
               value={searchQuery}

@@ -40,7 +40,10 @@ export function SearchBar() {
           type="text"
           placeholder="Search posts and profiles..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            if (!open) setOpen(true);
+          }}
           onFocus={() => setOpen(true)}
           className="w-[300px] mx-auto"
         />

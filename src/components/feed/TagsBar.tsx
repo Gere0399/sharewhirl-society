@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Plus, X, Tag, Home, Moon, Sun } from "lucide-react";
+import { Plus, X, Tag, Home } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { useTheme } from "@/components/theme/ThemeProvider";
 
 interface TagsBarProps {
   tags: string[];
@@ -23,7 +22,6 @@ interface TagsBarProps {
 export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarProps) {
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { theme, setTheme } = useTheme();
 
   const handleTagSelect = (tag: string) => {
     if (!tags.includes(tag)) {
@@ -55,19 +53,6 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
           onClick={() => setIsTagDialogOpen(true)}
         >
           <Plus className="h-4 w-4" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0"
-          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-        >
-          {theme === "light" ? (
-            <Moon className="h-4 w-4" />
-          ) : (
-            <Sun className="h-4 w-4" />
-          )}
         </Button>
       </div>
       

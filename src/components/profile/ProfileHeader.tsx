@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { EditProfileDialog } from "./EditProfileDialog";
 
 interface ProfileHeaderProps {
   profile: any;
@@ -13,11 +14,17 @@ interface ProfileHeaderProps {
 
 export function ProfileHeader({ profile, isOwnProfile, isFollowing, onFollowToggle }: ProfileHeaderProps) {
   const [loading, setLoading] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   const handleFollowToggle = async () => {
     setLoading(true);
     await onFollowToggle();
     setLoading(false);
+  };
+
+  const handleProfileUpdate = (updatedProfile: any) => {
+    // Update the profile data in the parent component
+    Object.assign(profile, updatedProfile);
   };
 
   return (
@@ -35,7 +42,15 @@ export function ProfileHeader({ profile, isOwnProfile, isFollowing, onFollowTogg
             )}
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <span>{profile.followers_count || 0} followers</span>
-              {!isOwnProfile && (
+              {isOwnProfile ? (
+                <Button 
+                  onClick={() => setIsEditProfileOpen(true)}
+                  variant="outline"
+                  size="sm"
+                >
+                  Edit Profile
+                </Button>
+              ) : (
                 <Button 
                   onClick={handleFollowToggle} 
                   disabled={loading}
@@ -50,6 +65,13 @@ export function ProfileHeader({ profile, isOwnProfile, isFollowing, onFollowTogg
         </div>
       </div>
       <Separator />
+
+      <EditProfileDialog
+        open={isEditProfileOpen}
+        onOpenChange={setIsEditProfileOpen}
+        profile={profile}
+        onProfileUpdate={handleProfileUpdate}
+      />
     </div>
   );
 }

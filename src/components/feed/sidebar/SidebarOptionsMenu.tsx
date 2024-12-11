@@ -1,5 +1,4 @@
-import { useTheme } from "@/components/theme/ThemeProvider";
-import { Moon, Sun, LogOut, Settings } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +11,6 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 export function SidebarOptionsMenu() {
-  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -39,19 +37,6 @@ export function SidebarOptionsMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="end" className="w-48">
-        <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-          {theme === "dark" ? (
-            <>
-              <Sun className="mr-2 h-4 w-4" />
-              <span>Light Mode</span>
-            </>
-          ) : (
-            <>
-              <Moon className="mr-2 h-4 w-4" />
-              <span>Dark Mode</span>
-            </>
-          )}
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Sign Out</span>

@@ -16,7 +16,7 @@ export function PostList({ posts, currentUserId, onLike }: PostListProps) {
   }
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-4"> {/* Reduced gap from gap-6 to gap-4 */}
       {posts.map((post) => (
         <PostCard
           key={post.id}

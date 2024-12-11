@@ -7,13 +7,13 @@
     --background: 220 10% 8%; /* Dark background */
     --foreground: 210 40% 98%;
 
-    --card: 220 10% 8%;
+    --card: 220 10% 6%; /* Darker card background */
     --card-foreground: 210 40% 98%;
 
     --popover: 220 10% 8%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 262 83% 74%; /* Purple accent */
+    --primary: 217 10% 25%; /* Updated primary color to match hover state */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 217 10% 25%;
@@ -37,7 +37,7 @@
     /* Sidebar specific colors */
     --sidebar-background: 220 10% 8%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 262 83% 74%;
+    --sidebar-primary: 217 10% 25%; /* Updated to match hover state */
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 217 10% 25%;
     --sidebar-accent-foreground: 210 40% 98%;

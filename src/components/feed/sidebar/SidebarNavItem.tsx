@@ -26,11 +26,15 @@ export function SidebarNavItem({
   
   return (
     <Button
-      variant={isActive ? "default" : "ghost"}
+      variant="ghost"
       size="icon"
       asChild={!asButton}
       onClick={onClick}
-      className={cn("relative", className)}
+      className={cn(
+        "relative hover:bg-secondary/70",
+        isActive && "bg-secondary/70", // Now matches hover state when active
+        className
+      )}
     >
       <ButtonOrLink to={to}>
         <Icon className="h-5 w-5" />

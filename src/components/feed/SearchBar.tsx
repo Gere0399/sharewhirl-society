@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatDistanceToNowStrict } from "date-fns";
 
 interface SearchResult {
   type: "profile" | "post";
@@ -35,6 +36,7 @@ export function SearchBar() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   const { data: searchResults = [], isLoading } = useQuery({
     queryKey: ["search", search],
@@ -46,10 +48,11 @@ export function SearchBar() {
           .from("profiles")
           .select("user_id, username, avatar_url")
           .ilike("username", `%${search}%`)
+          .order('username')
           .limit(MAX_RESULTS_PER_TYPE),
         supabase
           .from("posts")
-          .select("id, title, content, media_url, media_type")
+          .select("id, title, content, media_url, media_type, created_at")
           .or(`title.ilike.%${search}%,content.ilike.%${search}%,tags.cs.{${search}}`)
           .order('created_at', { ascending: false })
           .limit(MAX_RESULTS_PER_TYPE)
@@ -73,12 +76,14 @@ export function SearchBar() {
 
       return [...profiles, ...posts];
     },
-    enabled: search.length > 0
+    enabled: true
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    if (e.target.value.length > 0) {
+    const value = e.target.value;
+    setSearch(value);
+    
+    if (value.length > 0) {
       setOpen(true);
     } else {
       setOpen(false);

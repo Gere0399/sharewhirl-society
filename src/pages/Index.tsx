@@ -154,8 +154,8 @@ const Index = () => {
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
-      <main className="flex-1 ml-16">
-        <header className="fixed top-0 right-0 left-16 z-10 border-b border-border/40 bg-background/95 backdrop-blur-sm">
+      <main className={`flex-1 ${isMobile ? 'mb-16' : 'ml-16'}`}>
+        <header className={`fixed top-0 z-10 border-b border-border/40 bg-background/95 backdrop-blur-sm ${isMobile ? 'right-0 left-0' : 'right-0 left-16'}`}>
           <div className="container mx-auto px-4 py-2">
             <div className="flex flex-col gap-4 max-w-2xl mx-auto">
               <SearchBar />
@@ -176,7 +176,7 @@ const Index = () => {
                 <Loader className="h-6 w-6 animate-spin" />
               </div>
             ) : (
-              <div className="space-y-4"> {/* Changed from space-y-8 to space-y-4 */}
+              <div className="space-y-4">
                 {posts.map((post) => (
                   <PostCard
                     key={post.id}

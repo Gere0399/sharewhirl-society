@@ -12,11 +12,13 @@ import { SidebarLogo } from "./sidebar/SidebarLogo";
 import { SidebarNavItem } from "./sidebar/SidebarNavItem";
 import { CreatePostDialog } from "./CreatePostDialog";
 import { SidebarOptionsMenu } from "./sidebar/SidebarOptionsMenu";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function Sidebar() {
   const location = useLocation();
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -36,6 +38,56 @@ export function Sidebar() {
 
     fetchUserProfile();
   }, []);
+
+  const mobileNavItems = [
+    {
+      to: "/",
+      icon: Home,
+      label: "Home",
+      isActive: location.pathname === "/"
+    },
+    {
+      to: "#",
+      icon: PlusCircle,
+      label: "Create Post",
+      asButton: true,
+      onClick: () => setIsCreatePostOpen(true)
+    },
+    {
+      to: "/generate",
+      icon: Paintbrush,
+      label: "Generate",
+      isActive: location.pathname === "/generate"
+    },
+    {
+      to: "/notifications",
+      icon: Bell,
+      label: "Notifications",
+      isActive: location.pathname === "/notifications"
+    },
+    {
+      to: username ? `/profile/${username}` : "/",
+      icon: User,
+      label: "Profile",
+      isActive: location.pathname.startsWith("/profile")
+    }
+  ];
+
+  if (isMobile) {
+    return (
+      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t border-border/10 z-50">
+        <div className="flex items-center justify-around h-full px-2">
+          {mobileNavItems.map((item) => (
+            <SidebarNavItem
+              key={item.label}
+              {...item}
+              className="!w-12 !h-12"
+            />
+          ))}
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-16 flex flex-col bg-background border-r border-border/10">

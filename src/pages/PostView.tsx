@@ -57,31 +57,29 @@ const PostView = () => {
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
       <main className="flex-1 ml-16 md:ml-64 no-horizontal-scroll">
-        <div className="container mx-auto px-4 py-8 pb-20 md:pb-8">
-          <div className="max-w-2xl mx-auto">
-            {loading ? (
-              <div className="flex justify-center items-center min-h-[200px]">
-                <Loader className="h-6 w-6 animate-spin" />
-              </div>
-            ) : error ? (
-              <div className="text-center py-8 text-destructive">
-                {error}
-              </div>
-            ) : post ? (
-              <>
-                <PostCard
-                  post={post}
-                  currentUserId={session?.user?.id}
-                  onLike={handleLike}
-                  isFullView
-                />
-                <CommentSection
-                  postId={post.id}
-                  currentUserId={session?.user?.id}
-                />
-              </>
-            ) : null}
-          </div>
+        <div className="container max-w-2xl mx-auto px-4 py-8 pb-20 md:pb-8">
+          {loading ? (
+            <div className="flex justify-center items-center min-h-[200px]">
+              <Loader className="h-6 w-6 animate-spin" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-8 text-destructive">
+              {error}
+            </div>
+          ) : post ? (
+            <>
+              <PostCard
+                post={post}
+                currentUserId={session?.user?.id}
+                onLike={handleLike}
+                isFullView
+              />
+              <CommentSection
+                postId={post.id}
+                currentUserId={session?.user?.id}
+              />
+            </>
+          ) : null}
         </div>
       </main>
     </div>

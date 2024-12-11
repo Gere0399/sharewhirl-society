@@ -1,8 +1,15 @@
 import { useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { GenerateImage } from "@/components/generate/GenerateImage";
 import { GenerationHistory } from "@/components/generate/GenerationHistory";
+import { Sidebar } from "@/components/feed/Sidebar";
+import { ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const GENERATION_TYPES = [
   { id: "images", label: "Images" },
@@ -24,51 +31,55 @@ export default function Generate() {
   const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS[0].id);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col space-y-4 max-w-6xl mx-auto">
-          <div className="flex gap-4">
-            <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                {GENERATION_TYPES.map((type) => (
-                  <SelectItem key={type.id} value={type.id}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    <div className="flex min-h-screen bg-background">
+      <Sidebar />
+      <main className="flex-1 ml-16">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col space-y-4 max-w-6xl mx-auto">
+            <div className="flex items-center gap-4 py-2 px-4 bg-background/95 backdrop-blur-sm border-b border-border/10">
+              {GENERATION_TYPES.map((type) => (
+                <DropdownMenu key={type.id}>
+                  <DropdownMenuTrigger className="flex items-center gap-1 text-sm">
+                    <span
+                      className={`cursor-pointer whitespace-nowrap ${
+                        selectedType === type.id
+                          ? "text-[hsl(262,83%,74%)]"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {type.label}
+                    </span>
+                    <ChevronDown className="h-4 w-4" />
+                  </DropdownMenuTrigger>
+                  {type.id === "images" && (
+                    <DropdownMenuContent align="start">
+                      {IMAGE_MODELS.map((model) => (
+                        <DropdownMenuItem
+                          key={model.id}
+                          onClick={() => setSelectedModel(model.id)}
+                        >
+                          {model.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  )}
+                </DropdownMenu>
+              ))}
+            </div>
 
-            {selectedType === "images" && (
-              <Select value={selectedModel} onValueChange={setSelectedModel}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select model" />
-                </SelectTrigger>
-                <SelectContent>
-                  {IMAGE_MODELS.map((model) => (
-                    <SelectItem key={model.id} value={model.id}>
-                      {model.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card className="p-4">
-              {selectedType === "images" && (
-                <GenerateImage modelId={selectedModel} />
-              )}
-            </Card>
-            <Card className="p-4">
-              <GenerationHistory type={selectedType} modelId={selectedModel} />
-            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <Card className="p-4">
+                {selectedType === "images" && (
+                  <GenerateImage modelId={selectedModel} />
+                )}
+              </Card>
+              <Card className="p-4">
+                <GenerationHistory type={selectedType} modelId={selectedModel} />
+              </Card>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

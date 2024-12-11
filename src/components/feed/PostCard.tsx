@@ -38,18 +38,15 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Clear any existing timeout
             if (viewTimeoutRef.current) {
               clearTimeout(viewTimeoutRef.current);
             }
 
-            // Start a new timer when the post comes into view
             viewTimeoutRef.current = setTimeout(async () => {
               await trackPostView(post.id, currentUserId);
               setHasBeenViewed(true);
-            }, 2000); // 2 seconds delay
+            }, 2000);
           } else {
-            // Clear the timeout if the post goes out of view
             if (viewTimeoutRef.current) {
               clearTimeout(viewTimeoutRef.current);
             }
@@ -57,7 +54,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
         });
       },
       {
-        threshold: 0.5, // 50% of the post must be visible
+        threshold: 0.5,
       }
     );
 
@@ -114,7 +111,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
   };
 
   return (
-    <Card className={`overflow-hidden border-0 bg-secondary/80 hover:bg-secondary/90 transition-colors w-full ${isFullView ? 'mx-auto' : 'cursor-pointer'}`}>
+    <Card className={`overflow-hidden border-0 bg-[#222222] hover:bg-[#333333] transition-colors w-full ${isFullView ? 'mx-auto' : 'cursor-pointer'}`}>
       <div onClick={handleNavigateToPost} ref={postRef}>
         <CardHeader className="px-4 pt-4 pb-2">
           <PostHeader 

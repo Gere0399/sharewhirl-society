@@ -89,6 +89,27 @@ export type Database = {
           },
         ]
       }
+      credits: {
+        Row: {
+          amount: number
+          created_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string | null
@@ -168,6 +189,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      model_costs: {
+        Row: {
+          created_at: string | null
+          credits_cost: number
+          id: string
+          model_id: string
+          model_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          credits_cost: number
+          id?: string
+          model_id: string
+          model_type: string
+        }
+        Update: {
+          created_at?: string | null
+          credits_cost?: number
+          id?: string
+          model_id?: string
+          model_type?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -351,6 +396,33 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           username?: string
+        }
+        Relationships: []
+      }
+      subscription_tiers: {
+        Row: {
+          created_at: string | null
+          credits_amount: number
+          description: string | null
+          id: string
+          name: string
+          price_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          credits_amount: number
+          description?: string | null
+          id?: string
+          name: string
+          price_id: string
+        }
+        Update: {
+          created_at?: string | null
+          credits_amount?: number
+          description?: string | null
+          id?: string
+          name?: string
+          price_id?: string
         }
         Relationships: []
       }

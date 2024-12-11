@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +19,7 @@ import { Loader2 } from "lucide-react";
 export function SearchBar() {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
   const { search, setSearch, searchResults, isLoading } = useSearch();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,10 +33,11 @@ export function SearchBar() {
       navigate(`/post/${result.id}`);
     }
     setSearch("");
+    setOpen(false);
   };
 
   return (
-    <Popover defaultOpen={true}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Input
           ref={inputRef}
@@ -43,57 +45,60 @@ export function SearchBar() {
           placeholder="Search posts and profiles..."
           value={search}
           onChange={handleInputChange}
+          onFocus={() => setOpen(true)}
           className="w-[300px] mx-auto"
         />
       </PopoverTrigger>
-      <PopoverContent 
-        className="w-[300px] p-0" 
-        align="start"
-        sideOffset={5}
-      >
-        <Command>
-          <CommandList>
-            {isLoading ? (
-              <div className="flex items-center justify-center p-4">
-                <Loader2 className="h-4 w-4 animate-spin" />
-              </div>
-            ) : search.trim() === "" ? (
-              <CommandEmpty>Start typing to search...</CommandEmpty>
-            ) : searchResults.length === 0 ? (
-              <CommandEmpty>No results found.</CommandEmpty>
-            ) : (
-              <>
-                {searchResults.filter(result => result.type === "profile").length > 0 && (
-                  <CommandGroup heading="Profiles">
-                    {searchResults
-                      .filter(result => result.type === "profile")
-                      .map(result => (
-                        <SearchResultItem
-                          key={result.id}
-                          result={result}
-                          onSelect={() => handleSelect(result)}
-                        />
-                      ))}
-                  </CommandGroup>
-                )}
-                {searchResults.filter(result => result.type === "post").length > 0 && (
-                  <CommandGroup heading="Posts">
-                    {searchResults
-                      .filter(result => result.type === "post")
-                      .map(result => (
-                        <SearchResultItem
-                          key={result.id}
-                          result={result}
-                          onSelect={() => handleSelect(result)}
-                        />
-                      ))}
-                  </CommandGroup>
-                )}
-              </>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
+      {open && (
+        <PopoverContent 
+          className="w-[300px] p-0" 
+          align="start"
+          sideOffset={5}
+        >
+          <Command>
+            <CommandList>
+              {isLoading ? (
+                <div className="flex items-center justify-center p-4">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                </div>
+              ) : search.trim() === "" ? (
+                <CommandEmpty>Start typing to search...</CommandEmpty>
+              ) : searchResults.length === 0 ? (
+                <CommandEmpty>No results found.</CommandEmpty>
+              ) : (
+                <>
+                  {searchResults.filter(result => result.type === "profile").length > 0 && (
+                    <CommandGroup heading="Profiles">
+                      {searchResults
+                        .filter(result => result.type === "profile")
+                        .map(result => (
+                          <SearchResultItem
+                            key={result.id}
+                            result={result}
+                            onSelect={() => handleSelect(result)}
+                          />
+                        ))}
+                    </CommandGroup>
+                  )}
+                  {searchResults.filter(result => result.type === "post").length > 0 && (
+                    <CommandGroup heading="Posts">
+                      {searchResults
+                        .filter(result => result.type === "post")
+                        .map(result => (
+                          <SearchResultItem
+                            key={result.id}
+                            result={result}
+                            onSelect={() => handleSelect(result)}
+                          />
+                        ))}
+                    </CommandGroup>
+                  )}
+                </>
+              )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      )}
     </Popover>
   );
 }

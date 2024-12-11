@@ -56,7 +56,7 @@ export function useSearch(initialSearch: string = "") {
 
       return [...profiles, ...posts];
     },
-    enabled: true,
+    enabled: search.trim().length > 0,
     staleTime: 300,
     refetchOnWindowFocus: false
   });

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Plus, X, Tag, Home } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogContent,
@@ -32,15 +33,28 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
 
   return (
     <div className="flex items-center gap-2 p-2 bg-background/60 backdrop-blur-sm">
-      <Button
-        variant={activeTag === "for you" ? "default" : "ghost"}
-        onClick={() => onTagSelect("for you")}
-        size="sm"
-        className="shrink-0"
-      >
-        <Home className="h-4 w-4 mr-1" />
-        For You
-      </Button>
+      <div className="flex items-center shrink-0 gap-2">
+        <Button
+          variant={activeTag === "for you" ? "default" : "ghost"}
+          onClick={() => onTagSelect("for you")}
+          size="sm"
+          className="shrink-0"
+        >
+          <Home className="h-4 w-4 mr-1" />
+          For You
+        </Button>
+        
+        <Separator orientation="vertical" className="h-6" />
+        
+        <Button
+          variant="outline"
+          size="sm"
+          className="shrink-0"
+          onClick={() => setIsTagDialogOpen(true)}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
       
       <ScrollArea className="w-full">
         <div className="flex space-x-2">
@@ -68,15 +82,6 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
-
-      <Button
-        variant="outline"
-        size="sm"
-        className="shrink-0"
-        onClick={() => setIsTagDialogOpen(true)}
-      >
-        <Plus className="h-4 w-4" />
-      </Button>
 
       <Dialog open={isTagDialogOpen} onOpenChange={setIsTagDialogOpen}>
         <DialogContent className="max-w-sm">

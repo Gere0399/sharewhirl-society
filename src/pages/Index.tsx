@@ -142,10 +142,10 @@ const Index = () => {
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
       <main className="flex-1 ml-16">
-        <header className="fixed top-0 right-0 left-16 z-10 border-b border-border/40 backdrop-blur-sm">
-          <div className="container mx-auto flex flex-col items-center justify-center gap-4 px-4 py-3">
-            <SearchBar />
-            <div className="w-full max-w-2xl">
+        <header className="fixed top-0 right-0 left-16 z-10 border-b border-border/40 bg-background/95 backdrop-blur-sm">
+          <div className="container mx-auto px-4 py-2">
+            <div className="flex flex-col gap-2 max-w-2xl mx-auto">
+              <SearchBar />
               <TagsBar
                 tags={userTags}
                 activeTag={activeTag}
@@ -156,7 +156,7 @@ const Index = () => {
           </div>
         </header>
 
-        <div className="container mx-auto px-4 pt-32 pb-8">
+        <div className="container mx-auto px-4 pt-24 pb-8">
           <div className="max-w-2xl mx-auto">
             {loading ? (
               <div className="flex justify-center items-center min-h-[200px]">

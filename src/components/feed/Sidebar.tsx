@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  Home,
+  PlayCircle,
   PlusCircle,
   Bell,
   User,
@@ -41,9 +41,15 @@ export function Sidebar() {
 
   const mobileNavItems = [
     {
+      to: "/generate",
+      icon: Paintbrush,
+      label: "Generate",
+      isActive: location.pathname === "/generate"
+    },
+    {
       to: "/",
-      icon: Home,
-      label: "Home",
+      icon: PlayCircle,
+      label: "Social Streaming",
       isActive: location.pathname === "/"
     },
     {
@@ -52,12 +58,6 @@ export function Sidebar() {
       label: "Create Post",
       asButton: true,
       onClick: () => setIsCreatePostOpen(true)
-    },
-    {
-      to: "/generate",
-      icon: Paintbrush,
-      label: "Generate",
-      isActive: location.pathname === "/generate"
     },
     {
       to: "/notifications",
@@ -97,9 +97,16 @@ export function Sidebar() {
 
       <nav className="flex-1 flex flex-col items-center justify-center gap-2">
         <SidebarNavItem
+          to="/generate"
+          icon={Paintbrush}
+          label="Generate"
+          isActive={location.pathname === "/generate"}
+        />
+
+        <SidebarNavItem
           to="/"
-          icon={Home}
-          label="Home"
+          icon={PlayCircle}
+          label="Social Streaming"
           isActive={location.pathname === "/"}
         />
 
@@ -109,13 +116,6 @@ export function Sidebar() {
           label="Create Post"
           asButton
           onClick={() => setIsCreatePostOpen(true)}
-        />
-
-        <SidebarNavItem
-          to="/generate"
-          icon={Paintbrush}
-          label="Generate"
-          isActive={location.pathname === "/generate"}
         />
 
         <SidebarNavItem

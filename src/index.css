@@ -79,7 +79,7 @@
     /* Sidebar specific colors for light mode */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 10% 3.9%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary: 262 83% 74%; /* Purple color for selected icons */
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,6 +12,8 @@ export function useSearch(initialSearch: string = "") {
     queryFn: async () => {
       if (!search.trim()) return [];
 
+      console.log("Searching for:", search);
+
       const [profilesResponse, postsResponse] = await Promise.all([
         supabase
           .from("profiles")
@@ -21,11 +23,28 @@ export function useSearch(initialSearch: string = "") {
           .limit(MAX_RESULTS_PER_TYPE),
         supabase
           .from("posts")
-          .select("id, title, content, media_url, media_type, created_at")
+          .select(`
+            id,
+            title,
+            content,
+            media_url,
+            media_type,
+            created_at
+          `)
           .or(`title.ilike.%${search}%,content.ilike.%${search}%,tags.cs.{${search}}`)
           .order('created_at', { ascending: false })
           .limit(MAX_RESULTS_PER_TYPE)
       ]);
+
+      if (profilesResponse.error) {
+        console.error("Profiles search error:", profilesResponse.error);
+        throw profilesResponse.error;
+      }
+
+      if (postsResponse.error) {
+        console.error("Posts search error:", postsResponse.error);
+        throw postsResponse.error;
+      }
 
       const profiles = (profilesResponse.data || []).map(profile => ({
         type: "profile" as const,
@@ -44,9 +63,12 @@ export function useSearch(initialSearch: string = "") {
         created_at: post.created_at
       }));
 
+      console.log("Search results:", { profiles, posts });
       return [...profiles, ...posts];
     },
-    enabled: true
+    enabled: search.length > 0,
+    staleTime: 1000, // Results are fresh for 1 second
+    refetchOnWindowFocus: false
   });
 
   return {

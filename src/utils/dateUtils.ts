@@ -5,21 +5,23 @@ export const formatTimeAgo = (date?: string) => {
   
   try {
     const postDate = new Date(date);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - postDate.getTime()) / 1000);
     
-    // Less than a minute
+    // Validate the date
+    if (isNaN(postDate.getTime())) {
+      console.error("Invalid date:", date);
+      return "";
+    }
+    
+    // For very recent posts (less than a minute ago)
+    const diffInSeconds = Math.floor((Date.now() - postDate.getTime()) / 1000);
     if (diffInSeconds < 60) {
       return "just now";
     }
     
-    // Use formatDistanceToNowStrict for consistent formatting
-    const timeAgo = formatDistanceToNowStrict(postDate, {
+    return formatDistanceToNowStrict(postDate, {
       addSuffix: true,
       roundingMethod: 'floor'
     });
-    
-    return timeAgo;
   } catch (error) {
     console.error("Error formatting date:", error);
     return "";

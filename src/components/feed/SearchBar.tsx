@@ -48,54 +48,60 @@ export function SearchBar() {
           className="w-[300px] mx-auto"
         />
       </PopoverTrigger>
-      {open && search.trim() !== "" && (
-        <PopoverContent 
-          className="w-[300px] p-0" 
-          align="start"
-          sideOffset={5}
-        >
-          <Command>
-            <CommandList>
-              {isLoading ? (
-                <div className="flex items-center justify-center p-4">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                </div>
-              ) : searchResults.length === 0 ? (
-                <CommandEmpty>No results found.</CommandEmpty>
-              ) : (
-                <>
-                  {searchResults.filter(result => result.type === "profile").length > 0 && (
-                    <CommandGroup heading="Profiles">
-                      {searchResults
-                        .filter(result => result.type === "profile")
-                        .map(result => (
-                          <SearchResultItem
-                            key={result.id}
-                            result={result}
-                            onSelect={() => handleSelect(result)}
-                          />
-                        ))}
-                    </CommandGroup>
-                  )}
-                  {searchResults.filter(result => result.type === "post").length > 0 && (
-                    <CommandGroup heading="Posts">
-                      {searchResults
-                        .filter(result => result.type === "post")
-                        .map(result => (
-                          <SearchResultItem
-                            key={result.id}
-                            result={result}
-                            onSelect={() => handleSelect(result)}
-                          />
-                        ))}
-                    </CommandGroup>
-                  )}
-                </>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      )}
+      <PopoverContent 
+        className="w-[300px] p-0" 
+        align="start"
+        sideOffset={5}
+        onInteractOutside={(e) => {
+          // Prevent closing when clicking inside the popover
+          e.preventDefault();
+        }}
+        onOpenAutoFocus={(e) => {
+          // Prevent the popover from stealing focus
+          e.preventDefault();
+        }}
+      >
+        <Command>
+          <CommandList>
+            {isLoading ? (
+              <div className="flex items-center justify-center p-4">
+                <Loader2 className="h-4 w-4 animate-spin" />
+              </div>
+            ) : searchResults.length === 0 ? (
+              <CommandEmpty>No results found.</CommandEmpty>
+            ) : (
+              <>
+                {searchResults.filter(result => result.type === "profile").length > 0 && (
+                  <CommandGroup heading="Profiles">
+                    {searchResults
+                      .filter(result => result.type === "profile")
+                      .map(result => (
+                        <SearchResultItem
+                          key={result.id}
+                          result={result}
+                          onSelect={() => handleSelect(result)}
+                        />
+                      ))}
+                  </CommandGroup>
+                )}
+                {searchResults.filter(result => result.type === "post").length > 0 && (
+                  <CommandGroup heading="Posts">
+                    {searchResults
+                      .filter(result => result.type === "post")
+                      .map(result => (
+                        <SearchResultItem
+                          key={result.id}
+                          result={result}
+                          onSelect={() => handleSelect(result)}
+                        />
+                      ))}
+                  </CommandGroup>
+                )}
+              </>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
     </Popover>
   );
 }

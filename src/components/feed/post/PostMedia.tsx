@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { FullScreenImage } from "@/components/shared/FullScreenImage";
 
 interface PostMediaProps {
   mediaUrl?: string;
@@ -7,6 +9,8 @@ interface PostMediaProps {
 }
 
 export function PostMedia({ mediaUrl, mediaType, title }: PostMediaProps) {
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
   if (!mediaUrl) return null;
 
   const fullUrl = supabase.storage
@@ -17,14 +21,26 @@ export function PostMedia({ mediaUrl, mediaType, title }: PostMediaProps) {
   switch (mediaType) {
     case "image":
       return (
-        <div className="relative w-full rounded-lg overflow-hidden bg-muted aspect-[16/9]">
-          <img
-            src={fullUrl}
-            alt={title}
-            className="w-full h-full object-contain"
-            loading="lazy"
-          />
-        </div>
+        <>
+          <div 
+            className="relative w-full rounded-lg overflow-hidden bg-muted aspect-[16/9] cursor-pointer"
+            onClick={() => setIsFullScreen(true)}
+          >
+            <img
+              src={fullUrl}
+              alt={title}
+              className="w-full h-full object-contain"
+              loading="lazy"
+            />
+          </div>
+          {isFullScreen && (
+            <FullScreenImage
+              src={fullUrl}
+              alt={title || ""}
+              onClose={() => setIsFullScreen(false)}
+            />
+          )}
+        </>
       );
     case "video":
       return (

@@ -32,38 +32,38 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
   };
 
   return (
-    <div className="flex items-center gap-2 p-2 bg-background/60 backdrop-blur-sm border-b border-border/10 sticky top-0 z-10">
-      <div className="flex items-center shrink-0 gap-2">
+    <div className="flex items-center gap-2 p-1.5 bg-background/60 backdrop-blur-sm border-b border-border/10 sticky top-0 z-10">
+      <div className="flex items-center shrink-0 gap-1.5">
         <Button
           variant={activeTag === "for you" ? "default" : "ghost"}
           onClick={() => onTagSelect("for you")}
           size="sm"
-          className="shrink-0 text-sm font-medium"
+          className="h-7 text-xs font-medium"
         >
-          <Home className="h-4 w-4 mr-1" />
+          <Home className="h-3.5 w-3.5 mr-1" />
           For You
         </Button>
         
-        <Separator orientation="vertical" className="h-6 bg-border/10" />
+        <Separator orientation="vertical" className="h-4 bg-border/10" />
         
         <Button
           variant="ghost"
           size="sm"
-          className="shrink-0"
+          className="h-7"
           onClick={() => setIsTagDialogOpen(true)}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-3.5 w-3.5" />
         </Button>
       </div>
       
-      <ScrollArea className="w-full">
-        <div className="flex space-x-2">
+      <ScrollArea className="w-full whitespace-nowrap">
+        <div className="flex gap-1.5">
           {tags.map((tag) => (
             <Button
               key={tag}
               variant={activeTag === tag ? "default" : "secondary"}
               size="sm"
-              className="shrink-0 group text-sm font-medium"
+              className="h-7 group text-xs font-medium shrink-0"
               onClick={() => onTagSelect(tag)}
             >
               <Tag className="h-3 w-3 mr-1" />
@@ -80,7 +80,7 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
             </Button>
           ))}
         </div>
-        <ScrollBar orientation="horizontal" />
+        <ScrollBar orientation="horizontal" className="invisible" />
       </ScrollArea>
 
       <Dialog open={isTagDialogOpen} onOpenChange={setIsTagDialogOpen}>

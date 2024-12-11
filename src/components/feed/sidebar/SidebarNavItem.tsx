@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SidebarNavItemProps {
   to: string;
@@ -9,6 +10,7 @@ interface SidebarNavItemProps {
   isActive?: boolean;
   onClick?: () => void;
   asButton?: boolean;
+  className?: string;
 }
 
 export function SidebarNavItem({ 
@@ -17,7 +19,8 @@ export function SidebarNavItem({
   label, 
   isActive,
   onClick,
-  asButton
+  asButton,
+  className
 }: SidebarNavItemProps) {
   const ButtonOrLink = asButton ? Button : Link;
   
@@ -27,6 +30,7 @@ export function SidebarNavItem({
       size="icon"
       asChild={!asButton}
       onClick={onClick}
+      className={cn("relative", className)}
     >
       <ButtonOrLink to={to}>
         <Icon className="h-5 w-5" />

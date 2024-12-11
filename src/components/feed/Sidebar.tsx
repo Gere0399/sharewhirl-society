@@ -3,21 +3,17 @@ import {
   Home,
   PlusCircle,
   Bell,
-  LogOut,
-  Settings,
   User,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { CreatePostDialog } from "./CreatePostDialog";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { SidebarLogo } from "./sidebar/SidebarLogo";
 import { SidebarNavItem } from "./sidebar/SidebarNavItem";
+import { CreatePostDialog } from "./CreatePostDialog";
+import { SidebarOptionsMenu } from "./sidebar/SidebarOptionsMenu";
 
 export function Sidebar() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
 
@@ -40,25 +36,13 @@ export function Sidebar() {
     fetchUserProfile();
   }, []);
 
-  const handleSignOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      navigate("/");
-    } catch (error: any) {
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <aside className="fixed left-0 top-0 h-screen w-16 flex flex-col bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-r border-border/40">
-      <SidebarLogo />
+      <div className="flex-none">
+        <SidebarLogo />
+      </div>
 
-      <nav className="flex-1 flex flex-col items-center gap-2 p-2">
+      <nav className="flex-1 flex flex-col items-center justify-center gap-2">
         <SidebarNavItem
           to="/"
           icon={Home}
@@ -82,13 +66,6 @@ export function Sidebar() {
         />
 
         <SidebarNavItem
-          to="/settings"
-          icon={Settings}
-          label="Settings"
-          isActive={location.pathname === "/settings"}
-        />
-
-        <SidebarNavItem
           to={username ? `/profile/${username}` : "/"}
           icon={User}
           label="Profile"
@@ -96,14 +73,8 @@ export function Sidebar() {
         />
       </nav>
 
-      <div className="p-2">
-        <SidebarNavItem
-          to="#"
-          icon={LogOut}
-          label="Sign Out"
-          asButton
-          onClick={handleSignOut}
-        />
+      <div className="flex-none p-2">
+        <SidebarOptionsMenu />
       </div>
 
       <CreatePostDialog

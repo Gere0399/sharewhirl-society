@@ -169,14 +169,14 @@ const Index = () => {
           </div>
         </header>
 
-        <div className="container mx-auto px-4 pt-24 pb-8">
+        <div className="container mx-auto px-4 pt-32 pb-8">
           <div className="max-w-2xl mx-auto">
             {loading ? (
               <div className="flex justify-center items-center min-h-[200px]">
                 <Loader className="h-6 w-6 animate-spin" />
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {posts.map((post) => (
                   <PostCard
                     key={post.id}

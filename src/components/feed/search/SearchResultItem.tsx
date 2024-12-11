@@ -23,7 +23,7 @@ export function SearchResultItem({ result, onSelect }: SearchResultItemProps) {
     return (
       <CommandItem
         onSelect={onSelect}
-        className="flex items-center gap-2 p-2"
+        className="flex items-center gap-2 p-2 cursor-pointer hover:bg-accent"
       >
         <Avatar className="h-8 w-8">
           <AvatarImage src={result.avatar_url} />
@@ -31,7 +31,7 @@ export function SearchResultItem({ result, onSelect }: SearchResultItemProps) {
             {result.username?.[0]?.toUpperCase()}
           </AvatarFallback>
         </Avatar>
-        <span>{result.username}</span>
+        <span className="font-medium">{result.username}</span>
       </CommandItem>
     );
   }
@@ -39,13 +39,15 @@ export function SearchResultItem({ result, onSelect }: SearchResultItemProps) {
   return (
     <CommandItem
       onSelect={onSelect}
-      className="flex flex-col items-start gap-1 p-2"
+      className="flex flex-col items-start gap-1 p-2 cursor-pointer hover:bg-accent"
     >
       <div className="flex justify-between w-full">
-        <span className="font-medium">{result.title}</span>
-        <span className="text-sm text-muted-foreground">
-          {formatTimeAgo(result.created_at)}
-        </span>
+        <span className="font-medium line-clamp-1">{result.title}</span>
+        {result.created_at && (
+          <span className="text-sm text-muted-foreground">
+            {formatTimeAgo(result.created_at)}
+          </span>
+        )}
       </div>
       {result.media_url && result.media_type === 'image' && (
         <img 
@@ -54,7 +56,11 @@ export function SearchResultItem({ result, onSelect }: SearchResultItemProps) {
           className="h-12 w-12 object-cover rounded"
         />
       )}
-      <span className="text-sm text-muted-foreground">{result.content}</span>
+      {result.content && (
+        <span className="text-sm text-muted-foreground line-clamp-2">
+          {result.content}
+        </span>
+      )}
     </CommandItem>
   );
 }

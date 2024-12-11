@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,17 +14,15 @@ import {
 } from "@/components/ui/popover";
 import { SearchResultItem } from "./search/SearchResultItem";
 import { useSearch } from "./search/useSearch";
+import { Loader2 } from "lucide-react";
 
 export function SearchBar() {
-  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const { search, setSearch, searchResults, isLoading } = useSearch();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearch(value);
-    setOpen(value.length > 0);
+    setSearch(e.target.value);
   };
 
   const handleSelect = (result: any) => {
@@ -33,30 +31,35 @@ export function SearchBar() {
     } else {
       navigate(`/post/${result.id}`);
     }
-    setOpen(false);
     setSearch("");
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover>
       <PopoverTrigger asChild>
         <Input
           ref={inputRef}
           type="text"
-          placeholder="Search..."
+          placeholder="Search posts and profiles..."
           value={search}
           onChange={handleInputChange}
           className="w-[300px] mx-auto"
-          onFocus={() => setOpen(true)}
         />
       </PopoverTrigger>
-      {search && (
-        <PopoverContent className="w-[300px] p-0" align="start">
-          <Command>
-            <CommandList>
+      <PopoverContent className="w-[300px] p-0" align="start">
+        <Command>
+          <CommandList>
+            {isLoading ? (
+              <div className="flex items-center justify-center p-4">
+                <Loader2 className="h-4 w-4 animate-spin" />
+              </div>
+            ) : search.trim() === "" ? (
+              <CommandEmpty>Start typing to search...</CommandEmpty>
+            ) : searchResults.length === 0 ? (
               <CommandEmpty>No results found.</CommandEmpty>
-              {searchResults.length > 0 && (
-                <>
+            ) : (
+              <>
+                {searchResults.filter(result => result.type === "profile").length > 0 && (
                   <CommandGroup heading="Profiles">
                     {searchResults
                       .filter(result => result.type === "profile")
@@ -68,6 +71,8 @@ export function SearchBar() {
                         />
                       ))}
                   </CommandGroup>
+                )}
+                {searchResults.filter(result => result.type === "post").length > 0 && (
                   <CommandGroup heading="Posts">
                     {searchResults
                       .filter(result => result.type === "post")
@@ -79,12 +84,12 @@ export function SearchBar() {
                         />
                       ))}
                   </CommandGroup>
-                </>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      )}
+                )}
+              </>
+            )}
+          </CommandList>
+        </Command>
+      </PopoverContent>
     </Popover>
   );
 }

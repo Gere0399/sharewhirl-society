@@ -32,7 +32,8 @@ export function SidebarNavItem({
       onClick={onClick}
       className={cn(
         "relative hover:bg-secondary/70",
-        isActive && "bg-secondary/70", // Now matches hover state when active
+        label === "Create Post" && "hover:bg-[hsl(262,83%,74%)] hover:text-white",
+        isActive && (label === "Create Post" ? "bg-[hsl(262,83%,74%)] text-white" : "bg-secondary/70"),
         className
       )}
     >

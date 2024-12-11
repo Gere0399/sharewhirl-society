@@ -35,12 +35,14 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
       <div className="flex items-center gap-2 min-w-fit">
         <span 
           className={`text-sm cursor-pointer whitespace-nowrap ${
-            activeTag === "for you" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            activeTag === "for you" ? "text-[hsl(262,83%,74%)]" : "text-muted-foreground hover:text-foreground"
           }`}
           onClick={() => onTagSelect("for you")}
         >
           For You
         </span>
+        
+        <div className="h-4 w-px bg-border/40 mx-2" /> {/* Added separator line */}
         
         <Button
           variant="ghost"
@@ -58,7 +60,7 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
             <div key={tag} className="group flex items-center gap-1">
               <span
                 className={`text-sm cursor-pointer ${
-                  activeTag === tag ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                  activeTag === tag ? "text-[hsl(262,83%,74%)]" : "text-muted-foreground hover:text-foreground"
                 }`}
                 onClick={() => onTagSelect(tag)}
               >

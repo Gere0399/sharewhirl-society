@@ -176,7 +176,7 @@ const Index = () => {
                 <Loader className="h-6 w-6 animate-spin" />
               </div>
             ) : (
-              <div className="space-y-8">
+              <div className="space-y-4"> {/* Changed from space-y-8 to space-y-4 */}
                 {posts.map((post) => (
                   <PostCard
                     key={post.id}

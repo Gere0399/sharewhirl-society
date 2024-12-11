@@ -35,7 +35,7 @@ export function SearchBar() {
   };
 
   return (
-    <Popover defaultOpen={false}>
+    <Popover>
       <PopoverTrigger asChild>
         <Input
           ref={inputRef}
@@ -57,8 +57,6 @@ export function SearchBar() {
               <div className="flex items-center justify-center p-4">
                 <Loader2 className="h-4 w-4 animate-spin" />
               </div>
-            ) : search.trim() === "" ? (
-              <CommandEmpty>Start typing to search...</CommandEmpty>
             ) : searchResults.length === 0 ? (
               <CommandEmpty>No results found.</CommandEmpty>
             ) : (

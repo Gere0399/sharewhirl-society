@@ -12,8 +12,6 @@ export function useSearch(initialSearch: string = "") {
     queryFn: async () => {
       if (!search.trim()) return [];
 
-      console.log("Searching for:", search);
-
       const [profilesResponse, postsResponse] = await Promise.all([
         supabase
           .from("profiles")
@@ -36,15 +34,8 @@ export function useSearch(initialSearch: string = "") {
           .limit(MAX_RESULTS_PER_TYPE)
       ]);
 
-      if (profilesResponse.error) {
-        console.error("Profiles search error:", profilesResponse.error);
-        throw profilesResponse.error;
-      }
-
-      if (postsResponse.error) {
-        console.error("Posts search error:", postsResponse.error);
-        throw postsResponse.error;
-      }
+      if (profilesResponse.error) throw profilesResponse.error;
+      if (postsResponse.error) throw postsResponse.error;
 
       const profiles = (profilesResponse.data || []).map(profile => ({
         type: "profile" as const,
@@ -63,11 +54,10 @@ export function useSearch(initialSearch: string = "") {
         created_at: post.created_at
       }));
 
-      console.log("Search results:", { profiles, posts });
       return [...profiles, ...posts];
     },
-    enabled: search.length > 0,
-    staleTime: 1000, // Results are fresh for 1 second
+    enabled: true,
+    staleTime: 0,
     refetchOnWindowFocus: false
   });
 

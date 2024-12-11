@@ -16,7 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDistanceToNowStrict } from "date-fns";
+import { formatDistanceToNowStrict, differenceInDays, differenceInWeeks, differenceInMonths } from "date-fns";
 
 interface SearchResult {
   type: "profile" | "post";
@@ -27,33 +27,44 @@ interface SearchResult {
   content?: string;
   media_url?: string;
   media_type?: string;
+  created_at?: string;
 }
 
 const MAX_RESULTS_PER_TYPE = 5;
+const DEBOUNCE_DELAY = 300; // milliseconds
 
 export function SearchBar() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, DEBOUNCE_DELAY);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const { data: searchResults = [], isLoading } = useQuery({
-    queryKey: ["search", search],
+    queryKey: ["search", debouncedSearch],
     queryFn: async () => {
-      if (!search) return [];
+      if (!debouncedSearch) return [];
 
       const [profilesResponse, postsResponse] = await Promise.all([
         supabase
           .from("profiles")
           .select("user_id, username, avatar_url")
-          .ilike("username", `%${search}%`)
+          .ilike("username", `%${debouncedSearch}%`)
           .order('username')
           .limit(MAX_RESULTS_PER_TYPE),
         supabase
           .from("posts")
           .select("id, title, content, media_url, media_type, created_at")
-          .or(`title.ilike.%${search}%,content.ilike.%${search}%,tags.cs.{${search}}`)
+          .or(`title.ilike.%${debouncedSearch}%,content.ilike.%${debouncedSearch}%,tags.cs.{${debouncedSearch}}`)
           .order('created_at', { ascending: false })
           .limit(MAX_RESULTS_PER_TYPE)
       ]);
@@ -71,22 +82,50 @@ export function SearchBar() {
         title: post.title,
         content: post.content?.substring(0, 50) + (post.content?.length > 50 ? "..." : ""),
         media_url: post.media_url,
-        media_type: post.media_type
+        media_type: post.media_type,
+        created_at: post.created_at
       }));
 
       return [...profiles, ...posts];
     },
-    enabled: true
+    enabled: debouncedSearch.length > 0
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearch(value);
+    setOpen(value.length > 0);
+  };
+
+  const formatDate = (date?: string) => {
+    if (!date) return "";
     
-    if (value.length > 0) {
-      setOpen(true);
-    } else {
-      setOpen(false);
+    try {
+      const postDate = new Date(date);
+      const now = new Date();
+      
+      const days = differenceInDays(now, postDate);
+      const weeks = differenceInWeeks(now, postDate);
+      const months = differenceInMonths(now, postDate);
+      
+      if (days < 1) {
+        return formatDistanceToNowStrict(postDate, { addSuffix: true });
+      } else if (days === 1) {
+        return "1 day ago";
+      } else if (days < 7) {
+        return `${days} days ago`;
+      } else if (weeks === 1) {
+        return "1 week ago";
+      } else if (weeks < 4) {
+        return `${weeks} weeks ago`;
+      } else if (months === 1) {
+        return "1 month ago";
+      } else {
+        return `${months} months ago`;
+      }
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "";
     }
   };
 
@@ -148,7 +187,12 @@ export function SearchBar() {
                           onSelect={() => handleSelect(result)}
                           className="flex flex-col items-start gap-1 p-2"
                         >
-                          <span className="font-medium">{result.title}</span>
+                          <div className="flex justify-between w-full">
+                            <span className="font-medium">{result.title}</span>
+                            <span className="text-sm text-muted-foreground">
+                              {formatDate(result.created_at)}
+                            </span>
+                          </div>
                           {result.media_url && result.media_type === 'image' && (
                             <img 
                               src={supabase.storage.from('media').getPublicUrl(result.media_url).data.publicUrl} 

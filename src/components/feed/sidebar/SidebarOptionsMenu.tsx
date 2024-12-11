@@ -33,7 +33,7 @@ export function SidebarOptionsMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative h-8 w-8">
           <Settings className="h-5 w-5" />
           <span className="sr-only">Open options menu</span>
         </Button>

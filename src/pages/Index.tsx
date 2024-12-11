@@ -38,6 +38,17 @@ const Index = () => {
     }
   }, [session, activeTag]);
 
+  const handleTagSelect = (tag: string) => {
+    setActiveTag(tag);
+  };
+
+  const handleAddTag = (tag: string) => {
+    if (!userTags.includes(tag)) {
+      setUserTags([...userTags, tag]);
+      setActiveTag(tag);
+    }
+  };
+
   const handleRemoveTag = (tagToRemove: string) => {
     setUserTags(userTags.filter(tag => tag !== tagToRemove));
     if (activeTag === tagToRemove) {
@@ -47,7 +58,7 @@ const Index = () => {
 
   const fetchPosts = async () => {
     try {
-      console.log("Fetching posts...");
+      setLoading(true);
       let query = supabase
         .from("posts")
         .select(`
@@ -72,7 +83,6 @@ const Index = () => {
       }
 
       const { data, error } = await query;
-      console.log("Posts data:", data);
 
       if (error) throw error;
       setPosts(data || []);
@@ -149,7 +159,7 @@ const Index = () => {
               <TagsBar
                 tags={userTags}
                 activeTag={activeTag}
-                onTagSelect={setActiveTag}
+                onTagSelect={handleTagSelect}
                 onTagRemove={handleRemoveTag}
               />
             </div>

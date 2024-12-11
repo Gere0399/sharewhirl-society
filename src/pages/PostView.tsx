@@ -56,8 +56,8 @@ const PostView = () => {
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
-      <main className="flex-1 ml-16 md:ml-64 no-horizontal-scroll">
-        <div className="container max-w-2xl mx-auto px-4 py-8 pb-20 md:pb-8">
+      <main className="flex-1 flex justify-center">
+        <div className="w-full max-w-2xl px-4 py-8 pb-20 md:pb-8 md:px-0">
           {loading ? (
             <div className="flex justify-center items-center min-h-[200px]">
               <Loader className="h-6 w-6 animate-spin" />

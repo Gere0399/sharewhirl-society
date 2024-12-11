@@ -13,12 +13,18 @@ interface GenerationFormProps {
   disabled: boolean;
 }
 
+const IMAGE_MODELS = [
+  { id: "fal-ai/flux", label: "Flux" },
+  { id: "stabilityai/stable-diffusion-xl-base-1.0", label: "Stable Diffusion XL" },
+];
+
 export function GenerationForm({ onSubmit, loading, disabled }: GenerationFormProps) {
   const [prompt, setPrompt] = useState("");
   const [numInferenceSteps, setNumInferenceSteps] = useState(28);
   const [guidanceScale, setGuidanceScale] = useState(3.5);
   const [imageSize, setImageSize] = useState<ImageSize>("landscape_16_9");
   const [safetyTolerance, setSafetyTolerance] = useState<SafetyTolerance>("2");
+  const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS[0].id);
 
   const handleSubmit = async () => {
     await onSubmit({
@@ -33,6 +39,22 @@ export function GenerationForm({ onSubmit, loading, disabled }: GenerationFormPr
 
   return (
     <div className="space-y-4">
+      <div className="space-y-2">
+        <Label>Model</Label>
+        <Select value={selectedModel} onValueChange={setSelectedModel}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select model" />
+          </SelectTrigger>
+          <SelectContent>
+            {IMAGE_MODELS.map((model) => (
+              <SelectItem key={model.id} value={model.id}>
+                {model.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="prompt">Prompt</Label>
         <Input

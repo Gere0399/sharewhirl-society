@@ -4,18 +4,24 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { GenerateImageProps, GenerationSettings } from "@/types/generation";
 import { GenerationForm } from "./GenerationForm";
-import { CreditDisplay } from "./CreditDisplay";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+const MODEL_COSTS = {
+  "fal-ai/flux": 1,
+  "stabilityai/stable-diffusion-xl-base-1.0": 2
+};
 
 export function GenerateImage({ modelId }: GenerateImageProps) {
   const [loading, setLoading] = useState(false);
   const [credits, setCredits] = useState<number | null>(null);
-  const [modelCost, setModelCost] = useState<number | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCredits();
-    fetchModelCost();
-  }, [modelId]);
+  }, []);
 
   const fetchCredits = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -29,18 +35,11 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
     }
   };
 
-  const fetchModelCost = async () => {
-    const { data } = await supabase
-      .from('model_costs')
-      .select('credits_cost')
-      .eq('model_id', modelId)
-      .single();
-    setModelCost(data?.credits_cost ?? null);
-  };
-
   const handleGenerate = async (settings: GenerationSettings) => {
     try {
-      if (credits === null || modelCost === null) {
+      const modelCost = MODEL_COSTS[modelId as keyof typeof MODEL_COSTS] || 1;
+      
+      if (credits === null) {
         throw new Error("Unable to verify credits");
       }
 
@@ -52,6 +51,7 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
 
       const result = await fal.subscribe(modelId, {
         input: settings,
+        logs: true,
       });
 
       if (result.data.images?.[0]?.url) {
@@ -59,10 +59,12 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
         
         if (user) {
           // Deduct credits
-          await supabase.rpc('deduct_credits', {
+          const { error: creditError } = await supabase.rpc('deduct_credits', {
             amount: modelCost,
             user_id: user.id
           });
+
+          if (creditError) throw creditError;
 
           // Save generation
           await supabase.from("generations").insert({
@@ -77,6 +79,7 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
               safety_tolerance: settings.safety_tolerance,
             },
             output_url: result.data.images[0].url,
+            cost: modelCost
           });
 
           // Update local credits state
@@ -103,14 +106,21 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Generate Image</h2>
-        <CreditDisplay credits={credits} modelCost={modelCost} />
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/subscriptions")}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <h2 className="text-lg font-semibold">Generate Image</h2>
+        </div>
+        <Button variant="outline" onClick={() => navigate("/subscriptions")}>
+          Subscriptions
+        </Button>
       </div>
 
       <GenerationForm
         onSubmit={handleGenerate}
         loading={loading}
-        disabled={credits === null || credits < (modelCost ?? Infinity)}
+        disabled={credits === null || credits < (MODEL_COSTS[modelId as keyof typeof MODEL_COSTS] || 1)}
       />
     </div>
   );

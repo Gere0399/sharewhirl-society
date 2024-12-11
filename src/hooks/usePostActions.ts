@@ -9,7 +9,14 @@ export function usePostActions() {
   const handleLike = async (postId: string) => {
     try {
       const { data: session } = await supabase.auth.getSession();
-      if (!session?.session?.user?.id) return;
+      if (!session?.session?.user?.id) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to like posts",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const { data: existingLike } = await supabase
         .from('likes')
@@ -30,9 +37,9 @@ export function usePostActions() {
           .insert({ post_id: postId, user_id: session.session.user.id });
       }
 
-      // Invalidate both the post and posts queries
-      queryClient.invalidateQueries({ queryKey: ['post', postId] });
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      // Invalidate both the post and posts queries to trigger a re-fetch
+      await queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      await queryClient.invalidateQueries({ queryKey: ['posts'] });
     } catch (error: any) {
       toast({
         title: "Error",

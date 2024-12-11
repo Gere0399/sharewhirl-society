@@ -23,8 +23,8 @@ const GENERATION_TYPES = [
 ];
 
 const IMAGE_MODELS = [
-  { id: "flux-pro", label: "Flux Pro" },
-  { id: "flux-pro-ultra", label: "Flux Pro Ultra" },
+  { id: "fal-ai/flux", label: "Flux" },
+  { id: "stabilityai/stable-diffusion-xl-base-1.0", label: "Stable Diffusion XL" },
 ];
 
 export default function Generate() {

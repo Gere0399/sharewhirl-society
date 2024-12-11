@@ -114,9 +114,9 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
   };
 
   return (
-    <Card className={`overflow-hidden border-none bg-transparent ${isFullView ? 'max-w-2xl mx-auto' : 'cursor-pointer'}`}>
+    <Card className={`overflow-hidden border-0 bg-secondary/50 hover:bg-secondary/70 transition-colors ${isFullView ? 'max-w-2xl mx-auto' : 'cursor-pointer'}`}>
       <div onClick={handleNavigateToPost} ref={postRef}>
-        <CardHeader className="px-0 pt-0 pb-1">
+        <CardHeader className="px-4 pt-4 pb-2">
           <PostHeader 
             profile={post.profiles}
             isAiGenerated={post.is_ai_generated}
@@ -124,7 +124,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
           />
         </CardHeader>
 
-        <CardContent className="px-0 pb-1">
+        <CardContent className="px-4 pb-2">
           <PostContent 
             title={post.title}
             content={post.content}
@@ -132,7 +132,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
           />
           
           {post.media_url && (
-            <div className="post-media -mx-4 sm:mx-0">
+            <div className="post-media -mx-4">
               <PostMedia 
                 mediaUrl={post.media_url}
                 mediaType={post.media_type}
@@ -142,7 +142,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
           )}
         </CardContent>
 
-        <CardFooter className="flex justify-between px-0 pt-1">
+        <CardFooter className="flex justify-between px-4 pt-2 pb-4">
           <PostActions 
             postId={post.id}
             postTitle={post.title}

@@ -45,23 +45,21 @@ export function SearchBar() {
             if (!open) setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          className="w-[300px] mx-auto"
+          className="w-[300px] mx-auto bg-secondary/50 border-0 focus-visible:ring-0 placeholder:text-muted-foreground"
         />
       </PopoverTrigger>
       <PopoverContent 
-        className="w-[300px] p-0" 
+        className="w-[300px] p-0 bg-secondary/50 border-border/10" 
         align="start"
         sideOffset={5}
         onInteractOutside={(e) => {
-          // Prevent closing when clicking inside the popover
           e.preventDefault();
         }}
         onOpenAutoFocus={(e) => {
-          // Prevent the popover from stealing focus
           e.preventDefault();
         }}
       >
-        <Command>
+        <Command className="bg-transparent">
           <CommandList>
             {isLoading ? (
               <div className="flex items-center justify-center p-4">

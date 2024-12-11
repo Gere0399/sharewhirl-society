@@ -32,24 +32,19 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
   };
 
   return (
-    <div className="flex items-center gap-2 p-1.5 bg-background/60 backdrop-blur-sm border-b border-border/10 sticky top-0 z-10">
-      <div className="flex items-center shrink-0 gap-1.5">
-        <Button
-          variant={activeTag === "for you" ? "default" : "ghost"}
+    <div className="flex items-center gap-4 p-4 bg-background border-b border-border/10 sticky top-0 z-10">
+      <div className="flex items-center gap-4">
+        <span 
+          className={`text-sm cursor-pointer ${activeTag === "for you" ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
           onClick={() => onTagSelect("for you")}
-          size="sm"
-          className="h-7 text-xs font-medium"
         >
-          <Home className="h-3.5 w-3.5 mr-1" />
           For You
-        </Button>
-        
-        <Separator orientation="vertical" className="h-4 bg-border/10" />
+        </span>
         
         <Button
           variant="ghost"
           size="sm"
-          className="h-7"
+          className="h-7 px-2"
           onClick={() => setIsTagDialogOpen(true)}
         >
           <Plus className="h-3.5 w-3.5" />
@@ -57,27 +52,27 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
       </div>
       
       <ScrollArea className="w-full whitespace-nowrap">
-        <div className="flex gap-1.5">
+        <div className="flex gap-4">
           {tags.map((tag) => (
-            <Button
-              key={tag}
-              variant={activeTag === tag ? "default" : "secondary"}
-              size="sm"
-              className="h-7 group text-xs font-medium shrink-0"
-              onClick={() => onTagSelect(tag)}
-            >
-              <Tag className="h-3 w-3 mr-1" />
-              {tag}
+            <div key={tag} className="group flex items-center gap-1">
+              <span
+                className={`text-sm cursor-pointer ${
+                  activeTag === tag ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                }`}
+                onClick={() => onTagSelect(tag)}
+              >
+                #{tag}
+              </span>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onTagRemove(tag);
                 }}
-                className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
               >
-                <X className="h-3 w-3" />
+                <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
               </button>
-            </Button>
+            </div>
           ))}
         </div>
         <ScrollBar orientation="horizontal" className="invisible" />

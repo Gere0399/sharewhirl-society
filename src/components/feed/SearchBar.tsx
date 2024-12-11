@@ -35,7 +35,7 @@ export function SearchBar() {
   };
 
   return (
-    <Popover>
+    <Popover defaultOpen={false}>
       <PopoverTrigger asChild>
         <Input
           ref={inputRef}
@@ -46,7 +46,11 @@ export function SearchBar() {
           className="w-[300px] mx-auto"
         />
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0" align="start">
+      <PopoverContent 
+        className="w-[300px] p-0" 
+        align="start"
+        sideOffset={5}
+      >
         <Command>
           <CommandList>
             {isLoading ? (

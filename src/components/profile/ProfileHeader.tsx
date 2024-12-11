@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { EditProfileDialog } from "./EditProfileDialog";
+import { SidebarOptionsMenu } from "../feed/sidebar/SidebarOptionsMenu";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ProfileHeaderProps {
   profile: any;
@@ -14,6 +16,7 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ profile, isOwnProfile, isFollowing, onFollowToggle }: ProfileHeaderProps) {
   const [loading, setLoading] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleFollowToggle = async () => {
     setLoading(true);
@@ -36,26 +39,31 @@ export function ProfileHeader({ profile, isOwnProfile, isFollowing, onFollowTogg
           <div className="space-y-1 flex-1">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               <h1 className="text-2xl font-bold">{profile.username}</h1>
-              {isOwnProfile ? (
-                <Button 
-                  onClick={() => setIsEditProfileOpen(true)}
-                  variant="outline"
-                  size="sm"
-                  className="h-8 w-full md:w-auto"
-                >
-                  Edit Profile
-                </Button>
-              ) : (
-                <Button 
-                  onClick={handleFollowToggle} 
-                  disabled={loading}
-                  variant={isFollowing ? "secondary" : "default"}
-                  size="sm"
-                  className="h-8 w-full md:w-auto"
-                >
-                  {isFollowing ? "Unfollow" : "Follow"}
-                </Button>
-              )}
+              <div className="flex gap-2">
+                {isOwnProfile ? (
+                  <>
+                    <Button 
+                      onClick={() => setIsEditProfileOpen(true)}
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-full md:w-auto"
+                    >
+                      Edit Profile
+                    </Button>
+                    {isMobile && <SidebarOptionsMenu />}
+                  </>
+                ) : (
+                  <Button 
+                    onClick={handleFollowToggle} 
+                    disabled={loading}
+                    variant={isFollowing ? "secondary" : "default"}
+                    size="sm"
+                    className="h-8 w-full md:w-auto"
+                  >
+                    {isFollowing ? "Unfollow" : "Follow"}
+                  </Button>
+                )}
+              </div>
             </div>
             {profile.bio && (
               <p className="text-sm text-muted-foreground max-w-md">{profile.bio}</p>

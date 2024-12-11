@@ -46,7 +46,7 @@ export function SidebarNavItem({
       )}
     >
       <ButtonOrLink to={to}>
-        <Icon className="h-5 w-5" />
+        <Icon className="h-6 w-6" /> {/* Increased from h-5 w-5 */}
         <span className="sr-only">{label}</span>
       </ButtonOrLink>
     </Button>

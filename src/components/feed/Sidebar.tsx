@@ -1,5 +1,4 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
   PlusCircle,
@@ -12,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CreatePostDialog } from "./CreatePostDialog";
 import { useState, useEffect } from "react";
+import { SidebarLogo } from "./sidebar/SidebarLogo";
+import { SidebarNavItem } from "./sidebar/SidebarNavItem";
 
 export function Sidebar() {
   const location = useLocation();
@@ -55,76 +56,54 @@ export function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-16 flex flex-col bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-r border-border/40">
-      <div className="p-2">
-        <Link to="/" className="block">
-          <img 
-            src="/neo-ai-logo.png" 
-            alt="Neo AI Studios"
-            className="w-12 h-12 mx-auto object-contain"
-          />
-        </Link>
-      </div>
+      <SidebarLogo />
 
       <nav className="flex-1 flex flex-col items-center gap-2 p-2">
-        <Button
-          variant={location.pathname === "/" ? "default" : "ghost"}
-          size="icon"
-          asChild
-        >
-          <Link to="/">
-            <Home className="h-5 w-5" />
-            <span className="sr-only">Home</span>
-          </Link>
-        </Button>
+        <SidebarNavItem
+          to="/"
+          icon={Home}
+          label="Home"
+          isActive={location.pathname === "/"}
+        />
 
-        <Button
-          variant="ghost"
-          size="icon"
+        <SidebarNavItem
+          to="#"
+          icon={PlusCircle}
+          label="Create Post"
+          asButton
           onClick={() => setIsCreatePostOpen(true)}
-        >
-          <PlusCircle className="h-5 w-5" />
-          <span className="sr-only">Create Post</span>
-        </Button>
+        />
 
-        <Button
-          variant={location.pathname === "/notifications" ? "default" : "ghost"}
-          size="icon"
-          asChild
-        >
-          <Link to="/notifications">
-            <Bell className="h-5 w-5" />
-            <span className="sr-only">Notifications</span>
-          </Link>
-        </Button>
+        <SidebarNavItem
+          to="/notifications"
+          icon={Bell}
+          label="Notifications"
+          isActive={location.pathname === "/notifications"}
+        />
 
-        <Button
-          variant={location.pathname === "/settings" ? "default" : "ghost"}
-          size="icon"
-          asChild
-        >
-          <Link to="/settings">
-            <Settings className="h-5 w-5" />
-            <span className="sr-only">Settings</span>
-          </Link>
-        </Button>
+        <SidebarNavItem
+          to="/settings"
+          icon={Settings}
+          label="Settings"
+          isActive={location.pathname === "/settings"}
+        />
 
-        <Button
-          variant={location.pathname.startsWith("/profile") ? "default" : "ghost"}
-          size="icon"
-          asChild
-        >
-          <Link to={username ? `/profile/${username}` : "#"}>
-            <User className="h-5 w-5" />
-            <span className="sr-only">Profile</span>
-          </Link>
-        </Button>
+        <SidebarNavItem
+          to={username ? `/profile/${username}` : "/"}
+          icon={User}
+          label="Profile"
+          isActive={location.pathname.startsWith("/profile")}
+        />
       </nav>
 
       <div className="p-2">
-        <Button variant="ghost" size="icon" onClick={handleSignOut}>
-          <LogOut className="h-5 w-5" />
-          <span className="sr-only">Sign Out</span>
-        </Button>
+        <SidebarNavItem
+          to="#"
+          icon={LogOut}
+          label="Sign Out"
+          asButton
+          onClick={handleSignOut}
+        />
       </div>
 
       <CreatePostDialog

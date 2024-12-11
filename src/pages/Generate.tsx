@@ -73,12 +73,12 @@ export default function Generate() {
             </ScrollArea>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <Card className="p-4 overflow-x-hidden">
+              <Card className="p-4 overflow-x-hidden bg-[#111111]">
                 {selectedType === "images" && (
                   <GenerateImage modelId={selectedModel} />
                 )}
               </Card>
-              <Card className="p-4 overflow-x-hidden">
+              <Card className="p-4 overflow-x-hidden bg-[#111111]">
                 <GenerationHistory type={selectedType} modelId={selectedModel} />
               </Card>
             </div>

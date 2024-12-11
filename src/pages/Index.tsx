@@ -14,7 +14,10 @@ const Index = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState("for you");
-  const [userTags, setUserTags] = useState<string[]>([]);
+  const [userTags, setUserTags] = useState<string[]>(() => {
+    const savedTags = localStorage.getItem('userTags');
+    return savedTags ? JSON.parse(savedTags) : [];
+  });
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -40,17 +43,17 @@ const Index = () => {
 
   const handleTagSelect = (tag: string) => {
     setActiveTag(tag);
-  };
-
-  const handleAddTag = (tag: string) => {
-    if (!userTags.includes(tag)) {
-      setUserTags([...userTags, tag]);
-      setActiveTag(tag);
+    if (!userTags.includes(tag) && tag !== "for you") {
+      const newTags = [...userTags, tag];
+      setUserTags(newTags);
+      localStorage.setItem('userTags', JSON.stringify(newTags));
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setUserTags(userTags.filter(tag => tag !== tagToRemove));
+    const newTags = userTags.filter(tag => tag !== tagToRemove);
+    setUserTags(newTags);
+    localStorage.setItem('userTags', JSON.stringify(newTags));
     if (activeTag === tagToRemove) {
       setActiveTag("for you");
     }

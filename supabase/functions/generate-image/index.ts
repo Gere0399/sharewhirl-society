@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { fal } from "npm:@fal-ai/client"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -33,7 +34,13 @@ serve(async (req) => {
         credentials: falKey
       })
 
-      // Subscribe to the model and get results
+      // Initialize Supabase client
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      )
+
+      // Generate image with FAL AI
       const result = await fal.subscribe(modelId, {
         input: {
           prompt: settings.prompt,
@@ -56,8 +63,66 @@ serve(async (req) => {
         throw new Error("No image URL in FAL AI response");
       }
 
+      // Download the image from FAL AI
+      const imageUrl = result.data.images[0].url;
+      const imageResponse = await fetch(imageUrl);
+      const imageBlob = await imageResponse.blob();
+
+      // Upload to Supabase Storage
+      const fileExt = imageUrl.split('.').pop() || 'jpg';
+      const filePath = `${modelId.replace('/', '_')}/${crypto.randomUUID()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('generated')
+        .upload(filePath, imageBlob, {
+          contentType: result.data.images[0].content_type,
+          upsert: false
+        });
+
+      if (uploadError) {
+        throw new Error(`Failed to upload to storage: ${uploadError.message}`);
+      }
+
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('generated')
+        .getPublicUrl(filePath);
+
+      // Get user information from authorization header
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) {
+        throw new Error('No authorization header');
+      }
+
+      const userId = authHeader.split('Bearer ')[1];
+      if (!userId) {
+        throw new Error('Invalid authorization header');
+      }
+
+      // Save to generations table
+      const { error: dbError } = await supabase
+        .from('generations')
+        .insert({
+          user_id: userId,
+          model_name: modelId,
+          model_type: 'images',
+          prompt: settings.prompt,
+          settings: settings,
+          output_url: publicUrl,
+          cost: modelId.includes('schnell') ? 0 : 1
+        });
+
+      if (dbError) {
+        throw new Error(`Failed to save to database: ${dbError.message}`);
+      }
+
       return new Response(
-        JSON.stringify({ data: result.data }),
+        JSON.stringify({ 
+          data: {
+            ...result.data,
+            images: [{ ...result.data.images[0], url: publicUrl }]
+          }
+        }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,

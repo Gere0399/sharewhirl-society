@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { fal } from "npm:@fal-ai/client"
-import { createClient } from 'npm:@supabase/supabase-js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -19,12 +18,11 @@ serve(async (req) => {
     }
 
     const { modelId, settings } = await req.json()
+    console.log("Starting generation with settings:", settings)
 
     if (!modelId || !settings) {
       throw new Error('Missing required parameters')
     }
-
-    console.log("Starting generation with settings:", settings)
 
     try {
       // Configure FAL client
@@ -32,36 +30,22 @@ serve(async (req) => {
         credentials: falKey
       })
 
-      // Initialize Supabase client
-      const supabase = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-      )
-
-      // Get user information from authorization header
-      const authHeader = req.headers.get('Authorization')
-      if (!authHeader) {
-        throw new Error('No authorization header')
-      }
-
-      const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
-      
-      if (authError || !user) {
-        throw new Error('Invalid authorization')
-      }
-
-      // Generate image with FAL AI
       console.log("Submitting to FAL AI with modelId:", modelId)
       
       // Prepare input based on model type
       const input = modelId === "fal-ai/flux/schnell/redux" ? {
         image_url: settings.image_url,
-        prompt: settings.prompt || "enhance this image",
         image_size: settings.image_size,
         num_inference_steps: settings.num_inference_steps,
         num_images: settings.num_images || 1,
         enable_safety_checker: settings.enable_safety_checker,
-      } : settings;
+      } : {
+        prompt: settings.prompt,
+        image_size: settings.image_size,
+        num_inference_steps: settings.num_inference_steps,
+        num_images: settings.num_images || 1,
+        enable_safety_checker: settings.enable_safety_checker,
+      };
 
       console.log("Submitting with input:", input);
 
@@ -77,42 +61,8 @@ serve(async (req) => {
 
       console.log("FAL AI response received:", result);
 
-      if (!result?.data?.images?.[0]?.url) {
-        throw new Error("No output URL in response from FAL AI");
-      }
-
-      // Download the image from FAL AI
-      const imageUrl = result.data.images[0].url;
-      const imageResponse = await fetch(imageUrl);
-      const imageBlob = await imageResponse.blob();
-
-      // Upload to Supabase Storage
-      const fileExt = imageUrl.split('.').pop() || 'jpg';
-      const filePath = `${modelId.replace('/', '_')}/${crypto.randomUUID()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('generated')
-        .upload(filePath, imageBlob, {
-          contentType: result.data.images[0].content_type || 'image/jpeg',
-          upsert: false
-        });
-
-      if (uploadError) {
-        throw new Error(`Failed to upload to storage: ${uploadError.message}`);
-      }
-
-      // Get the public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('generated')
-        .getPublicUrl(filePath);
-
       return new Response(
-        JSON.stringify({ 
-          data: {
-            ...result.data,
-            images: [{ ...result.data.images[0], url: publicUrl }]
-          }
-        }),
+        JSON.stringify({ data: result.data }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,

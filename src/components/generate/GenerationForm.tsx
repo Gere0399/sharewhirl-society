@@ -53,16 +53,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
       return;
     }
 
-    if (modelType === "text-to-video" || modelType === "image-to-video") {
-      await onSubmit({
-        ...baseSettings,
-      } as SchnellSettings);
-    } else {
-      await onSubmit({
-        ...baseSettings,
-        guidance_scale: guidanceScale,
-      } as FluxSettings);
-    }
+    await onSubmit(baseSettings as SchnellSettings);
   };
 
   return (
@@ -88,7 +79,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         <Slider
           value={[numInferenceSteps]}
           onValueChange={([value]) => setNumInferenceSteps(value)}
-          min={modelType === "text-to-video" || modelType === "image-to-video" ? 1 : 1}
+          min={1}
           max={modelType === "text-to-video" || modelType === "image-to-video" ? 10 : 50}
           step={1}
         />
@@ -107,12 +98,10 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         </div>
       )}
 
-      {(modelType === "text-to-video" || modelType === "image-to-video" || modelType === "image-to-image") && (
-        <SafetyOptions 
-          enableSafetyChecker={enableSafetyChecker}
-          setEnableSafetyChecker={setEnableSafetyChecker}
-        />
-      )}
+      <SafetyOptions 
+        enableSafetyChecker={enableSafetyChecker}
+        setEnableSafetyChecker={setEnableSafetyChecker}
+      />
 
       <Button 
         onClick={handleSubmit} 

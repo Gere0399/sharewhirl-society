@@ -9,6 +9,14 @@ import { ImageUpload } from "./form/ImageUpload";
 import { SafetyOptions } from "./form/SafetyOptions";
 import { AspectRatioSelect } from "./form/AspectRatioSelect";
 import { AudioUpload } from "./form/AudioUpload";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface GenerationFormProps {
   onSubmit: (settings: GenerationSettings) => Promise<void>;
@@ -37,6 +45,12 @@ export function GenerationForm({
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
   const [file, setFile] = useState<File | null>(null);
   const [secondsTotal, setSecondsTotal] = useState(30);
+  
+  // New speech-specific states
+  const [genText, setGenText] = useState("");
+  const [refText, setRefText] = useState("");
+  const [speechModelType, setSpeechModelType] = useState<"F5-TTS" | "E2-TTS">("F5-TTS");
+  const [removeSilence, setRemoveSilence] = useState(true);
 
   const handleSubmit = async () => {
     if (modelType === "image-to-image" && !file) {
@@ -62,7 +76,11 @@ export function GenerationForm({
       reader.onload = async () => {
         const base64 = reader.result as string;
         await onSubmit({
+          gen_text: genText,
+          ref_text: refText || undefined,
           audio_url: base64,
+          model_type: speechModelType,
+          remove_silence: removeSilence,
           steps: numInferenceSteps,
         });
       };
@@ -102,10 +120,54 @@ export function GenerationForm({
       )}
 
       {modelType === "speech" && (
-        <AudioUpload file={file} setFile={setFile} required />
+        <>
+          <AudioUpload file={file} setFile={setFile} required />
+          
+          <div className="space-y-2">
+            <Label htmlFor="genText">Generated Text</Label>
+            <Input
+              id="genText"
+              value={genText}
+              onChange={(e) => setGenText(e.target.value)}
+              placeholder="Enter the text you want to convert to speech..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="refText">Reference Text (Optional)</Label>
+            <Input
+              id="refText"
+              value={refText}
+              onChange={(e) => setRefText(e.target.value)}
+              placeholder="Enter reference text for the audio..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Model Type</Label>
+            <Select value={speechModelType} onValueChange={(value: "F5-TTS" | "E2-TTS") => setSpeechModelType(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select model type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="F5-TTS">F5-TTS</SelectItem>
+                <SelectItem value="E2-TTS">E2-TTS</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="removeSilence"
+              checked={removeSilence}
+              onCheckedChange={setRemoveSilence}
+            />
+            <Label htmlFor="removeSilence">Remove Silence</Label>
+          </div>
+        </>
       )}
 
-      {modelType !== "speech" && (
+      {modelType !== "speech" && modelType !== "audio" && (
         <div className="space-y-2">
           <Label htmlFor="prompt">Prompt {modelType === "image-to-image" && "(Optional)"}</Label>
           <Input
@@ -157,7 +219,7 @@ export function GenerationForm({
 
       <Button 
         onClick={handleSubmit} 
-        disabled={disabled || loading || (modelType === "image-to-image" && !file) || (modelType === "speech" && !file)}
+        disabled={disabled || loading || (modelType === "image-to-image" && !file) || (modelType === "speech" && (!file || !genText))}
         className="w-full"
       >
         {loading ? (

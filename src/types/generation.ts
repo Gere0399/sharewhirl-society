@@ -36,7 +36,11 @@ export interface AudioSettings {
 }
 
 export interface SpeechSettings {
+  gen_text: string;
+  ref_text?: string;
   audio_url: string;
+  model_type: "F5-TTS" | "E2-TTS";
+  remove_silence?: boolean;
   steps: number;
 }
 

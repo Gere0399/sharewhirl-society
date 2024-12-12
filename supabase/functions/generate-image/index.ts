@@ -29,11 +29,12 @@ serve(async (req) => {
 
     // Submit initial request
     try {
-      const submitResponse = await fetch(`https://queue.fal.run/${modelId}`, {
+      const submitResponse = await fetch(`https://api.fal.ai/v1/models/${modelId}/queue/push`, {
         method: 'POST',
         headers: {
           'Authorization': `Key ${falKey}`,
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify(settings),
       })
@@ -53,15 +54,17 @@ serve(async (req) => {
 
       // Poll for result
       let attempts = 0
-      const maxAttempts = 30 // Increased max attempts
+      const maxAttempts = 30
       let result = null
 
       while (attempts < maxAttempts) {
         console.log(`Polling attempt ${attempts + 1} for request ${submitData.request_id}`)
         
-        const resultResponse = await fetch(`https://queue.fal.run/${modelId}/requests/${submitData.request_id}`, {
+        const resultResponse = await fetch(`https://api.fal.ai/v1/models/${modelId}/requests/${submitData.request_id}`, {
+          method: 'GET',
           headers: {
             'Authorization': `Key ${falKey}`,
+            'Accept': 'application/json',
           },
         })
 
@@ -84,7 +87,7 @@ serve(async (req) => {
         }
 
         attempts++
-        await new Promise(resolve => setTimeout(resolve, 2000)) // Increased wait time to 2 seconds
+        await new Promise(resolve => setTimeout(resolve, 2000))
       }
 
       if (!result) {

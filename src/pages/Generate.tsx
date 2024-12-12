@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { CreditDisplay } from "@/components/generate/CreditDisplay";
 
 const GENERATION_TYPES = [
   { id: "images", label: "Images" },
@@ -26,31 +27,69 @@ const GENERATION_TYPES = [
 ];
 
 const IMAGE_MODELS = [
-  { id: "fal-ai/flux" as ModelId, label: "Flux" },
-  { id: "stabilityai/stable-diffusion-xl-base-1.0" as ModelId, label: "Stable Diffusion XL" },
-  { id: "fal-ai/flux/schnell" as ModelId, label: "Flux Schnell" },
+  { id: "fal-ai/flux" as ModelId, label: "Flux", cost: 1 },
+  { id: "stabilityai/stable-diffusion-xl-base-1.0" as ModelId, label: "Stable Diffusion XL", cost: 2 },
+  { id: "fal-ai/flux/schnell" as ModelId, label: "Flux Schnell (10 free daily)", cost: 0 },
 ];
 
 export default function Generate() {
   const [selectedType, setSelectedType] = useState(GENERATION_TYPES[0].id);
   const [selectedModel, setSelectedModel] = useState<ModelId>(IMAGE_MODELS[0].id);
   const [credits, setCredits] = useState<number | null>(null);
+  const [dailyGenerations, setDailyGenerations] = useState<number>(0);
   const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchCredits();
-  }, []);
+    if (selectedModel === "fal-ai/flux/schnell") {
+      fetchDailyGenerations();
+    }
+  }, [selectedModel]);
 
   const fetchCredits = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('credits')
         .select('amount')
         .eq('user_id', user.id)
         .single();
+      
+      if (error) {
+        console.error("Error fetching credits:", error);
+        return;
+      }
+      
       setCredits(data?.amount ?? 0);
     }
+  };
+
+  const fetchDailyGenerations = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const today = new Date().toISOString().split('T')[0];
+      const { count, error } = await supabase
+        .from('generations')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('model_name', 'fal-ai/flux/schnell')
+        .gte('created_at', today);
+
+      if (error) {
+        console.error("Error fetching daily generations:", error);
+        return;
+      }
+
+      setDailyGenerations(count ?? 0);
+    }
+  };
+
+  const getModelCost = (modelId: ModelId) => {
+    const model = IMAGE_MODELS.find(m => m.id === modelId);
+    if (modelId === "fal-ai/flux/schnell") {
+      return dailyGenerations < 10 ? 0 : 1;
+    }
+    return model?.cost ?? 1;
   };
 
   return (
@@ -61,9 +100,7 @@ export default function Generate() {
           <div className="flex flex-col space-y-4 max-w-6xl mx-auto">
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold">Generate</h1>
-              <div className="text-lg">
-                Credits: <span className="font-semibold">{credits ?? '...'}</span>
-              </div>
+              <CreditDisplay credits={credits} modelCost={getModelCost(selectedModel)} />
             </div>
 
             <ScrollArea className="w-full">
@@ -89,7 +126,14 @@ export default function Generate() {
                             key={model.id}
                             onClick={() => setSelectedModel(model.id)}
                           >
-                            {model.label}
+                            <div className="flex flex-col">
+                              <span>{model.label}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {model.id === "fal-ai/flux/schnell" 
+                                  ? `${10 - dailyGenerations} free generations remaining today`
+                                  : `${model.cost} credits per generation`}
+                              </span>
+                            </div>
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
@@ -103,7 +147,15 @@ export default function Generate() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card className="p-4 overflow-x-hidden bg-[#111111]">
                 {selectedType === "images" && (
-                  <GenerateImage modelId={selectedModel} />
+                  <GenerateImage 
+                    modelId={selectedModel} 
+                    dailyGenerations={dailyGenerations}
+                    onGenerate={() => {
+                      if (selectedModel === "fal-ai/flux/schnell") {
+                        setDailyGenerations(prev => prev + 1);
+                      }
+                    }}
+                  />
                 )}
               </Card>
               <Card className="p-4 overflow-x-hidden bg-[#111111]">

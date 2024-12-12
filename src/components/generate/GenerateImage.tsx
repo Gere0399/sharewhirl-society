@@ -14,19 +14,20 @@ const MODEL_COSTS: Record<ModelId, number> = {
   "fal-ai/flux/schnell": 0,
 };
 
-export function GenerateImage({ modelId }: GenerateImageProps) {
+interface ExtendedGenerateImageProps extends GenerateImageProps {
+  dailyGenerations: number;
+  onGenerate: () => void;
+}
+
+export function GenerateImage({ modelId, dailyGenerations, onGenerate }: ExtendedGenerateImageProps) {
   const [loading, setLoading] = useState(false);
   const [credits, setCredits] = useState<number | null>(null);
-  const [dailyGenerations, setDailyGenerations] = useState<number>(0);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchCredits();
-    if (modelId === "fal-ai/flux/schnell") {
-      fetchDailyGenerations();
-    }
-  }, [modelId]);
+  }, []);
 
   const fetchCredits = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -46,41 +47,10 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
     }
   };
 
-  const fetchDailyGenerations = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const today = new Date().toISOString().split('T')[0];
-      const { count, error } = await supabase
-        .from('generations')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('model_name', 'fal-ai/flux/schnell')
-        .gte('created_at', today);
-
-      if (error) {
-        console.error("Error fetching daily generations:", error);
-        return;
-      }
-
-      setDailyGenerations(count ?? 0);
-    }
-  };
-
   const getModelType = (modelId: ModelId): ModelType => {
     if (modelId.includes("flux/schnell")) return "flux-schnell";
     if (modelId.includes("flux")) return "flux";
     return "sdxl";
-  };
-
-  const getCostDisplay = () => {
-    if (modelId === "fal-ai/flux/schnell") {
-      if (dailyGenerations < 10) {
-        return `Free (${10 - dailyGenerations} remaining today)`;
-      }
-      return "-1 credit";
-    }
-    const cost = MODEL_COSTS[modelId] || 1;
-    return `-${cost} credits`;
   };
 
   const handleGenerate = async (settings: FluxSettings | FluxSchnellSettings) => {
@@ -124,17 +94,15 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
             model_name: modelId,
             model_type: "image",
             prompt: settings.prompt,
-            settings: settings as any, // Type assertion needed due to Supabase JSONB limitations
+            settings: settings as any,
             output_url: result.data.images[0].url,
             cost: modelId === "fal-ai/flux/schnell" && dailyGenerations < 10 ? 0 : modelCost
           });
 
           if (generationError) throw generationError;
 
-          // Update local states
-          if (modelId === "fal-ai/flux/schnell") {
-            setDailyGenerations(prev => prev + 1);
-          }
+          onGenerate();
+          
           if (modelId !== "fal-ai/flux/schnell" || dailyGenerations >= 10) {
             setCredits(prev => prev !== null ? prev - modelCost : null);
           }
@@ -179,7 +147,11 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
       </div>
 
       <div className="text-sm text-muted-foreground">
-        {getCostDisplay()}
+        {modelId === "fal-ai/flux/schnell" 
+          ? dailyGenerations < 10 
+            ? `Free (${10 - dailyGenerations} remaining today)`
+            : "1 credit per generation"
+          : `${MODEL_COSTS[modelId]} credits per generation`}
       </div>
 
       <GenerationForm

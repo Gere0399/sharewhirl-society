@@ -24,11 +24,6 @@ type DeductCreditsParams = {
   user_id: string;
 };
 
-interface GetSecretResponse {
-  data: string | null;
-  error: Error | null;
-}
-
 export function useGeneration(modelId: ModelId, dailyGenerations: number, onGenerate: () => void) {
   const [loading, setLoading] = useState(false);
   const [credits, setCredits] = useState<number | null>(null);
@@ -56,7 +51,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
   };
 
   const getFalKey = async (): Promise<string> => {
-    const { data, error } = await supabase.rpc<string>('get_secret', {
+    const { data, error } = await supabase.rpc('get_secret', {
       secret_name: 'FAL_KEY'
     });
 
@@ -94,24 +89,28 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         credentials: falKey
       });
 
-      const result = await fal.subscribe(modelId, {
-        input: {
-          ...settings,
-          scheduler: "K_EULER",
-          seed: Math.floor(Math.random() * 1000000),
-        },
-        pollInterval: 1000,
-        logs: true,
-        onQueueUpdate: (update) => {
-          if (update.status === "IN_PROGRESS") {
-            update.logs.map((log) => log.message).forEach(console.log);
-          }
-        },
-      });
+      try {
+        const result = await fal.subscribe(modelId, {
+          input: {
+            ...settings,
+            scheduler: "K_EULER",
+            seed: Math.floor(Math.random() * 1000000),
+          },
+          pollInterval: 1000,
+          logs: true,
+          onQueueUpdate: (update) => {
+            if (update.status === "IN_PROGRESS") {
+              update.logs.map((log) => log.message).forEach(console.log);
+            }
+          },
+        });
 
-      if (result.data.images?.[0]?.url || result.data.video?.url) {
+        if (!result.data.images?.[0]?.url && !result.data.video?.url) {
+          throw new Error("No output received from FAL AI");
+        }
+
         if (!isSchnellModel || dailyGenerations >= 10) {
-          const { error: creditError } = await supabase.rpc<void, DeductCreditsParams>('deduct_credits', {
+          const { error: creditError } = await supabase.rpc('deduct_credits', {
             amount: modelCost,
             user_id: user.id
           });
@@ -142,9 +141,15 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           message: "Generation successful",
           description: "Your content has been generated and saved to your history.",
         };
+      } catch (error: any) {
+        if (error.message?.includes("ValidationError")) {
+          throw new Error("Invalid generation settings. Please check your input and try again.");
+        }
+        if (error.message?.includes("Load failed")) {
+          throw new Error("Generation timed out. Please try again.");
+        }
+        throw error;
       }
-
-      throw new Error("Generation failed");
     } catch (error: any) {
       console.error("Generation error:", error);
       return {

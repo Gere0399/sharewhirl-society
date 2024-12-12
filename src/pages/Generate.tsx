@@ -13,6 +13,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { CreditDisplay } from "@/components/generate/CreditDisplay";
@@ -30,6 +31,7 @@ const IMAGE_MODELS = [
   { id: "fal-ai/flux" as ModelId, label: "Flux", cost: 1 },
   { id: "stabilityai/stable-diffusion-xl-base-1.0" as ModelId, label: "Stable Diffusion XL", cost: 2 },
   { id: "fal-ai/flux/schnell" as ModelId, label: "Flux Schnell (10 free daily)", cost: 0 },
+  { id: "fal-ai/flux/schnell/redux" as ModelId, label: "Flux Redux (Image to Image)", cost: 1 },
 ];
 
 export default function Generate() {

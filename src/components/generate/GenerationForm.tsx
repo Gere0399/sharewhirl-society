@@ -5,11 +5,12 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader } from "lucide-react";
-import { ImageSize, ModelType, FluxSettings, SchnellSettings } from "@/types/generation";
+import { Loader, Upload } from "lucide-react";
+import { ImageSize, ModelType, FluxSettings, SchnellSettings, ReduxSettings } from "@/types/generation";
+import { MediaUpload } from "../feed/post/create/MediaUpload";
 
 interface GenerationFormProps {
-  onSubmit: (settings: FluxSettings | SchnellSettings) => Promise<void>;
+  onSubmit: (settings: FluxSettings | SchnellSettings | ReduxSettings) => Promise<void>;
   loading: boolean;
   disabled: boolean;
   modelType: ModelType;
@@ -21,6 +22,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
   const [guidanceScale, setGuidanceScale] = useState(3.5);
   const [imageSize, setImageSize] = useState<ImageSize>("landscape_16_9");
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
+  const [file, setFile] = useState<File | null>(null);
 
   const handleSubmit = async () => {
     const baseSettings = {
@@ -29,6 +31,23 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
       num_images: 1,
       num_inference_steps: numInferenceSteps,
     };
+
+    if (modelType === "image-to-image") {
+      if (!file) return;
+      
+      // Convert file to base64
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const base64 = reader.result as string;
+        await onSubmit({
+          ...baseSettings,
+          image_url: base64,
+          enable_safety_checker: enableSafetyChecker,
+        } as ReduxSettings);
+      };
+      return;
+    }
 
     if (modelType === "text-to-video" || modelType === "image-to-video" || modelType === "flux") {
       await onSubmit({
@@ -46,15 +65,22 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="prompt">Prompt</Label>
-        <Input
-          id="prompt"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Enter your prompt..."
-        />
-      </div>
+      {modelType === "image-to-image" ? (
+        <div className="space-y-2">
+          <Label>Source Image</Label>
+          <MediaUpload file={file} onFileSelect={setFile} />
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <Label htmlFor="prompt">Prompt</Label>
+          <Input
+            id="prompt"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Enter your prompt..."
+          />
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label>Image Size</Label>
@@ -84,7 +110,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         />
       </div>
 
-      {modelType !== "text-to-video" && modelType !== "image-to-video" && (
+      {modelType !== "text-to-video" && modelType !== "image-to-video" && modelType !== "image-to-image" && (
         <div className="space-y-2">
           <Label>Guidance Scale ({guidanceScale})</Label>
           <Slider
@@ -97,7 +123,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         </div>
       )}
 
-      {(modelType === "text-to-video" || modelType === "image-to-video") && (
+      {(modelType === "text-to-video" || modelType === "image-to-video" || modelType === "image-to-image") && (
         <div className="flex items-center space-x-2">
           <Switch
             id="safety-checker"
@@ -110,7 +136,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
 
       <Button 
         onClick={handleSubmit} 
-        disabled={disabled || loading || !prompt.trim()}
+        disabled={disabled || loading || (!file && modelType === "image-to-image") || (!prompt.trim() && modelType !== "image-to-image")}
         className="w-full"
       >
         {loading ? (

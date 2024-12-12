@@ -55,13 +55,7 @@ serve(async (req) => {
 
       // Generate image with FAL AI
       const result = await fal.subscribe(modelId, {
-        input: {
-          prompt: settings.prompt,
-          image_size: settings.image_size,
-          num_inference_steps: settings.num_inference_steps,
-          num_images: settings.num_images || 1,
-          enable_safety_checker: settings.enable_safety_checker
-        },
+        input: settings,
         logs: true,
         onQueueUpdate: (update) => {
           if (update.status === "IN_PROGRESS") {
@@ -73,7 +67,7 @@ serve(async (req) => {
       console.log("Generation completed:", result);
 
       if (!result?.data?.images?.[0]?.url) {
-        throw new Error("No image URL in FAL AI response");
+        throw new Error("No output URL in response from FAL AI");
       }
 
       // Download the image from FAL AI
@@ -107,11 +101,11 @@ serve(async (req) => {
         .insert({
           user_id: user.id,
           model_name: modelId,
-          model_type: 'images',
+          model_type: modelId.includes('redux') ? 'image-to-image' : 'images',
           prompt: settings.prompt,
           settings: settings,
           output_url: publicUrl,
-          cost: modelId.includes('schnell') ? 0 : 1
+          cost: modelId.includes('schnell') && settings.dailyGenerations < 10 ? 0 : 1
         });
 
       if (dbError) {

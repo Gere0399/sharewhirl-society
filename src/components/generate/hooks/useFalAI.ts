@@ -1,6 +1,5 @@
 import { fal } from "@fal-ai/client";
 import { supabase } from "@/integrations/supabase/client";
-import { ModelId } from "@/types/generation";
 
 export const useFalAI = () => {
   const getFalKey = async (): Promise<string> => {
@@ -8,41 +7,70 @@ export const useFalAI = () => {
       secret_name: 'FAL_KEY'
     });
 
-    if (secretError) throw new Error("Unable to access FAL AI services");
-    if (!secretData) throw new Error("FAL AI key not found");
+    if (secretError) {
+      console.error("Error accessing FAL AI services:", secretError);
+      throw new Error("Unable to access FAL AI services. Please check your configuration.");
+    }
+    
+    if (!secretData) {
+      console.error("FAL key not found in secrets");
+      throw new Error("FAL AI key not configured. Please add your FAL API key in the settings.");
+    }
+
+    if (typeof secretData !== 'string' || !secretData.trim()) {
+      console.error("Invalid FAL key format");
+      throw new Error("Invalid FAL AI key format. Please check your API key configuration.");
+    }
     
     return secretData;
   };
 
-  const generateWithFalAI = async (modelId: ModelId, settings: any) => {
-    const falKey = await getFalKey();
-    console.log("FAL key retrieved successfully");
-    
-    fal.config({
-      credentials: falKey
-    });
+  const generateWithFalAI = async (modelId: string, settings: any) => {
+    try {
+      const falKey = await getFalKey();
+      console.log("FAL key retrieved successfully");
+      
+      fal.config({
+        credentials: falKey
+      });
 
-    console.log("Submitting request to FAL AI model:", modelId);
-    const result = await fal.subscribe(modelId, {
-      input: {
-        prompt: settings.prompt,
-        image_size: settings.image_size,
-        num_images: settings.num_images,
-        num_inference_steps: settings.num_inference_steps,
-        enable_safety_checker: 'enable_safety_checker' in settings ? settings.enable_safety_checker : true,
-      },
-      pollInterval: 1000,
-      logs: true,
-      onQueueUpdate: (update) => {
-        if (update.status === "IN_PROGRESS") {
-          console.log("Generation progress:", update.logs.map(log => log.message));
-          update.logs.map((log) => log.message).forEach(console.log);
-        }
-      },
-    });
+      console.log("Submitting request to FAL AI model:", modelId);
+      const result = await fal.subscribe(modelId, {
+        input: {
+          prompt: settings.prompt,
+          image_size: settings.image_size,
+          num_images: settings.num_images,
+          num_inference_steps: settings.num_inference_steps,
+          enable_safety_checker: 'enable_safety_checker' in settings ? settings.enable_safety_checker : true,
+        },
+        pollInterval: 1000,
+        logs: true,
+        onQueueUpdate: (update) => {
+          if (update.status === "IN_PROGRESS") {
+            console.log("Generation progress:", update.logs.map(log => log.message));
+          }
+        },
+      });
 
-    console.log("FAL AI response:", result);
-    return result;
+      if (!result) {
+        throw new Error("No response received from FAL AI");
+      }
+
+      console.log("FAL AI response received:", result);
+      return result;
+    } catch (error: any) {
+      console.error("FAL AI generation error:", error);
+      
+      // Handle specific error types
+      if (error.status === 401) {
+        throw new Error("Invalid FAL AI key. Please check your API key configuration.");
+      } else if (error.message?.includes("not found")) {
+        throw new Error("FAL AI key not found. Please configure your API key in the settings.");
+      }
+      
+      // Re-throw the error with a more user-friendly message
+      throw new Error(error.message || "Failed to generate content. Please try again later.");
+    }
   };
 
   return { generateWithFalAI };

@@ -70,8 +70,8 @@ serve(async (req) => {
       const queueData = await queueResponse.json()
       console.log('Queue submission response:', queueData)
 
-      // Now poll for the result using POST method
-      const resultUrl = `https://queue.fal.run/jobs/${queueData.request_id}`
+      // Now poll for the result
+      const resultUrl = `https://queue.fal.run/job/${queueData.request_id}`
       console.log('Polling for result at:', resultUrl)
 
       let attempts = 0

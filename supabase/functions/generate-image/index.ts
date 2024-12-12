@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { fal } from "npm:@fal-ai/client"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 
 const corsHeaders = {
@@ -20,79 +21,83 @@ serve(async (req) => {
       throw new Error('FAL_KEY not found in environment variables')
     }
 
-    let endpoint = ''
-    let input = {}
+    // Configure FAL client
+    fal.config({
+      credentials: falKey
+    });
 
+    let result;
+    
     switch (modelId) {
       case 'fal-ai/flux/schnell':
-        endpoint = 'https://110602490-fast-text-to-image.gateway.alpha.fal.ai/'
-        input = {
-          prompt: settings.prompt || "",
-          image_size: settings.image_size || "landscape_16_9",
-          num_images: settings.num_images || 1,
-          num_inference_steps: settings.num_inference_steps || 4,
-          enable_safety_checker: settings.enable_safety_checker,
-        }
+        console.log('Generating text-to-image with settings:', settings);
+        result = await fal.subscribe(modelId, {
+          input: {
+            prompt: settings.prompt || "",
+            image_size: settings.image_size || "landscape_16_9",
+            num_images: settings.num_images || 1,
+            num_inference_steps: settings.num_inference_steps || 4,
+            enable_safety_checker: settings.enable_safety_checker
+          },
+          logs: true
+        });
         break;
 
       case 'fal-ai/flux/schnell/redux':
-        endpoint = 'https://110602490-fast-image-to-image.gateway.alpha.fal.ai/'
-        input = {
-          prompt: settings.prompt || "enhance this image",
-          image_url: settings.image_url,
-          image_size: settings.image_size || "landscape_16_9",
-          num_images: settings.num_images || 1,
-          num_inference_steps: settings.num_inference_steps || 4,
-          enable_safety_checker: settings.enable_safety_checker,
-        }
+        console.log('Generating image-to-image with settings:', settings);
+        result = await fal.subscribe(modelId, {
+          input: {
+            prompt: settings.prompt || "enhance this image",
+            image_url: settings.image_url,
+            image_size: settings.image_size || "landscape_16_9",
+            num_images: settings.num_images || 1,
+            num_inference_steps: settings.num_inference_steps || 4,
+            enable_safety_checker: settings.enable_safety_checker
+          },
+          logs: true
+        });
         break;
 
       case 'fal-ai/stable-audio':
-        endpoint = 'https://110602490-stable-audio-basic.gateway.alpha.fal.ai/'
-        input = {
-          prompt: settings.prompt || "background music",
-          seconds_total: settings.seconds_total || 30,
-          steps: settings.steps || 10,
-        }
+        console.log('Generating audio with settings:', settings);
+        result = await fal.subscribe(modelId, {
+          input: {
+            prompt: settings.prompt || "background music",
+            seconds_total: settings.seconds_total || 30,
+            steps: settings.steps || 10
+          },
+          logs: true
+        });
         break;
 
       case 'fal-ai/speech-to-speech':
-        endpoint = 'https://110602490-f5-tts.gateway.alpha.fal.ai/'
-        input = {
-          gen_text: settings.gen_text,
-          ref_text: settings.ref_text,
-          audio_url: settings.audio_url,
-          model_type: settings.model_type || "F5-TTS",
-          remove_silence: settings.remove_silence ?? true,
+        console.log('Generating speech with settings:', settings);
+        if (!settings.gen_text) {
+          throw new Error("gen_text is required for speech generation");
         }
+        if (!settings.audio_url) {
+          throw new Error("audio_url is required for speech generation");
+        }
+        
+        result = await fal.subscribe(modelId, {
+          input: {
+            gen_text: settings.gen_text,
+            ref_text: settings.ref_text,
+            audio_url: settings.audio_url,
+            model_type: settings.model_type || "F5-TTS",
+            remove_silence: settings.remove_silence ?? true
+          },
+          logs: true
+        });
         break;
 
       default:
         throw new Error(`Unsupported model: ${modelId}`)
     }
 
-    console.log('Making request to FAL AI endpoint:', endpoint)
-    console.log('With input:', input)
+    console.log('FAL AI response:', result);
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Key ${falKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ input }),
-    })
-
-    if (!response.ok) {
-      const error = await response.text()
-      console.error('FAL AI error:', error)
-      throw new Error(`FAL AI request failed: ${error}`)
-    }
-
-    const data = await response.json()
-    console.log('FAL AI response:', data)
-
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {

@@ -40,6 +40,19 @@ serve(async (req) => {
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       )
 
+      // Get user information from authorization header
+      const authHeader = req.headers.get('Authorization')
+      if (!authHeader) {
+        throw new Error('No authorization header')
+      }
+
+      // Verify the JWT token and get the user ID
+      const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
+      
+      if (authError || !user) {
+        throw new Error('Invalid authorization')
+      }
+
       // Generate image with FAL AI
       const result = await fal.subscribe(modelId, {
         input: {
@@ -88,22 +101,11 @@ serve(async (req) => {
         .from('generated')
         .getPublicUrl(filePath);
 
-      // Get user information from authorization header
-      const authHeader = req.headers.get('Authorization');
-      if (!authHeader) {
-        throw new Error('No authorization header');
-      }
-
-      const userId = authHeader.split('Bearer ')[1];
-      if (!userId) {
-        throw new Error('Invalid authorization header');
-      }
-
       // Save to generations table
       const { error: dbError } = await supabase
         .from('generations')
         .insert({
-          user_id: userId,
+          user_id: user.id,
           model_name: modelId,
           model_type: 'images',
           prompt: settings.prompt,

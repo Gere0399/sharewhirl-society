@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Loader } from "lucide-react";
-import { ImageSize, ModelType, FluxSettings, FluxSchnellSettings } from "@/types/generation";
+import { ImageSize, ModelType, FluxSettings, FluxSchnellSettings, SafetyTolerance } from "@/types/generation";
 
 interface GenerationFormProps {
   onSubmit: (settings: FluxSettings | FluxSchnellSettings) => Promise<void>;
@@ -18,7 +18,7 @@ interface GenerationFormProps {
 const IMAGE_MODELS = [
   { id: "fal-ai/flux", label: "Flux", type: "flux" as ModelType, cost: 1 },
   { id: "stabilityai/stable-diffusion-xl-base-1.0", label: "Stable Diffusion XL", type: "sdxl" as ModelType, cost: 2 },
-  { id: "fal-ai/flux/schnell", label: "Flux Schnell", type: "flux-schnell" as ModelType, cost: 1 },
+  { id: "fal-ai/flux/schnell", label: "Flux Schnell", type: "flux-schnell" as ModelType, cost: 0 },
 ];
 
 export function GenerationForm({ onSubmit, loading, disabled, modelType }: GenerationFormProps) {

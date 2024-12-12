@@ -11,18 +11,22 @@ import { useNavigate } from "react-router-dom";
 const MODEL_COSTS = {
   "fal-ai/flux": 1,
   "stabilityai/stable-diffusion-xl-base-1.0": 2,
-  "fal-ai/flux/schnell": 1,
+  "fal-ai/flux/schnell": 0,
 };
 
 export function GenerateImage({ modelId }: GenerateImageProps) {
   const [loading, setLoading] = useState(false);
   const [credits, setCredits] = useState<number | null>(null);
+  const [dailyGenerations, setDailyGenerations] = useState<number>(0);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchCredits();
-  }, []);
+    if (modelId === "fal-ai/flux/schnell") {
+      fetchDailyGenerations();
+    }
+  }, [modelId]);
 
   const fetchCredits = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -36,6 +40,21 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
     }
   };
 
+  const fetchDailyGenerations = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase
+        .from('generations')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('model_name', 'fal-ai/flux/schnell')
+        .gte('created_at', today)
+        .count();
+      setDailyGenerations(data ?? 0);
+    }
+  };
+
   const getModelType = (modelId: string): ModelType => {
     if (modelId.includes("flux/schnell")) return "flux-schnell";
     if (modelId.includes("flux")) return "flux";
@@ -46,11 +65,13 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
     try {
       const modelCost = MODEL_COSTS[modelId as keyof typeof MODEL_COSTS] || 1;
       
-      if (credits === null) {
-        throw new Error("Unable to verify credits");
-      }
-
-      if (credits < modelCost) {
+      if (modelId === "fal-ai/flux/schnell") {
+        if (dailyGenerations >= 10) {
+          if (credits === null || credits < 1) {
+            throw new Error("You've used all free generations. Please purchase credits to continue.");
+          }
+        }
+      } else if (credits === null || credits < modelCost) {
         throw new Error("Insufficient credits");
       }
 
@@ -65,13 +86,15 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
         const { data: { user } } = await supabase.auth.getUser();
         
         if (user) {
-          // Deduct credits
-          const { error: creditError } = await supabase.rpc('deduct_credits', {
-            amount: modelCost,
-            user_id: user.id
-          });
+          // Deduct credits if not using free generations
+          if (modelId !== "fal-ai/flux/schnell" || dailyGenerations >= 10) {
+            const { error: creditError } = await supabase.rpc('deduct_credits', {
+              amount: modelCost,
+              user_id: user.id
+            });
 
-          if (creditError) throw creditError;
+            if (creditError) throw creditError;
+          }
 
           // Save generation
           await supabase.from("generations").insert({
@@ -79,13 +102,18 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
             model_name: modelId,
             model_type: "image",
             prompt: settings.prompt,
-            settings: settings,
+            settings: settings as any,
             output_url: result.data.images[0].url,
-            cost: modelCost
+            cost: modelId === "fal-ai/flux/schnell" && dailyGenerations < 10 ? 0 : modelCost
           });
 
-          // Update local credits state
-          setCredits(prev => prev !== null ? prev - modelCost : null);
+          // Update local states
+          if (modelId === "fal-ai/flux/schnell") {
+            setDailyGenerations(prev => prev + 1);
+          }
+          if (modelId !== "fal-ai/flux/schnell" || dailyGenerations >= 10) {
+            setCredits(prev => prev !== null ? prev - modelCost : null);
+          }
         }
 
         toast({
@@ -105,6 +133,13 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
     }
   };
 
+  const isDisabled = () => {
+    if (modelId === "fal-ai/flux/schnell") {
+      return dailyGenerations >= 10 && (credits === null || credits < 1);
+    }
+    return credits === null || credits < (MODEL_COSTS[modelId as keyof typeof MODEL_COSTS] || 1);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -119,10 +154,16 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
         </Button>
       </div>
 
+      {modelId === "fal-ai/flux/schnell" && (
+        <div className="text-sm text-muted-foreground">
+          {10 - dailyGenerations} free generations remaining today
+        </div>
+      )}
+
       <GenerationForm
         onSubmit={handleGenerate}
         loading={loading}
-        disabled={credits === null || credits < (MODEL_COSTS[modelId as keyof typeof MODEL_COSTS] || 1)}
+        disabled={isDisabled()}
         modelType={getModelType(modelId)}
       />
     </div>

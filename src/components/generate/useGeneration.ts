@@ -19,11 +19,6 @@ const getModelType = (modelId: ModelId): ModelType => {
   return "sdxl";
 };
 
-type DeductCreditsParams = {
-  amount: number;
-  user_id: string;
-};
-
 export function useGeneration(modelId: ModelId, dailyGenerations: number, onGenerate: () => void) {
   const [loading, setLoading] = useState(false);
   const [credits, setCredits] = useState<number | null>(null);
@@ -51,14 +46,14 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
   };
 
   const getFalKey = async (): Promise<string> => {
-    const { data, error } = await supabase.rpc('get_secret', {
+    const { data: secretData, error: secretError } = await supabase.rpc('get_secret', {
       secret_name: 'FAL_KEY'
     });
 
-    if (error) throw new Error("Unable to access FAL AI services");
-    if (!data) throw new Error("FAL AI key not found");
+    if (secretError) throw new Error("Unable to access FAL AI services");
+    if (!secretData) throw new Error("FAL AI key not found");
     
-    return data;
+    return secretData;
   };
 
   const handleGenerate = async (settings: FluxSettings | SchnellSettings) => {

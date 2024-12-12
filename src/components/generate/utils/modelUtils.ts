@@ -15,7 +15,7 @@ export const AVAILABLE_MODELS: ModelInfo[] = [
   {
     id: "fal-ai/flux/schnell",
     label: "Schnell Text to Image",
-    cost: 0.0045,
+    cost: 1,  // We'll store costs as integers (credits) instead of decimals
     type: "text-to-image",
     hasFreeDaily: true,
     freeDailyLimit: 10,
@@ -24,24 +24,18 @@ export const AVAILABLE_MODELS: ModelInfo[] = [
   {
     id: "fal-ai/flux/schnell/redux",
     label: "Schnell Image to Image",
-    cost: 0.035,
+    cost: 35, // We'll store costs as integers (credits) instead of decimals
     type: "image-to-image",
     category: "image"
   },
   {
     id: "fal-ai/stable-audio",
     label: "Stable Audio",
-    cost: 1,
+    cost: 100,
     type: "audio",
     category: "audio"
   }
 ];
-
-export const MODEL_COSTS: Record<ModelId, number> = {
-  "fal-ai/flux/schnell": 0.0045,
-  "fal-ai/flux/schnell/redux": 0.035,
-  "fal-ai/stable-audio": 1
-};
 
 export const getModelInfo = (modelId: ModelId): ModelInfo | undefined => {
   return AVAILABLE_MODELS.find(model => model.id === modelId);

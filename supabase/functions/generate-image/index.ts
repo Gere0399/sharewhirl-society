@@ -1,5 +1,4 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import { fal } from 'npm:@fal-ai/client'
 
 const corsHeaders = {
@@ -41,11 +40,13 @@ serve(async (req) => {
         throw new Error('No audio URL in response')
       }
 
+      // For audio, we'll return the direct URL since we'll handle CORS in the frontend
       return new Response(
         JSON.stringify({
           data: {
             images: [{
-              url: result.data.audio_file.url
+              url: result.data.audio_file.url,
+              isAudio: true
             }]
           }
         }),

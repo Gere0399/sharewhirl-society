@@ -1,10 +1,15 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export const saveToStorage = async (imageUrl: string, modelType: string): Promise<string> => {
+export const saveToStorage = async (url: string, modelType: string): Promise<string> => {
   try {
-    const response = await fetch(imageUrl);
+    // For audio files, we'll store the URL directly since we can't fetch it due to CORS
+    if (modelType === 'audio') {
+      return url;
+    }
+
+    const response = await fetch(url);
     const blob = await response.blob();
-    const fileExt = imageUrl.split('.').pop() || 'jpg';
+    const fileExt = url.split('.').pop() || 'jpg';
     const filePath = `${modelType}/${crypto.randomUUID()}.${fileExt}`;
     
     const { error: uploadError } = await supabase.storage

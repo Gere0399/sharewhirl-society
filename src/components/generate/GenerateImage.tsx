@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+// Initialize fal client with credentials
+fal.config({
+  credentials: 'FAL_KEY',
+});
+
 const MODEL_COSTS: Record<ModelId, number> = {
   "fal-ai/flux": 1,
   "stabilityai/stable-diffusion-xl-base-1.0": 2,
@@ -74,7 +79,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
 
       setLoading(true);
 
-      const result = await fal.subscribe(modelId, {
+      const result = await fal.subscribe(modelId as ModelId, {
         input: settings,
         logs: true,
       });

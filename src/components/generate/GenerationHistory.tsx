@@ -24,7 +24,6 @@ export function GenerationHistory({ type, modelId, refreshTrigger = 0 }: Generat
             .from("generations")
             .select("*")
             .eq("user_id", user.id)
-            .eq("model_type", type)
             .eq("model_name", modelId)
             .order("created_at", { ascending: false });
 

@@ -53,10 +53,16 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
       return;
     }
 
-    await onSubmit({
-      ...baseSettings,
-      guidance_scale: guidanceScale,
-    } as FluxSettings);
+    if (modelType === "text-to-video" || modelType === "image-to-video") {
+      await onSubmit({
+        ...baseSettings,
+      } as SchnellSettings);
+    } else {
+      await onSubmit({
+        ...baseSettings,
+        guidance_scale: guidanceScale,
+      } as FluxSettings);
+    }
   };
 
   return (

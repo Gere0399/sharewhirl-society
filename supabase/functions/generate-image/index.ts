@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { fal } from "npm:@fal-ai/client"
+import { createClient } from 'npm:@supabase/supabase-js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,6 +31,24 @@ serve(async (req) => {
       fal.config({
         credentials: falKey
       })
+
+      // Initialize Supabase client
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      )
+
+      // Get user information from authorization header
+      const authHeader = req.headers.get('Authorization')
+      if (!authHeader) {
+        throw new Error('No authorization header')
+      }
+
+      const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
+      
+      if (authError || !user) {
+        throw new Error('Invalid authorization')
+      }
 
       // Generate image with FAL AI
       console.log("Submitting to FAL AI with modelId:", modelId)
@@ -62,8 +81,38 @@ serve(async (req) => {
         throw new Error("No output URL in response from FAL AI");
       }
 
+      // Download the image from FAL AI
+      const imageUrl = result.data.images[0].url;
+      const imageResponse = await fetch(imageUrl);
+      const imageBlob = await imageResponse.blob();
+
+      // Upload to Supabase Storage
+      const fileExt = imageUrl.split('.').pop() || 'jpg';
+      const filePath = `${modelId.replace('/', '_')}/${crypto.randomUUID()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('generated')
+        .upload(filePath, imageBlob, {
+          contentType: result.data.images[0].content_type || 'image/jpeg',
+          upsert: false
+        });
+
+      if (uploadError) {
+        throw new Error(`Failed to upload to storage: ${uploadError.message}`);
+      }
+
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('generated')
+        .getPublicUrl(filePath);
+
       return new Response(
-        JSON.stringify({ data: result.data }),
+        JSON.stringify({ 
+          data: {
+            ...result.data,
+            images: [{ ...result.data.images[0], url: publicUrl }]
+          }
+        }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,

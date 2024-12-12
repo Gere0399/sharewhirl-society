@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ModelId, GenerationSettings } from "@/types/generation";
 import { useCredits } from "./useCredits";
 import { useFalAI } from "./useFalAI";
-import { MODEL_COSTS, getModelType } from "../utils/modelUtils";
+import { getModelInfo, getModelType } from "../utils/modelUtils";
 import { saveToStorage } from "../utils/storageUtils";
 import { Database } from "@/integrations/supabase/types";
 
@@ -13,26 +13,26 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
   const { generateWithFalAI } = useFalAI();
 
   const getRequiredCredits = () => {
-    const isSchnellModel = modelId.includes("schnell");
-    if (isSchnellModel) {
-      return dailyGenerations >= 10 ? 1 : 0;
-    }
-    return MODEL_COSTS[modelId] || 1;
+    const modelInfo = getModelInfo(modelId);
+    return modelInfo?.cost || 1;
   };
 
   const handleGenerate = async (settings: GenerationSettings) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error("You must be logged in to generate images");
+        throw new Error("You must be logged in to generate content");
       }
 
+      const modelInfo = getModelInfo(modelId);
+      if (!modelInfo) throw new Error("Invalid model");
+      
       const modelCost = getRequiredCredits();
       const isSchnellModel = modelId.includes("schnell");
       
       if (isSchnellModel) {
         if (dailyGenerations >= 10) {
-          if (credits === null || credits < 1) {
+          if (credits === null || credits < modelCost) {
             throw new Error("You've used all free generations. Please purchase credits to continue.");
           }
         }
@@ -111,9 +111,9 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
   const isDisabled = () => {
     const isSchnellModel = modelId.includes("schnell");
     if (isSchnellModel) {
-      return dailyGenerations >= 10 && (credits === null || credits < 1);
+      return dailyGenerations >= 10 && (credits === null || credits < getRequiredCredits());
     }
-    return credits === null || credits < (MODEL_COSTS[modelId] || 1);
+    return credits === null || credits < getRequiredCredits();
   };
 
   return {

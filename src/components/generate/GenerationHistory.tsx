@@ -54,22 +54,26 @@ export function GenerationHistory({ type, modelId, refreshTrigger = 0 }: Generat
     <ScrollArea className="h-[600px] pr-4">
       <div className="space-y-4">
         <h3 className="font-semibold">Generation History</h3>
-        <div className="grid grid-cols-2 gap-4">
-          {generations.map((generation) => (
-            <div key={generation.id} className="space-y-2">
-              <AspectRatio ratio={16/9}>
-                <img
-                  src={generation.output_url}
-                  alt={generation.prompt}
-                  className="rounded-lg object-cover w-full h-full"
-                />
-              </AspectRatio>
-              <p className="text-sm text-muted-foreground truncate">
-                {generation.prompt}
-              </p>
-            </div>
-          ))}
-        </div>
+        {generations.length === 0 ? (
+          <p className="text-muted-foreground">No generations yet</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            {generations.map((generation) => (
+              <div key={generation.id} className="space-y-2">
+                <AspectRatio ratio={16/9}>
+                  <img
+                    src={generation.output_url}
+                    alt={generation.prompt}
+                    className="rounded-lg object-cover w-full h-full"
+                  />
+                </AspectRatio>
+                <p className="text-sm text-muted-foreground truncate">
+                  {generation.prompt}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </ScrollArea>
   );

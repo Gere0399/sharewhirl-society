@@ -24,43 +24,52 @@ serve(async (req) => {
     let endpoint = ''
     let input = {}
 
-    if (modelId === 'fal-ai/flux/schnell') {
-      endpoint = 'https://110602490-flux-schnell.gateway.alpha.fal.ai/'
-      input = {
-        prompt: settings.prompt,
-        image_size: settings.image_size || "landscape_16_9",
-        num_images: settings.num_images || 1,
-        num_inference_steps: settings.num_inference_steps || 4,
-        enable_safety_checker: settings.enable_safety_checker,
-      }
-    } else if (modelId === 'fal-ai/flux/schnell/redux') {
-      endpoint = 'https://110602490-flux-schnell-redux.gateway.alpha.fal.ai/'
-      input = {
-        prompt: settings.prompt || "enhance this image",
-        image_url: settings.image_url,
-        image_size: settings.image_size || "landscape_16_9",
-        num_images: settings.num_images || 1,
-        num_inference_steps: settings.num_inference_steps || 4,
-        enable_safety_checker: settings.enable_safety_checker,
-      }
-    } else if (modelId === 'fal-ai/stable-audio') {
-      endpoint = 'https://110602490-stable-audio-basic.gateway.alpha.fal.ai/'
-      input = {
-        prompt: settings.prompt,
-        seconds_total: settings.seconds_total || 30,
-        steps: settings.steps || 10,
-      }
-    } else if (modelId === 'fal-ai/speech-to-speech') {
-      endpoint = 'https://110602490-f5-tts.gateway.alpha.fal.ai/'
-      input = {
-        gen_text: settings.gen_text,
-        ref_text: settings.ref_text || undefined,
-        ref_audio_url: settings.audio_url,
-        model_type: settings.model_type || "F5-TTS",
-        remove_silence: settings.remove_silence ?? true,
-      }
-    } else {
-      throw new Error(`Unsupported model: ${modelId}`)
+    switch (modelId) {
+      case 'fal-ai/flux/schnell':
+        endpoint = 'https://110602490-flux-schnell.gateway.alpha.fal.ai/'
+        input = {
+          prompt: settings.prompt,
+          image_size: settings.image_size || "landscape_16_9",
+          num_images: settings.num_images || 1,
+          num_inference_steps: settings.num_inference_steps || 4,
+          enable_safety_checker: settings.enable_safety_checker,
+        }
+        break;
+
+      case 'fal-ai/flux/schnell/redux':
+        endpoint = 'https://110602490-flux-schnell-redux.gateway.alpha.fal.ai/'
+        input = {
+          prompt: settings.prompt || "enhance this image",
+          image_url: settings.image_url,
+          image_size: settings.image_size || "landscape_16_9",
+          num_images: settings.num_images || 1,
+          num_inference_steps: settings.num_inference_steps || 4,
+          enable_safety_checker: settings.enable_safety_checker,
+        }
+        break;
+
+      case 'fal-ai/stable-audio':
+        endpoint = 'https://110602490-stable-audio-basic.gateway.alpha.fal.ai/'
+        input = {
+          prompt: settings.prompt,
+          seconds_total: settings.seconds_total || 30,
+          steps: settings.steps || 10,
+        }
+        break;
+
+      case 'fal-ai/speech-to-speech':
+        endpoint = 'https://110602490-f5-tts.gateway.alpha.fal.ai/'
+        input = {
+          gen_text: settings.gen_text,
+          ref_text: settings.ref_text,
+          ref_audio_url: settings.audio_url,
+          model_type: settings.model_type || "F5-TTS",
+          remove_silence: settings.remove_silence ?? true,
+        }
+        break;
+
+      default:
+        throw new Error(`Unsupported model: ${modelId}`)
     }
 
     console.log('Making request to FAL AI endpoint:', endpoint)

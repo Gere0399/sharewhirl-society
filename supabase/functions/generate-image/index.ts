@@ -25,7 +25,7 @@ serve(async (req) => {
       throw new Error('Missing required parameters')
     }
 
-    console.log('Starting generation with settings:', settings)
+    console.log("Starting generation with settings:", settings)
 
     try {
       // Configure FAL client
@@ -50,10 +50,14 @@ serve(async (req) => {
         },
       });
 
-      console.log('Generation completed:', result)
+      console.log("Generation completed:", result);
+
+      if (!result?.data?.images?.[0]?.url) {
+        throw new Error("No image URL in FAL AI response");
+      }
 
       return new Response(
-        JSON.stringify({ data: result }),
+        JSON.stringify({ data: result.data }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,

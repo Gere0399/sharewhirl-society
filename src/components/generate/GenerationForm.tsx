@@ -25,8 +25,12 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
   const [file, setFile] = useState<File | null>(null);
 
   const handleSubmit = async () => {
+    if (modelType === "image-to-image" && !file) {
+      return;
+    }
+
     const baseSettings = {
-      prompt,
+      prompt: prompt || (modelType === "image-to-image" ? "enhance this image" : ""),
       image_size: imageSize,
       num_images: 1,
       num_inference_steps: numInferenceSteps,
@@ -44,7 +48,6 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         await onSubmit({
           ...baseSettings,
           image_url: base64,
-          prompt: prompt || "enhance this image",
         } as ReduxSettings);
       };
       return;
@@ -113,7 +116,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
 
       <Button 
         onClick={handleSubmit} 
-        disabled={disabled || loading || (!file && modelType === "image-to-image")}
+        disabled={disabled || loading || (modelType === "image-to-image" && !file)}
         className="w-full"
       >
         {loading ? (

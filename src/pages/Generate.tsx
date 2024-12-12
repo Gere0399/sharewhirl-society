@@ -3,43 +3,27 @@ import { Card } from "@/components/ui/card";
 import { GenerateImage } from "@/components/generate/GenerateImage";
 import { GenerationHistory } from "@/components/generate/GenerationHistory";
 import { Sidebar } from "@/components/feed/Sidebar";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, DollarSign, Badge } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { ModelId } from "@/types/generation";
+import { AVAILABLE_MODELS, getModelInfo } from "@/components/generate/utils/modelUtils";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { CreditDisplay } from "@/components/generate/CreditDisplay";
 
-const GENERATION_TYPES = [
-  { id: "images", label: "Images" },
-  { id: "consistency", label: "Consistency" },
-  { id: "video", label: "Video" },
-  { id: "speech", label: "Speech" },
-  { id: "sounds", label: "Sounds" },
-  { id: "songs", label: "Songs" },
-];
-
-const IMAGE_MODELS = [
-  { id: "fal-ai/flux" as ModelId, label: "Flux", cost: 1 },
-  { id: "stabilityai/stable-diffusion-xl-base-1.0" as ModelId, label: "Stable Diffusion XL", cost: 2 },
-  { id: "fal-ai/flux/schnell" as ModelId, label: "Flux Schnell (10 free daily)", cost: 0 },
-  { id: "fal-ai/flux/schnell/redux" as ModelId, label: "Flux Redux (Image to Image)", cost: 1 },
-];
-
 export default function Generate() {
-  const [selectedType, setSelectedType] = useState(GENERATION_TYPES[0].id);
-  const [selectedModel, setSelectedModel] = useState<ModelId>(IMAGE_MODELS[0].id);
+  const [selectedModel, setSelectedModel] = useState<ModelId>(AVAILABLE_MODELS[0].id);
   const [credits, setCredits] = useState<number | null>(null);
   const [dailyGenerations, setDailyGenerations] = useState<number>(0);
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
   const isMobile = useIsMobile();
+  const modelInfo = getModelInfo(selectedModel);
 
   useEffect(() => {
     fetchCredits();
@@ -86,18 +70,6 @@ export default function Generate() {
     }
   };
 
-  const getModelCost = (modelId: ModelId) => {
-    const model = IMAGE_MODELS.find(m => m.id === modelId);
-    if (modelId === "fal-ai/flux/schnell") {
-      return dailyGenerations < 10 ? 0 : 1;
-    }
-    return model?.cost ?? 1;
-  };
-
-  const handleGenerate = () => {
-    setHistoryRefreshTrigger(prev => prev + 1);
-  };
-
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -106,68 +78,64 @@ export default function Generate() {
           <div className="flex flex-col space-y-4 max-w-6xl mx-auto">
             <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold">Generate</h1>
-              <CreditDisplay credits={credits} modelCost={getModelCost(selectedModel)} />
+              <CreditDisplay credits={credits} modelCost={modelInfo?.cost} />
             </div>
 
             <ScrollArea className="w-full">
               <div className="flex items-center gap-4 py-2 px-4 bg-background/95 backdrop-blur-sm border-b border-border/10">
-                {GENERATION_TYPES.map((type) => (
-                  <DropdownMenu key={type.id}>
-                    <DropdownMenuTrigger className="flex items-center gap-1 text-sm whitespace-nowrap">
-                      <span
-                        className={`cursor-pointer ${
-                          selectedType === type.id
-                            ? "text-[hsl(262,83%,74%)]"
-                            : "text-muted-foreground hover:text-foreground"
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-1 text-sm whitespace-nowrap">
+                    <span className="text-[hsl(262,83%,74%)]">
+                      {modelInfo?.label || "Select Model"}
+                    </span>
+                    <ChevronDown className="h-4 w-4" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-[300px]">
+                    {AVAILABLE_MODELS.map((model) => (
+                      <DropdownMenuItem
+                        key={model.id}
+                        onClick={() => setSelectedModel(model.id)}
+                        className={`flex justify-between items-center ${
+                          selectedModel === model.id ? "bg-accent" : ""
                         }`}
                       >
-                        {type.label}
-                      </span>
-                      <ChevronDown className="h-4 w-4" />
-                    </DropdownMenuTrigger>
-                    {type.id === "images" && (
-                      <DropdownMenuContent align="start">
-                        {IMAGE_MODELS.map((model) => (
-                          <DropdownMenuItem
-                            key={model.id}
-                            onClick={() => setSelectedModel(model.id)}
-                          >
-                            <div className="flex flex-col">
-                              <span>{model.label}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {model.id === "fal-ai/flux/schnell" 
-                                  ? `${10 - dailyGenerations} free generations remaining today`
-                                  : `${model.cost} credits per generation`}
-                              </span>
+                        <span>{model.label}</span>
+                        <div className="flex items-center gap-2">
+                          {model.hasFreeDaily && (
+                            <div className="flex items-center gap-1 text-xs bg-green-500/10 text-green-500 px-2 py-1 rounded">
+                              <Badge className="h-3 w-3" />
+                              <span>{model.freeDailyLimit} daily free</span>
                             </div>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    )}
-                  </DropdownMenu>
-                ))}
+                          )}
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <DollarSign className="h-3 w-3" />
+                            <span>{model.cost}</span>
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <Card className="p-4 overflow-x-hidden bg-[#111111]">
-                {selectedType === "images" && (
-                  <GenerateImage 
-                    modelId={selectedModel} 
-                    dailyGenerations={dailyGenerations}
-                    onGenerate={() => {
-                      handleGenerate();
-                      if (selectedModel === "fal-ai/flux/schnell") {
-                        setDailyGenerations(prev => prev + 1);
-                      }
-                    }}
-                  />
-                )}
+                <GenerateImage 
+                  modelId={selectedModel} 
+                  dailyGenerations={dailyGenerations}
+                  onGenerate={() => {
+                    setHistoryRefreshTrigger(prev => prev + 1);
+                    if (selectedModel === "fal-ai/flux/schnell") {
+                      setDailyGenerations(prev => prev + 1);
+                    }
+                  }}
+                />
               </Card>
               <Card className="p-4 overflow-x-hidden bg-[#111111]">
                 <GenerationHistory 
-                  type={selectedType} 
+                  type={modelInfo?.type || "text-to-image"}
                   modelId={selectedModel} 
                   refreshTrigger={historyRefreshTrigger}
                 />

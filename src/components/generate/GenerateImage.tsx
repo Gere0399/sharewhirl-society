@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useGeneration } from "./useGeneration";
 import { useState } from "react";
 import { InsufficientCreditsDialog } from "./InsufficientCreditsDialog";
+import { getModelInfo } from "./utils/modelUtils";
 
 interface ExtendedGenerateImageProps extends GenerateImageProps {
   dailyGenerations: number;
@@ -18,6 +19,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
   const navigate = useNavigate();
   const { loading, handleGenerate, isDisabled, getRequiredCredits } = useGeneration(modelId, dailyGenerations, onGenerate);
   const [showCreditsDialog, setShowCreditsDialog] = useState(false);
+  const modelInfo = getModelInfo(modelId);
 
   const onSubmit = async (settings: any) => {
     if (isDisabled()) {
@@ -33,10 +35,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
     });
   };
 
-  const modelType = modelId.includes("text-to-video") ? "text-to-video" : 
-                   modelId.includes("image-to-video") ? "image-to-video" :
-                   modelId.includes("redux") ? "image-to-image" :
-                   modelId.includes("flux") ? "flux" : "sdxl";
+  if (!modelInfo) return null;
 
   return (
     <div className="space-y-4">
@@ -45,29 +44,22 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-lg font-semibold">Generate Content</h2>
+          <h2 className="text-lg font-semibold">{modelInfo.label}</h2>
         </div>
-      </div>
-
-      <div className="text-sm text-muted-foreground">
-        {modelId.includes("schnell")
-          ? dailyGenerations < 10 
-            ? `Free (${10 - dailyGenerations} remaining today)`
-            : "1 credit per generation"
-          : `${modelId.includes("flux") ? "1" : "2"} credits per generation`}
       </div>
 
       <GenerationForm
         onSubmit={onSubmit}
         loading={loading}
         disabled={false}
-        modelType={modelType}
+        modelType={modelInfo.type}
+        modelCost={getRequiredCredits()}
       />
 
       <InsufficientCreditsDialog
         open={showCreditsDialog}
         onOpenChange={setShowCreditsDialog}
-        modelName={modelId.split("/").pop() || "model"}
+        modelName={modelInfo.label}
         requiredCredits={getRequiredCredits()}
       />
     </div>

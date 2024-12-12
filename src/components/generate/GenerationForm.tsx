@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Loader } from "lucide-react";
+import { Loader, DollarSign } from "lucide-react";
 import { ImageSize, ModelType, FluxSettings, SchnellSettings, ReduxSettings } from "@/types/generation";
 import { ImageUpload } from "./form/ImageUpload";
 import { SafetyOptions } from "./form/SafetyOptions";
@@ -14,12 +14,12 @@ interface GenerationFormProps {
   loading: boolean;
   disabled: boolean;
   modelType: ModelType;
+  modelCost: number;
 }
 
-export function GenerationForm({ onSubmit, loading, disabled, modelType }: GenerationFormProps) {
+export function GenerationForm({ onSubmit, loading, disabled, modelType, modelCost }: GenerationFormProps) {
   const [prompt, setPrompt] = useState("");
   const [numInferenceSteps, setNumInferenceSteps] = useState(modelType === "text-to-video" || modelType === "image-to-video" ? 4 : 4);
-  const [guidanceScale, setGuidanceScale] = useState(3.5);
   const [imageSize, setImageSize] = useState<ImageSize>("landscape_16_9");
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
   const [file, setFile] = useState<File | null>(null);
@@ -40,7 +40,6 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
     if (modelType === "image-to-image") {
       if (!file) return;
       
-      // Convert file to base64
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {
@@ -85,19 +84,6 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         />
       </div>
 
-      {modelType !== "text-to-video" && modelType !== "image-to-video" && modelType !== "image-to-image" && (
-        <div className="space-y-2">
-          <Label>Guidance Scale ({guidanceScale})</Label>
-          <Slider
-            value={[guidanceScale]}
-            onValueChange={([value]) => setGuidanceScale(value)}
-            min={1}
-            max={20}
-            step={0.1}
-          />
-        </div>
-      )}
-
       <SafetyOptions 
         enableSafetyChecker={enableSafetyChecker}
         setEnableSafetyChecker={setEnableSafetyChecker}
@@ -114,7 +100,15 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
             Generating...
           </>
         ) : (
-          "Generate"
+          <>
+            Generate
+            {modelCost > 0 && (
+              <span className="ml-2 text-muted-foreground flex items-center gap-1">
+                <DollarSign className="h-3 w-3" />
+                {modelCost}
+              </span>
+            )}
+          </>
         )}
       </Button>
     </div>

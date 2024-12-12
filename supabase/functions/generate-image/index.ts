@@ -53,10 +53,12 @@ serve(async (req) => {
 
       // Poll for result
       let attempts = 0
-      const maxAttempts = 10
+      const maxAttempts = 30 // Increased max attempts
       let result = null
 
       while (attempts < maxAttempts) {
+        console.log(`Polling attempt ${attempts + 1} for request ${submitData.request_id}`)
+        
         const resultResponse = await fetch(`https://queue.fal.run/${modelId}/requests/${submitData.request_id}`, {
           headers: {
             'Authorization': `Key ${falKey}`,
@@ -82,7 +84,7 @@ serve(async (req) => {
         }
 
         attempts++
-        await new Promise(resolve => setTimeout(resolve, 1000)) // Wait 1 second between attempts
+        await new Promise(resolve => setTimeout(resolve, 2000)) // Increased wait time to 2 seconds
       }
 
       if (!result) {
@@ -91,6 +93,7 @@ serve(async (req) => {
 
       return new Response(JSON.stringify({ data: result }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
       })
     } catch (error) {
       console.error('FAL AI request error:', error)

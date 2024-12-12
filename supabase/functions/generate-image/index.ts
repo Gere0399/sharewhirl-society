@@ -6,7 +6,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -29,7 +28,7 @@ serve(async (req) => {
 
     // Submit initial request
     try {
-      const submitResponse = await fetch(`https://api.fal.ai/v1/models/${modelId}/queue/push`, {
+      const submitResponse = await fetch(`https://api.fal.ai/v1/models/${modelId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Key ${falKey}`,
@@ -48,53 +47,11 @@ serve(async (req) => {
       const submitData = await submitResponse.json()
       console.log('FAL AI submit response:', submitData)
 
-      if (!submitData.request_id) {
-        throw new Error('No request ID received from FAL AI')
+      if (!submitData.images?.[0]?.url) {
+        throw new Error('No image URL received from FAL AI')
       }
 
-      // Poll for result
-      let attempts = 0
-      const maxAttempts = 30
-      let result = null
-
-      while (attempts < maxAttempts) {
-        console.log(`Polling attempt ${attempts + 1} for request ${submitData.request_id}`)
-        
-        const resultResponse = await fetch(`https://api.fal.ai/v1/models/${modelId}/requests/${submitData.request_id}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Key ${falKey}`,
-            'Accept': 'application/json',
-          },
-        })
-
-        if (!resultResponse.ok) {
-          const errorText = await resultResponse.text()
-          console.error('FAL AI result error:', errorText)
-          throw new Error(`FAL AI result failed: ${errorText}`)
-        }
-
-        const resultData = await resultResponse.json()
-        console.log('FAL AI result response:', resultData)
-
-        if (resultData.status === 'completed' && resultData.images?.[0]?.url) {
-          result = resultData
-          break
-        }
-
-        if (resultData.status === 'failed') {
-          throw new Error('FAL AI generation failed: ' + (resultData.error || 'Unknown error'))
-        }
-
-        attempts++
-        await new Promise(resolve => setTimeout(resolve, 2000))
-      }
-
-      if (!result) {
-        throw new Error('Timed out waiting for FAL AI response')
-      }
-
-      return new Response(JSON.stringify({ data: result }), {
+      return new Response(JSON.stringify({ data: submitData }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       })

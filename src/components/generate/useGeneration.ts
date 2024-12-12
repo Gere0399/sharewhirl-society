@@ -108,7 +108,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           const { error: creditError } = await supabase.rpc('deduct_credits', {
             amount: modelCost,
             user_id: user.id
-          });
+          } as Database['public']['Functions']['deduct_credits']['Args']);
 
           if (creditError) throw creditError;
         }

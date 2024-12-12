@@ -7,6 +7,7 @@ import { Sidebar } from "@/components/feed/Sidebar";
 import { ChevronDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
+import { ModelId } from "@/types/generation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,13 +26,14 @@ const GENERATION_TYPES = [
 ];
 
 const IMAGE_MODELS = [
-  { id: "fal-ai/flux", label: "Flux" },
-  { id: "stabilityai/stable-diffusion-xl-base-1.0", label: "Stable Diffusion XL" },
+  { id: "fal-ai/flux" as ModelId, label: "Flux" },
+  { id: "stabilityai/stable-diffusion-xl-base-1.0" as ModelId, label: "Stable Diffusion XL" },
+  { id: "fal-ai/flux/schnell" as ModelId, label: "Flux Schnell" },
 ];
 
 export default function Generate() {
   const [selectedType, setSelectedType] = useState(GENERATION_TYPES[0].id);
-  const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS[0].id);
+  const [selectedModel, setSelectedModel] = useState<ModelId>(IMAGE_MODELS[0].id);
   const [credits, setCredits] = useState<number | null>(null);
   const isMobile = useIsMobile();
 

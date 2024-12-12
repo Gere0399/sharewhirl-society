@@ -56,6 +56,30 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
     return secretData;
   };
 
+  const saveToStorage = async (imageUrl: string, modelType: string): Promise<string> => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const fileExt = imageUrl.split('.').pop() || 'jpg';
+      const filePath = `${modelType}/${crypto.randomUUID()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('generated')
+        .upload(filePath, blob);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('generated')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error("Error saving to storage:", error);
+      throw error;
+    }
+  };
+
   const handleGenerate = async (settings: FluxSettings | SchnellSettings) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -112,6 +136,12 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           throw new Error("No output received from FAL AI");
         }
 
+        const outputUrl = result.data.images?.[0]?.url || result.data.video?.url;
+        if (!outputUrl) throw new Error("No output URL in response");
+
+        // Save the image to Supabase storage
+        const storedUrl = await saveToStorage(outputUrl, getModelType(modelId));
+
         if (!isSchnellModel || dailyGenerations >= 10) {
           const { error: creditError } = await supabase
             .from('credits')
@@ -127,7 +157,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           model_type: getModelType(modelId),
           prompt: settings.prompt,
           settings: settings as unknown as Database['public']['Tables']['generations']['Insert']['settings'],
-          output_url: result.data.images?.[0]?.url || result.data.video?.url,
+          output_url: storedUrl,
           cost: isSchnellModel && dailyGenerations < 10 ? 0 : modelCost
         });
 

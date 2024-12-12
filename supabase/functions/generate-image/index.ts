@@ -27,9 +27,33 @@ serve(async (req) => {
     console.log('Submitting request to FAL AI:', { modelId, settings })
 
     try {
-      const apiUrl = 'https://rest.fal.ai/v1/images/models/flux-schnell/generate'
+      let apiUrl = 'https://rest.fal.ai/v1/images/models/'
+      
+      // Determine the correct endpoint based on model
+      if (modelId.includes('flux/schnell')) {
+        apiUrl += 'flux-schnell/generate'
+      } else if (modelId.includes('flux')) {
+        apiUrl += 'flux/generate'
+      } else if (modelId.includes('stable-diffusion-xl')) {
+        apiUrl += 'stable-diffusion-xl-v1/generate'
+      }
+
       console.log('Making request to:', apiUrl)
       
+      const requestBody = {
+        prompt: settings.prompt,
+        image_size: settings.image_size,
+        num_inference_steps: settings.num_inference_steps,
+        num_images: settings.num_images || 1,
+        enable_safety_checker: settings.enable_safety_checker
+      }
+
+      if (settings.guidance_scale) {
+        requestBody.guidance_scale = settings.guidance_scale
+      }
+
+      console.log('Request body:', requestBody)
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -37,22 +61,21 @@ serve(async (req) => {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({
-          prompt: settings.prompt,
-          image_size: settings.image_size,
-          num_inference_steps: settings.num_inference_steps,
-          enable_safety_checker: settings.enable_safety_checker,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('FAL AI error:', errorText)
+        console.error('FAL AI error response:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        })
         throw new Error(`FAL AI failed: ${errorText}`)
       }
 
       const data = await response.json()
-      console.log('FAL AI response:', data)
+      console.log('FAL AI successful response:', data)
       
       return new Response(JSON.stringify({ data }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

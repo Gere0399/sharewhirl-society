@@ -17,9 +17,23 @@ export const useFalAI = () => {
       throw new Error("FAL AI key not configured. Please add your FAL API key in the settings.");
     }
 
+    // Log key format (safely)
+    console.log("FAL key format check:", {
+      isString: typeof secretData === 'string',
+      length: secretData?.length,
+      startsWithFal: secretData?.startsWith('fal_'),
+      isEmpty: !secretData?.trim()
+    });
+    
     if (typeof secretData !== 'string' || !secretData.trim()) {
       console.error("Invalid FAL key format");
       throw new Error("Invalid FAL AI key format. Please check your API key configuration.");
+    }
+
+    // Verify key format
+    if (!secretData.startsWith('fal_')) {
+      console.error("FAL key does not start with 'fal_'");
+      throw new Error("Invalid FAL AI key format. The key should start with 'fal_'.");
     }
     
     return secretData;
@@ -28,7 +42,7 @@ export const useFalAI = () => {
   const generateWithFalAI = async (modelId: string, settings: any) => {
     try {
       const falKey = await getFalKey();
-      console.log("FAL key retrieved successfully");
+      console.log("FAL key validation passed");
       
       fal.config({
         credentials: falKey

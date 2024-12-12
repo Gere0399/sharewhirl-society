@@ -17,7 +17,7 @@ interface GenerationFormProps {
 
 export function GenerationForm({ onSubmit, loading, disabled, modelType }: GenerationFormProps) {
   const [prompt, setPrompt] = useState("");
-  const [numInferenceSteps, setNumInferenceSteps] = useState(modelType === "text-to-video" || modelType === "image-to-video" ? 4 : 28);
+  const [numInferenceSteps, setNumInferenceSteps] = useState(modelType === "text-to-video" || modelType === "image-to-video" ? 4 : 4);
   const [guidanceScale, setGuidanceScale] = useState(3.5);
   const [imageSize, setImageSize] = useState<ImageSize>("landscape_16_9");
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
@@ -30,17 +30,17 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
       num_inference_steps: numInferenceSteps,
     };
 
-    if (modelType === "text-to-video" || modelType === "image-to-video") {
+    if (modelType === "text-to-video" || modelType === "image-to-video" || modelType === "flux") {
       await onSubmit({
         ...baseSettings,
         enable_safety_checker: enableSafetyChecker,
-      });
+      } as SchnellSettings);
     } else {
       await onSubmit({
         ...baseSettings,
         guidance_scale: guidanceScale,
         safety_tolerance: "2",
-      });
+      } as FluxSettings);
     }
   };
 

@@ -27,7 +27,6 @@ export interface FluxSettings extends BaseGenerationSettings {
 
 export interface SchnellSettings extends BaseGenerationSettings {
   enable_safety_checker: boolean;
-  seed?: number;
 }
 
 export interface GenerateImageProps {

@@ -90,8 +90,11 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         console.log("Submitting request to FAL AI model:", modelId);
         const result = await fal.subscribe(modelId, {
           input: {
-            ...settings,
-            seed: Math.floor(Math.random() * 1000000),
+            prompt: settings.prompt,
+            image_size: settings.image_size,
+            num_images: settings.num_images,
+            num_inference_steps: settings.num_inference_steps,
+            enable_safety_checker: 'enable_safety_checker' in settings ? settings.enable_safety_checker : true,
           },
           pollInterval: 1000,
           logs: true,
@@ -110,10 +113,10 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         }
 
         if (!isSchnellModel || dailyGenerations >= 10) {
-          const { error: creditError } = await supabase.rpc('deduct_credits', {
-            amount: modelCost,
-            user_id: user.id
-          } as Database['public']['Functions']['deduct_credits']['Args']);
+          const { error: creditError } = await supabase
+            .from('credits')
+            .update({ amount: credits! - modelCost })
+            .eq('user_id', user.id);
 
           if (creditError) throw creditError;
         }

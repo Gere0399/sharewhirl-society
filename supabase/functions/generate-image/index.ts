@@ -102,17 +102,22 @@ serve(async (req) => {
       result = await response.json()
     } else if (modelId === 'fal-ai/speech-to-speech') {
       console.log('Making speech-to-speech request with settings:', settings)
-      result = await fal.subscribe('fal-ai/f5-tts', {
-        input: {
-          gen_text: settings.gen_text,
-          ref_text: settings.ref_text || undefined,
-          ref_audio_url: settings.audio_url,
-          model_type: settings.model_type || "F5-TTS",
-          remove_silence: settings.remove_silence ?? true,
-        },
-        logs: true,
-      })
-      console.log('Speech-to-speech response:', result)
+      try {
+        result = await fal.subscribe('fal-ai/f5-tts', {
+          input: {
+            gen_text: settings.gen_text,
+            ref_text: settings.ref_text || undefined,
+            ref_audio_url: settings.audio_url,
+            model_type: settings.model_type || "F5-TTS",
+            remove_silence: settings.remove_silence ?? true,
+          },
+          logs: true,
+        })
+        console.log('Speech-to-speech response:', result)
+      } catch (error) {
+        console.error('Speech-to-speech error:', error)
+        throw error
+      }
     } else {
       throw new Error(`Unsupported model: ${modelId}`)
     }

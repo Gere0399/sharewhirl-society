@@ -67,7 +67,6 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
 
       setLoading(true);
 
-      // Fetch FAL key from secrets using RPC call
       const { data: secretData, error: secretError } = await supabase.rpc('get_secret', {
         secret_name: 'FAL_KEY'
       });
@@ -76,7 +75,6 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         throw new Error("FAL_KEY is not configured. Please check your environment variables.");
       }
 
-      // Configure fal client with key
       fal.config({
         credentials: secretData
       });
@@ -97,7 +95,6 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
       });
 
       if (result.data.images?.[0]?.url || result.data.video?.url) {
-        // Deduct credits if not using free generations
         if (!isSchnellModel || dailyGenerations >= 10) {
           const { error: creditError } = await supabase.rpc('deduct_credits', {
             amount: modelCost,
@@ -107,7 +104,6 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           if (creditError) throw creditError;
         }
 
-        // Save generation with type-safe settings
         const { error: generationError } = await supabase.from('generations').insert({
           user_id: user.id,
           model_name: modelId,

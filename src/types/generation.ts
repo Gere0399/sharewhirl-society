@@ -10,7 +10,8 @@ export type ModelId =
   | "fal-ai/flux"
   | "stabilityai/stable-diffusion-xl-base-1.0"
   | "fal-ai/text-to-video-schnell"
-  | "fal-ai/image-to-video-schnell";
+  | "fal-ai/image-to-video-schnell"
+  | "fal-ai/flux/schnell";
 
 export interface BaseGenerationSettings {
   prompt: string;
@@ -34,13 +35,6 @@ export interface GenerateImageProps {
 }
 
 export type ModelType = "flux" | "sdxl" | "text-to-video" | "image-to-video";
-
-export interface ImageModel {
-  id: ModelId;
-  label: string;
-  type: ModelType;
-  cost: number;
-}
 
 // Helper type for Supabase compatibility
 export type GenerationSettings = {

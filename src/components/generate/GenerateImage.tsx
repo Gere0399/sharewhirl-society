@@ -33,6 +33,11 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
     });
   };
 
+  const modelType = modelId.includes("text-to-video") ? "text-to-video" : 
+                   modelId.includes("image-to-video") ? "image-to-video" :
+                   modelId.includes("redux") ? "image-to-image" :
+                   modelId.includes("flux") ? "flux" : "sdxl";
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -56,9 +61,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
         onSubmit={onSubmit}
         loading={loading}
         disabled={false}
-        modelType={modelId.includes("text-to-video") ? "text-to-video" : 
-                  modelId.includes("image-to-video") ? "image-to-video" :
-                  modelId.includes("flux") ? "flux" : "sdxl"}
+        modelType={modelType}
       />
 
       <InsufficientCreditsDialog

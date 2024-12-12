@@ -32,26 +32,13 @@ serve(async (req) => {
 
       console.log("Submitting to FAL AI with modelId:", modelId)
       
-      // Prepare input based on model type
-      const input = modelId === "fal-ai/flux/schnell/redux" ? {
-        image_url: settings.image_url,
-        image_size: settings.image_size,
-        num_inference_steps: settings.num_inference_steps,
-        num_images: settings.num_images || 1,
-        enable_safety_checker: settings.enable_safety_checker,
-        prompt: settings.prompt || "enhance this image"
-      } : {
-        prompt: settings.prompt,
-        image_size: settings.image_size,
-        num_inference_steps: settings.num_inference_steps,
-        num_images: settings.num_images || 1,
-        enable_safety_checker: settings.enable_safety_checker,
-      };
-
-      console.log("Submitting with input:", input);
+      // For image-to-image model, ensure image_url is present
+      if (modelId === "fal-ai/flux/schnell/redux" && !settings.image_url) {
+        throw new Error('Image URL is required for image-to-image generation')
+      }
 
       const result = await fal.subscribe(modelId, {
-        input,
+        input: settings,
         logs: true,
         onQueueUpdate: (update) => {
           if (update.status === "IN_PROGRESS") {

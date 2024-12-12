@@ -17,26 +17,31 @@ export const useFalAI = () => {
       throw new Error("FAL AI key not configured. Please add your FAL API key in the settings.");
     }
 
+    // Remove any whitespace that might have been added
+    const cleanKey = secretData.trim();
+    
     // Log key format (safely)
     console.log("FAL key format check:", {
-      isString: typeof secretData === 'string',
-      length: secretData?.length,
-      startsWithFal: secretData?.startsWith('fal_'),
-      isEmpty: !secretData?.trim()
+      isString: typeof cleanKey === 'string',
+      length: cleanKey?.length,
+      startsWithFal: cleanKey?.startsWith('fal_'),
+      isEmpty: !cleanKey?.trim(),
+      // Add a safe preview of the key format
+      preview: cleanKey ? `${cleanKey.substring(0, 4)}...${cleanKey.substring(cleanKey.length - 4)}` : 'none'
     });
     
-    if (typeof secretData !== 'string' || !secretData.trim()) {
+    if (typeof cleanKey !== 'string' || !cleanKey.trim()) {
       console.error("Invalid FAL key format");
       throw new Error("Invalid FAL AI key format. Please check your API key configuration.");
     }
 
     // Verify key format
-    if (!secretData.startsWith('fal_')) {
+    if (!cleanKey.startsWith('fal_')) {
       console.error("FAL key does not start with 'fal_'");
       throw new Error("Invalid FAL AI key format. The key should start with 'fal_'.");
     }
     
-    return secretData;
+    return cleanKey;
   };
 
   const generateWithFalAI = async (modelId: string, settings: any) => {

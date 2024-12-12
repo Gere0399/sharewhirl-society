@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { fal } from "npm:@fal-ai/client"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -52,15 +51,21 @@ serve(async (req) => {
 
       // Generate image with FAL AI
       console.log("Submitting to FAL AI with modelId:", modelId)
+      
+      // Prepare input based on model type
+      const input = modelId === "fal-ai/flux/schnell/redux" ? {
+        image_url: settings.image_url,
+        prompt: settings.prompt || "enhance this image",
+        image_size: settings.image_size,
+        num_inference_steps: settings.num_inference_steps,
+        num_images: settings.num_images || 1,
+        enable_safety_checker: settings.enable_safety_checker,
+      } : settings;
+
+      console.log("Submitting with input:", input);
+
       const result = await fal.subscribe(modelId, {
-        input: modelId === "fal-ai/flux/schnell/redux" ? {
-          image_url: settings.image_url,
-          prompt: settings.prompt || "enhance this image",
-          image_size: settings.image_size,
-          num_inference_steps: settings.num_inference_steps,
-          num_images: settings.num_images || 1,
-          enable_safety_checker: settings.enable_safety_checker,
-        } : settings,
+        input,
         logs: true,
         onQueueUpdate: (update) => {
           if (update.status === "IN_PROGRESS") {

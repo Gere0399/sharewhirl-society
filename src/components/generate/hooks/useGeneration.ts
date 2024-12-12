@@ -47,11 +47,11 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         const result = await generateWithFalAI(modelId, settings);
         console.log("FAL AI response received:", result);
 
-        if (!result.data.images?.[0]?.url) {
+        if (!result.data.images?.[0]?.url && !result.data.audio_url) {
           throw new Error("No output URL in response from FAL AI");
         }
 
-        const outputUrl = result.data.images[0].url;
+        const outputUrl = result.data.images?.[0]?.url || result.data.audio_url;
         const storedUrl = await saveToStorage(outputUrl, getModelType(modelId));
 
         if (!isSchnellModel || dailyGenerations >= 10) {
@@ -67,7 +67,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           user_id: user.id,
           model_name: modelId,
           model_type: getModelType(modelId),
-          prompt: settings.prompt,
+          prompt: 'prompt' in settings ? settings.prompt : 'gen_text' in settings ? settings.gen_text : '',
           settings: settings as unknown as Database['public']['Tables']['generations']['Insert']['settings'],
           output_url: storedUrl,
           cost: isSchnellModel && dailyGenerations < 10 ? 0 : modelCost

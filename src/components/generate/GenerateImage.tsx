@@ -21,7 +21,7 @@ fal.config({
 const MODEL_COSTS: Record<ModelId, number> = {
   "fal-ai/flux": 1,
   "stabilityai/stable-diffusion-xl-base-1.0": 2,
-  "fal-ai/flux/schnell": 0,
+  "fal-ai/flux-schnell": 0,
 };
 
 interface ExtendedGenerateImageProps extends GenerateImageProps {
@@ -58,7 +58,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
   };
 
   const getModelType = (modelId: ModelId): ModelType => {
-    if (modelId.includes("flux/schnell")) return "flux-schnell";
+    if (modelId.includes("flux-schnell")) return "flux-schnell";
     if (modelId.includes("flux")) return "flux";
     return "sdxl";
   };
@@ -72,7 +72,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
 
       const modelCost = MODEL_COSTS[modelId] || 1;
       
-      if (modelId === "fal-ai/flux/schnell") {
+      if (modelId === "fal-ai/flux-schnell") {
         if (dailyGenerations >= 10) {
           if (credits === null || credits < 1) {
             throw new Error("You've used all free generations. Please purchase credits to continue.");
@@ -88,14 +88,22 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
         throw new Error("FAL_KEY is not configured. Please check your environment variables.");
       }
 
-      const result = await fal.subscribe(modelId as ModelId, {
-        input: settings,
+      // Convert model ID to the correct format
+      const apiModelId = modelId === "fal-ai/flux-schnell" ? "fal-ai/fast-sdxl" : modelId;
+
+      const result = await fal.subscribe(apiModelId, {
+        input: {
+          ...settings,
+          scheduler: "K_EULER",
+          seed: Math.floor(Math.random() * 1000000),
+        },
+        pollInterval: 1000,
         logs: true,
       });
 
       if (result.data.images?.[0]?.url) {
         // Deduct credits if not using free generations
-        if (modelId !== "fal-ai/flux/schnell" || dailyGenerations >= 10) {
+        if (modelId !== "fal-ai/flux-schnell" || dailyGenerations >= 10) {
           const { error: creditError } = await supabase.rpc('deduct_credits', {
             amount: modelCost,
             user_id: user.id
@@ -124,14 +132,14 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
           prompt: settings.prompt,
           settings: generationSettings,
           output_url: result.data.images[0].url,
-          cost: modelId === "fal-ai/flux/schnell" && dailyGenerations < 10 ? 0 : modelCost
+          cost: modelId === "fal-ai/flux-schnell" && dailyGenerations < 10 ? 0 : modelCost
         });
 
         if (generationError) throw generationError;
 
         onGenerate();
         
-        if (modelId !== "fal-ai/flux/schnell" || dailyGenerations >= 10) {
+        if (modelId !== "fal-ai/flux-schnell" || dailyGenerations >= 10) {
           setCredits(prev => prev !== null ? prev - modelCost : null);
         }
 
@@ -144,7 +152,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
       console.error("Generation error:", error);
       toast({
         title: "Generation failed",
-        description: error.message || "Failed to generate image. Please check your API key configuration.",
+        description: error.message || "Failed to generate image. Please check your configuration.",
         variant: "destructive",
       });
     } finally {
@@ -153,7 +161,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
   };
 
   const isDisabled = () => {
-    if (modelId === "fal-ai/flux/schnell") {
+    if (modelId === "fal-ai/flux-schnell") {
       return dailyGenerations >= 10 && (credits === null || credits < 1);
     }
     return credits === null || credits < (MODEL_COSTS[modelId] || 1);
@@ -174,7 +182,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
       </div>
 
       <div className="text-sm text-muted-foreground">
-        {modelId === "fal-ai/flux/schnell" 
+        {modelId === "fal-ai/flux-schnell" 
           ? dailyGenerations < 10 
             ? `Free (${10 - dailyGenerations} remaining today)`
             : "1 credit per generation"

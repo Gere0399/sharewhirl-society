@@ -26,13 +26,11 @@ export const useFalAI = () => {
     console.log("FAL key format check:", {
       isString: typeof cleanKey === 'string',
       length: cleanKey?.length,
-      startsWithFal: cleanKey?.startsWith('fal_'),
+      // Check if it matches UUID:token format
+      isValidFormat: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:[0-9a-f]{32}$/.test(cleanKey),
       isEmpty: !cleanKey?.trim(),
       // Add a safe preview of the key format
       preview: cleanKey ? `${cleanKey.substring(0, 4)}...${cleanKey.substring(cleanKey.length - 4)}` : 'none',
-      // Add character type information
-      firstChar: cleanKey ? cleanKey.charAt(0) : 'none',
-      containsSpecialChars: /[^a-zA-Z0-9_]/.test(cleanKey)
     });
     
     if (typeof cleanKey !== 'string' || !cleanKey.trim()) {
@@ -40,10 +38,10 @@ export const useFalAI = () => {
       throw new Error("Invalid FAL AI key format. Please check your API key configuration.");
     }
 
-    // Verify key format
-    if (!cleanKey.startsWith('fal_')) {
-      console.error("FAL key does not start with 'fal_'");
-      throw new Error("Invalid FAL AI key format. The key should start with 'fal_'.");
+    // Verify key format (UUID:token)
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:[0-9a-f]{32}$/.test(cleanKey)) {
+      console.error("FAL key does not match expected format");
+      throw new Error("Invalid FAL AI key format. The key should be in the format UUID:token.");
     }
     
     return cleanKey;

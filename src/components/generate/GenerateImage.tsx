@@ -55,6 +55,11 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
 
   const handleGenerate = async (settings: FluxSettings | FluxSchnellSettings) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("You must be logged in to generate images");
+      }
+
       const modelCost = MODEL_COSTS[modelId] || 1;
       
       if (modelId === "fal-ai/flux/schnell") {
@@ -69,43 +74,39 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
 
       setLoading(true);
 
-      const result = await fal.subscribe(modelId, {
+      const result = await fal.subscribe(modelId as string, {
         input: settings,
         logs: true,
       });
 
       if (result.data.images?.[0]?.url) {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          // Deduct credits if not using free generations
-          if (modelId !== "fal-ai/flux/schnell" || dailyGenerations >= 10) {
-            const { error: creditError } = await supabase.rpc('deduct_credits', {
-              amount: modelCost,
-              user_id: user.id
-            });
-
-            if (creditError) throw creditError;
-          }
-
-          // Save generation
-          const { error: generationError } = await supabase.from("generations").insert({
-            user_id: user.id,
-            model_name: modelId,
-            model_type: "image",
-            prompt: settings.prompt,
-            settings: settings as any,
-            output_url: result.data.images[0].url,
-            cost: modelId === "fal-ai/flux/schnell" && dailyGenerations < 10 ? 0 : modelCost
+        // Deduct credits if not using free generations
+        if (modelId !== "fal-ai/flux/schnell" || dailyGenerations >= 10) {
+          const { error: creditError } = await supabase.rpc('deduct_credits', {
+            amount: modelCost,
+            user_id: user.id
           });
 
-          if (generationError) throw generationError;
+          if (creditError) throw creditError;
+        }
 
-          onGenerate();
-          
-          if (modelId !== "fal-ai/flux/schnell" || dailyGenerations >= 10) {
-            setCredits(prev => prev !== null ? prev - modelCost : null);
-          }
+        // Save generation
+        const { error: generationError } = await supabase.from("generations").insert({
+          user_id: user.id,
+          model_name: modelId,
+          model_type: "image",
+          prompt: settings.prompt,
+          settings: settings,
+          output_url: result.data.images[0].url,
+          cost: modelId === "fal-ai/flux/schnell" && dailyGenerations < 10 ? 0 : modelCost
+        });
+
+        if (generationError) throw generationError;
+
+        onGenerate();
+        
+        if (modelId !== "fal-ai/flux/schnell" || dailyGenerations >= 10) {
+          setCredits(prev => prev !== null ? prev - modelCost : null);
         }
 
         toast({
@@ -117,7 +118,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
       console.error("Generation error:", error);
       toast({
         title: "Generation failed",
-        description: error.message,
+        description: error.message || "Failed to generate image. Please try again.",
         variant: "destructive",
       });
     } finally {

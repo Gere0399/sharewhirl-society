@@ -8,12 +8,13 @@ export type ImageSize =
 
 export type ModelId = 
   | "fal-ai/flux/schnell"
-  | "fal-ai/flux/schnell/redux";
+  | "fal-ai/flux/schnell/redux"
+  | "fal-ai/stable-audio";
 
 export interface BaseGenerationSettings {
   prompt?: string;
-  image_size: ImageSize;
-  num_images: number;
+  image_size?: ImageSize;
+  num_images?: number;
   num_inference_steps: number;
   enable_safety_checker: boolean;
 }
@@ -22,13 +23,19 @@ export interface SchnellSettings extends BaseGenerationSettings {
 }
 
 export interface ReduxSettings extends BaseGenerationSettings {
-  image_url?: string;
+  image_url: string;
 }
 
-export type GenerationSettings = SchnellSettings | ReduxSettings;
+export interface AudioSettings {
+  prompt: string;
+  seconds_total?: number;
+  steps?: number;
+}
+
+export type GenerationSettings = SchnellSettings | ReduxSettings | AudioSettings;
 
 export interface GenerateImageProps {
   modelId: ModelId;
 }
 
-export type ModelType = "text-to-image" | "image-to-image";
+export type ModelType = "text-to-image" | "image-to-image" | "audio";

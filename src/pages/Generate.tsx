@@ -7,7 +7,7 @@ import { ChevronDown, DollarSign, Badge } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
 import { ModelId } from "@/types/generation";
-import { AVAILABLE_MODELS, getModelInfo } from "@/components/generate/utils/modelUtils";
+import { AVAILABLE_MODELS, getModelInfo, getModelsByCategory } from "@/components/generate/utils/modelUtils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { CreditDisplay } from "@/components/generate/CreditDisplay";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Generate() {
   const [selectedModel, setSelectedModel] = useState<ModelId>(AVAILABLE_MODELS[0].id);
@@ -70,6 +71,44 @@ export default function Generate() {
     }
   };
 
+  const renderModelDropdown = (category: "image" | "audio") => (
+    <DropdownMenu>
+      <DropdownMenuTrigger className="flex items-center gap-1 text-sm whitespace-nowrap">
+        <span className="text-[hsl(262,83%,74%)]">
+          {modelInfo?.label || "Select Model"}
+        </span>
+        <ChevronDown className="h-4 w-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-[300px]">
+        {getModelsByCategory(category).map((model) => (
+          <DropdownMenuItem
+            key={model.id}
+            onClick={() => setSelectedModel(model.id)}
+            className={`flex justify-between items-center ${
+              selectedModel === model.id ? "bg-accent" : ""
+            }`}
+          >
+            <span>{model.label}</span>
+            <div className="flex items-center gap-2">
+              {model.hasFreeDaily && (
+                <div className="flex items-center gap-1 text-xs bg-green-500/10 text-green-500 px-2 py-1 rounded">
+                  <Badge className="h-3 w-3" />
+                  <span>
+                    {model.freeDailyLimit - (model.id === "fal-ai/flux/schnell" ? dailyGenerations : 0)} free left
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center gap-1 text-muted-foreground">
+                <DollarSign className="h-3 w-3" />
+                <span>{model.cost}</span>
+              </div>
+            </div>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
@@ -77,45 +116,24 @@ export default function Generate() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col space-y-4 max-w-6xl mx-auto">
             <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold">Generate</h1>
+              <h1 className="text-2xl font-bold">{modelInfo?.label || "Generate"}</h1>
               <CreditDisplay credits={credits} modelCost={modelInfo?.cost} />
             </div>
 
             <ScrollArea className="w-full">
               <div className="flex items-center gap-4 py-2 px-4 bg-background/95 backdrop-blur-sm border-b border-border/10">
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-1 text-sm whitespace-nowrap">
-                    <span className="text-[hsl(262,83%,74%)]">
-                      {modelInfo?.label || "Select Model"}
-                    </span>
-                    <ChevronDown className="h-4 w-4" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-[300px]">
-                    {AVAILABLE_MODELS.map((model) => (
-                      <DropdownMenuItem
-                        key={model.id}
-                        onClick={() => setSelectedModel(model.id)}
-                        className={`flex justify-between items-center ${
-                          selectedModel === model.id ? "bg-accent" : ""
-                        }`}
-                      >
-                        <span>{model.label}</span>
-                        <div className="flex items-center gap-2">
-                          {model.hasFreeDaily && (
-                            <div className="flex items-center gap-1 text-xs bg-green-500/10 text-green-500 px-2 py-1 rounded">
-                              <Badge className="h-3 w-3" />
-                              <span>{model.freeDailyLimit} daily free</span>
-                            </div>
-                          )}
-                          <div className="flex items-center gap-1 text-muted-foreground">
-                            <DollarSign className="h-3 w-3" />
-                            <span>{model.cost}</span>
-                          </div>
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Tabs defaultValue="image" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="image">Image</TabsTrigger>
+                    <TabsTrigger value="audio">Audio</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="image" className="mt-0">
+                    {renderModelDropdown("image")}
+                  </TabsContent>
+                  <TabsContent value="audio" className="mt-0">
+                    {renderModelDropdown("audio")}
+                  </TabsContent>
+                </Tabs>
               </div>
               <ScrollBar orientation="horizontal" />
             </ScrollArea>

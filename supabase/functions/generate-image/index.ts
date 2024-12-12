@@ -27,66 +27,37 @@ serve(async (req) => {
     console.log('Submitting request to FAL AI:', { modelId, settings })
 
     try {
-      // For Flux models
-      if (modelId.includes('flux')) {
-        const apiUrl = 'https://rest.fal.ai/v1/image/generate'
-        console.log('Making Flux request to:', apiUrl)
-        
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Key ${falKey}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify(settings),
-        })
-
-        if (!response.ok) {
-          const errorText = await response.text()
-          console.error('FAL AI Flux error:', errorText)
-          throw new Error(`FAL AI Flux failed: ${errorText}`)
-        }
-
-        const data = await response.json()
-        console.log('FAL AI Flux response:', data)
-        return new Response(JSON.stringify({ data }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        })
-      }
+      const apiUrl = 'https://rest.fal.ai/v1/images/models/flux-schnell/generate'
+      console.log('Making request to:', apiUrl)
       
-      // For SDXL and other models
-      else {
-        const apiUrl = 'https://rest.fal.ai/v1/image/generate'
-        console.log('Making SDXL request to:', apiUrl)
-        
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Key ${falKey}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({
-            ...settings,
-            model_name: modelId
-          }),
-        })
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Key ${falKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: settings.prompt,
+          image_size: settings.image_size,
+          num_inference_steps: settings.num_inference_steps,
+          enable_safety_checker: settings.enable_safety_checker,
+        }),
+      })
 
-        if (!response.ok) {
-          const errorText = await response.text()
-          console.error('FAL AI SDXL error:', errorText)
-          throw new Error(`FAL AI SDXL failed: ${errorText}`)
-        }
-
-        const data = await response.json()
-        console.log('FAL AI SDXL response:', data)
-        return new Response(JSON.stringify({ data }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        })
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('FAL AI error:', errorText)
+        throw new Error(`FAL AI failed: ${errorText}`)
       }
+
+      const data = await response.json()
+      console.log('FAL AI response:', data)
+      
+      return new Response(JSON.stringify({ data }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      })
     } catch (error) {
       console.error('FAL AI request error:', error)
       throw error

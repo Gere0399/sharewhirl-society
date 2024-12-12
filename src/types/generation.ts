@@ -6,7 +6,10 @@ export type ImageSize =
   | "landscape_4_3"
   | "landscape_16_9";
 
-export type SafetyTolerance = "1" | "2" | "3" | "4" | "5";
+export type ModelId = 
+  | "fal-ai/flux"
+  | "stabilityai/stable-diffusion-xl-base-1.0"
+  | "fal-ai/flux/schnell";
 
 export interface BaseGenerationSettings {
   prompt: string;
@@ -17,7 +20,7 @@ export interface BaseGenerationSettings {
 export interface FluxSettings extends BaseGenerationSettings {
   num_inference_steps: number;
   guidance_scale: number;
-  safety_tolerance: SafetyTolerance;
+  safety_tolerance?: string;
 }
 
 export interface FluxSchnellSettings extends BaseGenerationSettings {
@@ -27,13 +30,13 @@ export interface FluxSchnellSettings extends BaseGenerationSettings {
 }
 
 export interface GenerateImageProps {
-  modelId: string;
+  modelId: ModelId;
 }
 
 export type ModelType = "flux" | "sdxl" | "flux-schnell";
 
 export interface ImageModel {
-  id: string;
+  id: ModelId;
   label: string;
   type: ModelType;
   cost: number;

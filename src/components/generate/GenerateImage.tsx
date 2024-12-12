@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { fal } from "@fal-ai/client";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { GenerateImageProps, FluxSettings, FluxSchnellSettings, ModelType } from "@/types/generation";
+import { GenerateImageProps, FluxSettings, FluxSchnellSettings, ModelType, ModelId } from "@/types/generation";
 import { GenerationForm } from "./GenerationForm";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const MODEL_COSTS = {
+const MODEL_COSTS: Record<ModelId, number> = {
   "fal-ai/flux": 1,
   "stabilityai/stable-diffusion-xl-base-1.0": 2,
   "fal-ai/flux/schnell": 0,
@@ -66,7 +66,7 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
     }
   };
 
-  const getModelType = (modelId: string): ModelType => {
+  const getModelType = (modelId: ModelId): ModelType => {
     if (modelId.includes("flux/schnell")) return "flux-schnell";
     if (modelId.includes("flux")) return "flux";
     return "sdxl";
@@ -79,13 +79,13 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
       }
       return "-1 credit";
     }
-    const cost = MODEL_COSTS[modelId as keyof typeof MODEL_COSTS] || 1;
+    const cost = MODEL_COSTS[modelId] || 1;
     return `-${cost} credits`;
   };
 
   const handleGenerate = async (settings: FluxSettings | FluxSchnellSettings) => {
     try {
-      const modelCost = MODEL_COSTS[modelId as keyof typeof MODEL_COSTS] || 1;
+      const modelCost = MODEL_COSTS[modelId] || 1;
       
       if (modelId === "fal-ai/flux/schnell") {
         if (dailyGenerations >= 10) {
@@ -119,15 +119,17 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
           }
 
           // Save generation
-          await supabase.from("generations").insert({
+          const { error: generationError } = await supabase.from("generations").insert({
             user_id: user.id,
             model_name: modelId,
             model_type: "image",
             prompt: settings.prompt,
-            settings: settings,
+            settings: settings as any, // Type assertion needed due to Supabase JSONB limitations
             output_url: result.data.images[0].url,
             cost: modelId === "fal-ai/flux/schnell" && dailyGenerations < 10 ? 0 : modelCost
           });
+
+          if (generationError) throw generationError;
 
           // Update local states
           if (modelId === "fal-ai/flux/schnell") {
@@ -159,7 +161,7 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
     if (modelId === "fal-ai/flux/schnell") {
       return dailyGenerations >= 10 && (credits === null || credits < 1);
     }
-    return credits === null || credits < (MODEL_COSTS[modelId as keyof typeof MODEL_COSTS] || 1);
+    return credits === null || credits < (MODEL_COSTS[modelId] || 1);
   };
 
   return (

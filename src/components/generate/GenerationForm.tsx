@@ -27,19 +27,19 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
       prompt,
       image_size: imageSize,
       num_images: 1,
+      num_inference_steps: numInferenceSteps,
     };
 
     if (modelType === "flux-schnell") {
       await onSubmit({
         ...baseSettings,
-        num_inference_steps: numInferenceSteps,
         enable_safety_checker: enableSafetyChecker,
       });
     } else {
       await onSubmit({
         ...baseSettings,
-        num_inference_steps: numInferenceSteps,
         guidance_scale: guidanceScale,
+        safety_tolerance: "2",
       });
     }
   };

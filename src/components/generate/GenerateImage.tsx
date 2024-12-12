@@ -2,26 +2,22 @@ import { useState, useEffect } from "react";
 import { fal } from "@fal-ai/client";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { GenerateImageProps, FluxSettings, FluxSchnellSettings, ModelType, ModelId, GenerationSettings } from "@/types/generation";
+import { GenerateImageProps, FluxSettings, SchnellSettings, ModelType, ModelId, GenerationSettings } from "@/types/generation";
 import { GenerationForm } from "./GenerationForm";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// Initialize fal client with credentials from environment
 const FAL_KEY = import.meta.env.VITE_FAL_KEY;
 if (!FAL_KEY) {
   console.error('FAL_KEY is not set in environment variables');
 }
 
-fal.config({
-  credentials: FAL_KEY,
-});
-
 const MODEL_COSTS: Record<ModelId, number> = {
   "fal-ai/flux": 1,
   "stabilityai/stable-diffusion-xl-base-1.0": 2,
-  "fal-ai/flux-schnell": 0,
+  "fal-ai/text-to-video-schnell": 1,
+  "fal-ai/image-to-video-schnell": 1
 };
 
 interface ExtendedGenerateImageProps extends GenerateImageProps {
@@ -58,12 +54,13 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
   };
 
   const getModelType = (modelId: ModelId): ModelType => {
-    if (modelId.includes("flux-schnell")) return "flux-schnell";
+    if (modelId === "fal-ai/text-to-video-schnell") return "text-to-video";
+    if (modelId === "fal-ai/image-to-video-schnell") return "image-to-video";
     if (modelId.includes("flux")) return "flux";
     return "sdxl";
   };
 
-  const handleGenerate = async (settings: FluxSettings | FluxSchnellSettings) => {
+  const handleGenerate = async (settings: FluxSettings | SchnellSettings) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -72,7 +69,8 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
 
       const modelCost = MODEL_COSTS[modelId] || 1;
       
-      if (modelId === "fal-ai/flux-schnell") {
+      const isSchnellModel = modelId.includes("schnell");
+      if (isSchnellModel) {
         if (dailyGenerations >= 10) {
           if (credits === null || credits < 1) {
             throw new Error("You've used all free generations. Please purchase credits to continue.");
@@ -88,10 +86,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
         throw new Error("FAL_KEY is not configured. Please check your environment variables.");
       }
 
-      // Convert model ID to the correct format
-      const apiModelId = modelId === "fal-ai/flux-schnell" ? "fal-ai/fast-sdxl" : modelId;
-
-      const result = await fal.subscribe(apiModelId, {
+      const result = await fal.subscribe(modelId, {
         input: {
           ...settings,
           scheduler: "K_EULER",
@@ -99,11 +94,16 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
         },
         pollInterval: 1000,
         logs: true,
+        onQueueUpdate: (update) => {
+          if (update.status === "IN_PROGRESS") {
+            update.logs.map((log) => log.message).forEach(console.log);
+          }
+        },
       });
 
-      if (result.data.images?.[0]?.url) {
+      if (result.data.images?.[0]?.url || result.data.video?.url) {
         // Deduct credits if not using free generations
-        if (modelId !== "fal-ai/flux-schnell" || dailyGenerations >= 10) {
+        if (!isSchnellModel || dailyGenerations >= 10) {
           const { error: creditError } = await supabase.rpc('deduct_credits', {
             amount: modelCost,
             user_id: user.id
@@ -128,31 +128,31 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
         const { error: generationError } = await supabase.from("generations").insert({
           user_id: user.id,
           model_name: modelId,
-          model_type: "image",
+          model_type: getModelType(modelId),
           prompt: settings.prompt,
           settings: generationSettings,
-          output_url: result.data.images[0].url,
-          cost: modelId === "fal-ai/flux-schnell" && dailyGenerations < 10 ? 0 : modelCost
+          output_url: result.data.images?.[0]?.url || result.data.video?.url,
+          cost: isSchnellModel && dailyGenerations < 10 ? 0 : modelCost
         });
 
         if (generationError) throw generationError;
 
         onGenerate();
         
-        if (modelId !== "fal-ai/flux-schnell" || dailyGenerations >= 10) {
+        if (!isSchnellModel || dailyGenerations >= 10) {
           setCredits(prev => prev !== null ? prev - modelCost : null);
         }
 
         toast({
-          title: "Image generated successfully",
-          description: "Your image has been generated and saved to your history.",
+          title: "Generation successful",
+          description: "Your content has been generated and saved to your history.",
         });
       }
     } catch (error: any) {
       console.error("Generation error:", error);
       toast({
         title: "Generation failed",
-        description: error.message || "Failed to generate image. Please check your configuration.",
+        description: error.message || "Failed to generate content. Please check your configuration.",
         variant: "destructive",
       });
     } finally {
@@ -161,7 +161,8 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
   };
 
   const isDisabled = () => {
-    if (modelId === "fal-ai/flux-schnell") {
+    const isSchnellModel = modelId.includes("schnell");
+    if (isSchnellModel) {
       return dailyGenerations >= 10 && (credits === null || credits < 1);
     }
     return credits === null || credits < (MODEL_COSTS[modelId] || 1);
@@ -174,7 +175,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
           <Button variant="ghost" size="icon" onClick={() => navigate("/subscriptions")}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-lg font-semibold">Generate Image</h2>
+          <h2 className="text-lg font-semibold">Generate Content</h2>
         </div>
         <Button variant="outline" onClick={() => navigate("/subscriptions")}>
           Subscriptions
@@ -182,7 +183,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
       </div>
 
       <div className="text-sm text-muted-foreground">
-        {modelId === "fal-ai/flux-schnell" 
+        {modelId.includes("schnell")
           ? dailyGenerations < 10 
             ? `Free (${10 - dailyGenerations} remaining today)`
             : "1 credit per generation"

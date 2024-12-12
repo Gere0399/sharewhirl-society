@@ -11,7 +11,8 @@ export type ImageSize =
 export type ModelId = 
   | "fal-ai/flux"
   | "stabilityai/stable-diffusion-xl-base-1.0"
-  | "fal-ai/flux/schnell";
+  | "fal-ai/text-to-video-schnell"
+  | "fal-ai/image-to-video-schnell";
 
 export interface BaseGenerationSettings {
   prompt: string;
@@ -25,7 +26,7 @@ export interface FluxSettings extends BaseGenerationSettings {
   safety_tolerance?: string;
 }
 
-export interface FluxSchnellSettings extends BaseGenerationSettings {
+export interface SchnellSettings extends BaseGenerationSettings {
   enable_safety_checker: boolean;
   seed?: number;
 }
@@ -34,7 +35,7 @@ export interface GenerateImageProps {
   modelId: ModelId;
 }
 
-export type ModelType = "flux" | "sdxl" | "flux-schnell";
+export type ModelType = "flux" | "sdxl" | "text-to-video" | "image-to-video";
 
 export interface ImageModel {
   id: ModelId;
@@ -45,5 +46,5 @@ export interface ImageModel {
 
 // Helper type for Supabase compatibility
 export type GenerationSettings = {
-  [K in keyof (FluxSettings & FluxSchnellSettings)]?: (FluxSettings & FluxSchnellSettings)[K];
+  [K in keyof (FluxSettings & SchnellSettings)]?: (FluxSettings & SchnellSettings)[K];
 }

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { fal } from "@fal-ai/client";
-import { ModelId, FluxSettings, SchnellSettings } from "@/types/generation";
+import { ModelId, FluxSettings, SchnellSettings, ModelType } from "@/types/generation";
+import { Database } from "@/integrations/supabase/types";
 
 const MODEL_COSTS: Record<ModelId, number> = {
   "fal-ai/flux": 1,
@@ -9,6 +10,13 @@ const MODEL_COSTS: Record<ModelId, number> = {
   "fal-ai/text-to-video-schnell": 1,
   "fal-ai/image-to-video-schnell": 1,
   "fal-ai/flux/schnell": 1
+};
+
+const getModelType = (modelId: ModelId): ModelType => {
+  if (modelId === "fal-ai/text-to-video-schnell") return "text-to-video";
+  if (modelId === "fal-ai/image-to-video-schnell") return "image-to-video";
+  if (modelId.includes("flux")) return "flux";
+  return "sdxl";
 };
 
 export function useGeneration(modelId: ModelId, dailyGenerations: number, onGenerate: () => void) {
@@ -59,20 +67,18 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
 
       setLoading(true);
 
-      // Fetch FAL key from secrets
-      const { data: secretData, error: secretError } = await supabase
-        .from('secrets')
-        .select('value')
-        .eq('name', 'FAL_KEY')
-        .single();
+      // Fetch FAL key from secrets using RPC call
+      const { data: secretData, error: secretError } = await supabase.rpc('get_secret', {
+        secret_name: 'FAL_KEY'
+      });
 
-      if (secretError || !secretData?.value) {
+      if (secretError || !secretData) {
         throw new Error("FAL_KEY is not configured. Please check your environment variables.");
       }
 
       // Configure fal client with key
       fal.config({
-        credentials: secretData.value
+        credentials: secretData
       });
 
       const result = await fal.subscribe(modelId, {
@@ -101,13 +107,13 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           if (creditError) throw creditError;
         }
 
-        // Save generation
-        const { error: generationError } = await supabase.from("generations").insert({
+        // Save generation with type-safe settings
+        const { error: generationError } = await supabase.from('generations').insert({
           user_id: user.id,
           model_name: modelId,
           model_type: getModelType(modelId),
           prompt: settings.prompt,
-          settings: settings,
+          settings: settings as unknown as Database['public']['Tables']['generations']['Insert']['settings'],
           output_url: result.data.images?.[0]?.url || result.data.video?.url,
           cost: isSchnellModel && dailyGenerations < 10 ? 0 : modelCost
         });

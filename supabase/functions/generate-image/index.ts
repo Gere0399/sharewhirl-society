@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { fal } from "npm:@fal-ai/client"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,121 +28,38 @@ serve(async (req) => {
     console.log('Starting generation with settings:', settings)
 
     try {
-      // First, submit the request to the queue
-      const queueUrl = 'https://queue.fal.run/' + modelId
-      console.log('Submitting to queue:', queueUrl)
+      // Configure FAL client
+      fal.config({
+        credentials: falKey
+      })
 
-      const requestBody = {
+      // Subscribe to the model and get results
+      const result = await fal.subscribe(modelId, {
         input: {
           prompt: settings.prompt,
           image_size: settings.image_size,
           num_inference_steps: settings.num_inference_steps,
           num_images: settings.num_images || 1,
           enable_safety_checker: settings.enable_safety_checker
-        }
-      }
-
-      if (settings.guidance_scale) {
-        requestBody.input.guidance_scale = settings.guidance_scale
-      }
-
-      console.log('Queue request body:', requestBody)
-
-      const queueResponse = await fetch(queueUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Key ${falKey}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
-        body: JSON.stringify(requestBody),
-      })
-
-      if (!queueResponse.ok) {
-        const errorText = await queueResponse.text()
-        console.error('FAL AI queue error:', {
-          status: queueResponse.status,
-          statusText: queueResponse.statusText,
-          body: errorText
-        })
-        throw new Error(`FAL AI queue submission failed: ${errorText}`)
-      }
-
-      const queueData = await queueResponse.json()
-      console.log('Queue submission response:', queueData)
-
-      // Now poll for the result using the correct endpoint
-      const statusUrl = `https://queue.fal.run/${modelId}/requests/${queueData.request_id}/status`
-      const resultUrl = `https://queue.fal.run/${modelId}/requests/${queueData.request_id}`
-      console.log('Polling for status at:', statusUrl)
-
-      let attempts = 0
-      const maxAttempts = 30
-      let result = null
-
-      while (attempts < maxAttempts) {
-        const statusResponse = await fetch(statusUrl, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Key ${falKey}`,
-            'Accept': 'application/json',
-          },
-        })
-
-        if (!statusResponse.ok) {
-          const errorText = await statusResponse.text()
-          console.error('FAL AI status fetch error:', {
-            status: statusResponse.status,
-            statusText: statusResponse.statusText,
-            body: errorText
-          })
-          throw new Error(`FAL AI status fetch failed: ${errorText}`)
-        }
-
-        const statusData = await statusResponse.json()
-        console.log('Status poll response:', statusData)
-
-        if (statusData.status === 'COMPLETED') {
-          // Fetch the final result
-          const resultResponse = await fetch(resultUrl, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Key ${falKey}`,
-              'Accept': 'application/json',
-            },
-          })
-
-          if (!resultResponse.ok) {
-            const errorText = await resultResponse.text()
-            console.error('FAL AI result fetch error:', {
-              status: resultResponse.status,
-              statusText: resultResponse.statusText,
-              body: errorText
-            })
-            throw new Error(`FAL AI result fetch failed: ${errorText}`)
+        logs: true,
+        onQueueUpdate: (update) => {
+          if (update.status === "IN_PROGRESS") {
+            update.logs.map((log) => log.message).forEach(console.log);
           }
+        },
+      });
 
-          result = await resultResponse.json()
-          break
+      console.log('Generation completed:', result)
+
+      return new Response(
+        JSON.stringify({ data: result }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
         }
+      )
 
-        if (statusData.status === 'FAILED') {
-          throw new Error(`FAL AI job failed: ${statusData.error || 'Unknown error'}`)
-        }
-
-        attempts++
-        // Increase wait time between attempts
-        await new Promise(resolve => setTimeout(resolve, 2000))
-      }
-
-      if (!result) {
-        throw new Error('FAL AI job timed out')
-      }
-
-      return new Response(JSON.stringify({ data: result }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      })
     } catch (error) {
       console.error('FAL AI request error:', error)
       throw error

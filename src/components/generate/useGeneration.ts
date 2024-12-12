@@ -72,12 +72,17 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
 
       setLoading(true);
 
-      const { data: secretData, error: secretError } = await supabase.rpc('get_secret', {
+      const { data: secretData, error: secretError } = await supabase.rpc('get_secret' as never, {
         secret_name: 'FAL_KEY'
       });
 
-      if (secretError || !secretData) {
-        throw new Error("FAL_KEY is not configured. Please check your environment variables.");
+      if (secretError) {
+        console.error("Error fetching FAL_KEY:", secretError);
+        throw new Error("Unable to access FAL AI services. Please try again later.");
+      }
+
+      if (!secretData) {
+        throw new Error("FAL AI integration is not properly configured. Please contact support.");
       }
 
       fal.config({
@@ -101,7 +106,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
 
       if (result.data.images?.[0]?.url || result.data.video?.url) {
         if (!isSchnellModel || dailyGenerations >= 10) {
-          const { error: creditError } = await supabase.rpc<DeductCreditsParams>('deduct_credits', {
+          const { error: creditError } = await supabase.rpc<DeductCreditsParams>('deduct_credits' as never, {
             amount: modelCost,
             user_id: user.id
           });

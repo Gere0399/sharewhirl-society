@@ -41,7 +41,6 @@ export interface SpeechSettings {
   audio_url: string;
   model_type: "F5-TTS" | "E2-TTS";
   remove_silence?: boolean;
-  steps: number;
 }
 
 export type GenerationSettings = SchnellSettings | ReduxSettings | AudioSettings | SpeechSettings;

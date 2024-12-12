@@ -46,7 +46,7 @@ export function GenerationForm({
   const [file, setFile] = useState<File | null>(null);
   const [secondsTotal, setSecondsTotal] = useState(30);
   
-  // New speech-specific states
+  // Speech-specific states
   const [genText, setGenText] = useState("");
   const [refText, setRefText] = useState("");
   const [speechModelType, setSpeechModelType] = useState<"F5-TTS" | "E2-TTS">("F5-TTS");
@@ -81,7 +81,6 @@ export function GenerationForm({
           audio_url: base64,
           model_type: speechModelType,
           remove_silence: removeSilence,
-          steps: numInferenceSteps,
         });
       };
       return;
@@ -183,18 +182,20 @@ export function GenerationForm({
         <AspectRatioSelect imageSize={imageSize} setImageSize={setImageSize} />
       )}
 
-      <div className="space-y-2">
-        <Label>
-          {modelType === "audio" || modelType === "speech" ? "Steps" : "Inference Steps"} ({numInferenceSteps})
-        </Label>
-        <Slider
-          value={[numInferenceSteps]}
-          onValueChange={([value]) => setNumInferenceSteps(value)}
-          min={1}
-          max={modelType === "audio" || modelType === "speech" ? 100 : 50}
-          step={1}
-        />
-      </div>
+      {modelType !== "speech" && (
+        <div className="space-y-2">
+          <Label>
+            {modelType === "audio" ? "Steps" : "Inference Steps"} ({numInferenceSteps})
+          </Label>
+          <Slider
+            value={[numInferenceSteps]}
+            onValueChange={([value]) => setNumInferenceSteps(value)}
+            min={1}
+            max={modelType === "audio" ? 100 : 50}
+            step={1}
+          />
+        </div>
+      )}
 
       {modelType === "audio" && (
         <div className="space-y-2">

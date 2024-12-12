@@ -24,7 +24,7 @@ serve(async (req) => {
       throw new Error('Missing required parameters')
     }
 
-    console.log('Submitting request to FAL AI:', { modelId, settings })
+    console.log('Starting generation with settings:', settings)
 
     try {
       // First, submit the request to the queue
@@ -70,43 +70,63 @@ serve(async (req) => {
       const queueData = await queueResponse.json()
       console.log('Queue submission response:', queueData)
 
-      // Now poll for the result
-      const resultUrl = `https://queue.fal.run/job/${queueData.request_id}`
-      console.log('Polling for result at:', resultUrl)
+      // Now poll for the result using the correct endpoint
+      const statusUrl = `https://queue.fal.run/${modelId}/requests/${queueData.request_id}/status`
+      const resultUrl = `https://queue.fal.run/${modelId}/requests/${queueData.request_id}`
+      console.log('Polling for status at:', statusUrl)
 
       let attempts = 0
       const maxAttempts = 30
       let result = null
 
       while (attempts < maxAttempts) {
-        const resultResponse = await fetch(resultUrl, {
-          method: 'POST',
+        const statusResponse = await fetch(statusUrl, {
+          method: 'GET',
           headers: {
             'Authorization': `Key ${falKey}`,
             'Accept': 'application/json',
           },
         })
 
-        if (!resultResponse.ok) {
-          const errorText = await resultResponse.text()
-          console.error('FAL AI result fetch error:', {
-            status: resultResponse.status,
-            statusText: resultResponse.statusText,
+        if (!statusResponse.ok) {
+          const errorText = await statusResponse.text()
+          console.error('FAL AI status fetch error:', {
+            status: statusResponse.status,
+            statusText: statusResponse.statusText,
             body: errorText
           })
-          throw new Error(`FAL AI result fetch failed: ${errorText}`)
+          throw new Error(`FAL AI status fetch failed: ${errorText}`)
         }
 
-        const resultData = await resultResponse.json()
-        console.log('Result poll response:', resultData)
+        const statusData = await statusResponse.json()
+        console.log('Status poll response:', statusData)
 
-        if (resultData.status === 'completed') {
-          result = resultData
+        if (statusData.status === 'COMPLETED') {
+          // Fetch the final result
+          const resultResponse = await fetch(resultUrl, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Key ${falKey}`,
+              'Accept': 'application/json',
+            },
+          })
+
+          if (!resultResponse.ok) {
+            const errorText = await resultResponse.text()
+            console.error('FAL AI result fetch error:', {
+              status: resultResponse.status,
+              statusText: resultResponse.statusText,
+              body: errorText
+            })
+            throw new Error(`FAL AI result fetch failed: ${errorText}`)
+          }
+
+          result = await resultResponse.json()
           break
         }
 
-        if (resultData.status === 'failed') {
-          throw new Error(`FAL AI job failed: ${resultData.error || 'Unknown error'}`)
+        if (statusData.status === 'FAILED') {
+          throw new Error(`FAL AI job failed: ${statusData.error || 'Unknown error'}`)
         }
 
         attempts++

@@ -21,7 +21,8 @@ serve(async (req) => {
 
     console.log('Submitting request to FAL AI:', { modelId, settings })
 
-    const response = await fetch(`https://queue.fal.run/${modelId}`, {
+    // Submit initial request
+    const submitResponse = await fetch(`https://queue.fal.run/${modelId}`, {
       method: 'POST',
       headers: {
         'Authorization': `Key ${falKey}`,
@@ -30,10 +31,46 @@ serve(async (req) => {
       body: JSON.stringify(settings),
     })
 
-    const data = await response.json()
-    console.log('FAL AI response:', data)
+    const submitData = await submitResponse.json()
+    console.log('FAL AI submit response:', submitData)
 
-    return new Response(JSON.stringify({ data }), {
+    if (!submitData.request_id) {
+      throw new Error('No request ID received from FAL AI')
+    }
+
+    // Poll for result
+    let attempts = 0
+    const maxAttempts = 10
+    let result = null
+
+    while (attempts < maxAttempts) {
+      const resultResponse = await fetch(`https://queue.fal.run/${modelId}/requests/${submitData.request_id}`, {
+        headers: {
+          'Authorization': `Key ${falKey}`,
+        },
+      })
+
+      const resultData = await resultResponse.json()
+      console.log('FAL AI result response:', resultData)
+
+      if (resultData.status === 'completed' && resultData.images?.[0]?.url) {
+        result = resultData
+        break
+      }
+
+      if (resultData.status === 'failed') {
+        throw new Error('FAL AI generation failed: ' + (resultData.error || 'Unknown error'))
+      }
+
+      attempts++
+      await new Promise(resolve => setTimeout(resolve, 1000)) // Wait 1 second between attempts
+    }
+
+    if (!result) {
+      throw new Error('Timed out waiting for FAL AI response')
+    }
+
+    return new Response(JSON.stringify({ data: result }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {

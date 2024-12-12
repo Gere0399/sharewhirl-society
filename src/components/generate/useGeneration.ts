@@ -37,14 +37,13 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
 
       try {
         const result = await generateWithFalAI(modelId, settings);
+        console.log("FAL AI response received:", result);
 
-        if (!result.data.images?.[0]?.url && !result.data.video?.url) {
-          throw new Error("No output received from FAL AI");
+        if (!result.data.images?.[0]?.url) {
+          throw new Error("No output URL in response from FAL AI");
         }
 
-        const outputUrl = result.data.images?.[0]?.url || result.data.video?.url;
-        if (!outputUrl) throw new Error("No output URL in response");
-
+        const outputUrl = result.data.images[0].url;
         const storedUrl = await saveToStorage(outputUrl, getModelType(modelId));
 
         if (!isSchnellModel || dailyGenerations >= 10) {

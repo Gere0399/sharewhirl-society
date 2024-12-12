@@ -32,7 +32,7 @@ export type Database = {
           parent_comment_id?: string | null
           post_id?: string | null
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Update: {
           content?: string
@@ -44,7 +44,7 @@ export type Database = {
           parent_comment_id?: string | null
           post_id?: string | null
           updated_at?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -458,13 +458,6 @@ export type Database = {
         }
         Returns: string
       }
-      deduct_credits: {
-        Args: {
-          amount: number
-          user_id: string
-        }
-        Returns: void
-      }
     }
     Enums: {
       [_ in never]: never
@@ -484,7 +477,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never,
+    : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {

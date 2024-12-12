@@ -77,28 +77,33 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
       }
 
       setLoading(true);
+      console.log("Starting generation with settings:", settings);
 
       const falKey = await getFalKey();
+      console.log("FAL key retrieved successfully");
       
       fal.config({
         credentials: falKey
       });
 
       try {
+        console.log("Submitting request to FAL AI model:", modelId);
         const result = await fal.subscribe(modelId, {
           input: {
             ...settings,
-            scheduler: "K_EULER",
             seed: Math.floor(Math.random() * 1000000),
           },
           pollInterval: 1000,
           logs: true,
           onQueueUpdate: (update) => {
             if (update.status === "IN_PROGRESS") {
+              console.log("Generation progress:", update.logs.map(log => log.message));
               update.logs.map((log) => log.message).forEach(console.log);
             }
           },
         });
+
+        console.log("FAL AI response:", result);
 
         if (!result.data.images?.[0]?.url && !result.data.video?.url) {
           throw new Error("No output received from FAL AI");
@@ -137,6 +142,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           description: "Your content has been generated and saved to your history.",
         };
       } catch (error: any) {
+        console.error("FAL AI error:", error);
         if (error.message?.includes("ValidationError")) {
           throw new Error("Invalid generation settings. Please check your input and try again.");
         }

@@ -7,7 +7,8 @@ const MODEL_COSTS: Record<ModelId, number> = {
   "fal-ai/flux": 1,
   "stabilityai/stable-diffusion-xl-base-1.0": 2,
   "fal-ai/text-to-video-schnell": 1,
-  "fal-ai/image-to-video-schnell": 1
+  "fal-ai/image-to-video-schnell": 1,
+  "fal-ai/flux/schnell": 1
 };
 
 export function useGeneration(modelId: ModelId, dailyGenerations: number, onGenerate: () => void) {
@@ -36,13 +37,6 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
     }
   };
 
-  const getModelType = (modelId: ModelId) => {
-    if (modelId === "fal-ai/text-to-video-schnell") return "text-to-video";
-    if (modelId === "fal-ai/image-to-video-schnell") return "image-to-video";
-    if (modelId.includes("flux")) return "flux";
-    return "sdxl";
-  };
-
   const handleGenerate = async (settings: FluxSettings | SchnellSettings) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -65,19 +59,20 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
 
       setLoading(true);
 
-      // Configure fal client with key from environment
-      const { data: { value: falKey }, error: secretError } = await supabase
+      // Fetch FAL key from secrets
+      const { data: secretData, error: secretError } = await supabase
         .from('secrets')
         .select('value')
         .eq('name', 'FAL_KEY')
         .single();
 
-      if (secretError || !falKey) {
+      if (secretError || !secretData?.value) {
         throw new Error("FAL_KEY is not configured. Please check your environment variables.");
       }
 
+      // Configure fal client with key
       fal.config({
-        credentials: falKey
+        credentials: secretData.value
       });
 
       const result = await fal.subscribe(modelId, {

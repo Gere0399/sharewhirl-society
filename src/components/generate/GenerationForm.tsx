@@ -44,13 +44,13 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         await onSubmit({
           ...baseSettings,
           image_url: base64,
-          file,
+          prompt: prompt || "enhance this image",
         } as ReduxSettings);
       };
       return;
     }
 
-    if (modelType === "text-to-video" || modelType === "image-to-video" || modelType === "flux") {
+    if (modelType === "text-to-video" || modelType === "image-to-video") {
       await onSubmit({
         ...baseSettings,
       } as SchnellSettings);
@@ -58,7 +58,6 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
       await onSubmit({
         ...baseSettings,
         guidance_scale: guidanceScale,
-        safety_tolerance: "2",
       } as FluxSettings);
     }
   };
@@ -70,12 +69,12 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="prompt">Prompt</Label>
+        <Label htmlFor="prompt">Prompt {modelType === "image-to-image" && "(Optional)"}</Label>
         <Input
           id="prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Enter your prompt..."
+          placeholder={modelType === "image-to-image" ? "Enhance this image (optional)" : "Enter your prompt..."}
         />
       </div>
 

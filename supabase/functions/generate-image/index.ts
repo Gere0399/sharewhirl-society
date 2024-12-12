@@ -51,9 +51,11 @@ serve(async (req) => {
       }
 
       // Generate image with FAL AI
+      console.log("Submitting to FAL AI with modelId:", modelId)
       const result = await fal.subscribe(modelId, {
         input: modelId === "fal-ai/flux/schnell/redux" ? {
           image_url: settings.image_url,
+          prompt: settings.prompt || "enhance this image",
           image_size: settings.image_size,
           num_inference_steps: settings.num_inference_steps,
           num_images: settings.num_images || 1,
@@ -67,7 +69,7 @@ serve(async (req) => {
         },
       });
 
-      console.log("Generation completed:", result);
+      console.log("FAL AI response received:", result);
 
       if (!result?.data?.images?.[0]?.url) {
         throw new Error("No output URL in response from FAL AI");
@@ -98,23 +100,6 @@ serve(async (req) => {
         .from('generated')
         .getPublicUrl(filePath);
 
-      // Save to generations table
-      const { error: dbError } = await supabase
-        .from('generations')
-        .insert({
-          user_id: user.id,
-          model_name: modelId,
-          model_type: modelId.includes('redux') ? 'image-to-image' : 'images',
-          prompt: settings.prompt,
-          settings: settings,
-          output_url: publicUrl,
-          cost: modelId.includes('schnell') && settings.dailyGenerations < 10 ? 0 : 1
-        });
-
-      if (dbError) {
-        throw new Error(`Failed to save to database: ${dbError.message}`);
-      }
-
       return new Response(
         JSON.stringify({ 
           data: {
@@ -128,11 +113,11 @@ serve(async (req) => {
         }
       )
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('FAL AI request error:', error)
       throw error
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in generate-image function:', error)
     return new Response(
       JSON.stringify({ 

@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useGeneration } from "./useGeneration";
+import { useState } from "react";
+import { InsufficientCreditsDialog } from "./InsufficientCreditsDialog";
 
 interface ExtendedGenerateImageProps extends GenerateImageProps {
   dailyGenerations: number;
@@ -14,9 +16,15 @@ interface ExtendedGenerateImageProps extends GenerateImageProps {
 export function GenerateImage({ modelId, dailyGenerations, onGenerate }: ExtendedGenerateImageProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { loading, handleGenerate, isDisabled } = useGeneration(modelId, dailyGenerations, onGenerate);
+  const { loading, handleGenerate, isDisabled, getRequiredCredits } = useGeneration(modelId, dailyGenerations, onGenerate);
+  const [showCreditsDialog, setShowCreditsDialog] = useState(false);
 
   const onSubmit = async (settings: any) => {
+    if (isDisabled()) {
+      setShowCreditsDialog(true);
+      return;
+    }
+
     const result = await handleGenerate(settings);
     toast({
       title: result.message,
@@ -29,14 +37,11 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/subscriptions")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <h2 className="text-lg font-semibold">Generate Content</h2>
         </div>
-        <Button variant="outline" onClick={() => navigate("/subscriptions")}>
-          Subscriptions
-        </Button>
       </div>
 
       <div className="text-sm text-muted-foreground">
@@ -50,10 +55,17 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
       <GenerationForm
         onSubmit={onSubmit}
         loading={loading}
-        disabled={isDisabled()}
+        disabled={false}
         modelType={modelId.includes("text-to-video") ? "text-to-video" : 
                   modelId.includes("image-to-video") ? "image-to-video" :
                   modelId.includes("flux") ? "flux" : "sdxl"}
+      />
+
+      <InsufficientCreditsDialog
+        open={showCreditsDialog}
+        onOpenChange={setShowCreditsDialog}
+        modelName={modelId.split("/").pop() || "model"}
+        requiredCredits={getRequiredCredits()}
       />
     </div>
   );

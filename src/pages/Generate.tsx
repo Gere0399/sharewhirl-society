@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { GenerateImage } from "@/components/generate/GenerateImage";
 import { GenerationHistory } from "@/components/generate/GenerationHistory";
-import { SubscriptionTiers } from "@/components/generate/SubscriptionTiers";
 import { Sidebar } from "@/components/feed/Sidebar";
 import { ChevronDown } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -173,11 +172,6 @@ export default function Generate() {
                   refreshTrigger={historyRefreshTrigger}
                 />
               </Card>
-            </div>
-
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold mb-4">Get More Credits</h2>
-              <SubscriptionTiers />
             </div>
           </div>
         </div>

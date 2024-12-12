@@ -6,10 +6,10 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Loader } from "lucide-react";
-import { ImageSize, ModelType, FluxSettings, FluxSchnellSettings } from "@/types/generation";
+import { ImageSize, ModelType, FluxSettings, SchnellSettings } from "@/types/generation";
 
 interface GenerationFormProps {
-  onSubmit: (settings: FluxSettings | FluxSchnellSettings) => Promise<void>;
+  onSubmit: (settings: FluxSettings | SchnellSettings) => Promise<void>;
   loading: boolean;
   disabled: boolean;
   modelType: ModelType;
@@ -17,7 +17,7 @@ interface GenerationFormProps {
 
 export function GenerationForm({ onSubmit, loading, disabled, modelType }: GenerationFormProps) {
   const [prompt, setPrompt] = useState("");
-  const [numInferenceSteps, setNumInferenceSteps] = useState(modelType === "flux-schnell" ? 4 : 28);
+  const [numInferenceSteps, setNumInferenceSteps] = useState(modelType === "text-to-video" || modelType === "image-to-video" ? 4 : 28);
   const [guidanceScale, setGuidanceScale] = useState(3.5);
   const [imageSize, setImageSize] = useState<ImageSize>("landscape_16_9");
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
@@ -30,7 +30,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
       num_inference_steps: numInferenceSteps,
     };
 
-    if (modelType === "flux-schnell") {
+    if (modelType === "text-to-video" || modelType === "image-to-video") {
       await onSubmit({
         ...baseSettings,
         enable_safety_checker: enableSafetyChecker,
@@ -78,13 +78,13 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         <Slider
           value={[numInferenceSteps]}
           onValueChange={([value]) => setNumInferenceSteps(value)}
-          min={modelType === "flux-schnell" ? 1 : 1}
-          max={modelType === "flux-schnell" ? 10 : 50}
+          min={modelType === "text-to-video" || modelType === "image-to-video" ? 1 : 1}
+          max={modelType === "text-to-video" || modelType === "image-to-video" ? 10 : 50}
           step={1}
         />
       </div>
 
-      {modelType !== "flux-schnell" && (
+      {modelType !== "text-to-video" && modelType !== "image-to-video" && (
         <div className="space-y-2">
           <Label>Guidance Scale ({guidanceScale})</Label>
           <Slider
@@ -97,7 +97,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         </div>
       )}
 
-      {modelType === "flux-schnell" && (
+      {(modelType === "text-to-video" || modelType === "image-to-video") && (
         <div className="flex items-center space-x-2">
           <Switch
             id="safety-checker"

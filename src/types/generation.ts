@@ -1,5 +1,3 @@
-import { Json } from "@/integrations/supabase/types";
-
 export type ImageSize = 
   | "square_hd"
   | "square"

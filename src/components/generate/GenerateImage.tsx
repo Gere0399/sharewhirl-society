@@ -8,9 +8,14 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// Initialize fal client with credentials
+// Initialize fal client with credentials from environment
+const FAL_KEY = import.meta.env.VITE_FAL_KEY;
+if (!FAL_KEY) {
+  console.error('FAL_KEY is not set in environment variables');
+}
+
 fal.config({
-  credentials: 'FAL_KEY',
+  credentials: FAL_KEY,
 });
 
 const MODEL_COSTS: Record<ModelId, number> = {
@@ -79,6 +84,10 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
 
       setLoading(true);
 
+      if (!FAL_KEY) {
+        throw new Error("FAL_KEY is not configured. Please check your environment variables.");
+      }
+
       const result = await fal.subscribe(modelId as ModelId, {
         input: settings,
         logs: true,
@@ -135,7 +144,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
       console.error("Generation error:", error);
       toast({
         title: "Generation failed",
-        description: error.message || "Failed to generate image. Please try again.",
+        description: error.message || "Failed to generate image. Please check your API key configuration.",
         variant: "destructive",
       });
     } finally {

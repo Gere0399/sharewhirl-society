@@ -28,8 +28,8 @@ export interface ReduxSettings extends BaseGenerationSettings {
 
 export interface AudioSettings {
   prompt: string;
-  seconds_total?: number;
-  steps?: number;
+  seconds_total: number;
+  steps: number;
 }
 
 export type GenerationSettings = SchnellSettings | ReduxSettings | AudioSettings;

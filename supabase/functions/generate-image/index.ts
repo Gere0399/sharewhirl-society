@@ -1,5 +1,6 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { fal } from "npm:@fal-ai/client"
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+import { fal } from 'npm:@fal-ai/client'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,65 +13,66 @@ serve(async (req) => {
   }
 
   try {
+    const { modelId, settings } = await req.json()
+    console.log('Generating with model:', modelId, 'settings:', settings)
+
     const falKey = Deno.env.get('FAL_KEY')
     if (!falKey) {
-      throw new Error('FAL API key not configured')
+      throw new Error('FAL_KEY not found')
     }
 
-    const { modelId, settings } = await req.json()
-    console.log("Starting generation with settings:", settings)
+    fal.config({
+      credentials: falKey,
+    })
 
-    if (!modelId || !settings) {
-      throw new Error('Missing required parameters')
-    }
-
-    try {
-      // Configure FAL client
-      fal.config({
-        credentials: falKey
+    if (modelId === 'fal-ai/stable-audio') {
+      const result = await fal.subscribe(modelId, {
+        input: {
+          prompt: settings.prompt,
+          seconds_total: settings.seconds_total || 30,
+          steps: settings.steps || 100,
+        },
+        logs: true,
       })
 
-      console.log("Submitting to FAL AI with modelId:", modelId)
-      
-      // For image-to-image model, ensure image_url is present
-      if (modelId === "fal-ai/flux/schnell/redux" && !settings.image_url) {
-        throw new Error('Image URL is required for image-to-image generation')
+      console.log('Audio generation result:', result)
+
+      if (!result.data?.audio_file?.url) {
+        throw new Error('No audio URL in response')
       }
 
-      const result = await fal.subscribe(modelId, {
-        input: settings,
-        logs: true,
-        onQueueUpdate: (update) => {
-          if (update.status === "IN_PROGRESS") {
-            update.logs.map((log) => log.message).forEach(console.log);
-          }
-        },
-      });
-
-      console.log("FAL AI response received:", result);
-
       return new Response(
-        JSON.stringify({ data: result.data }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
+        JSON.stringify({
+          data: {
+            images: [{
+              url: result.data.audio_file.url
+            }]
+          }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
-
-    } catch (error: any) {
-      console.error('FAL AI request error:', error)
-      throw error
     }
-  } catch (error: any) {
-    console.error('Error in generate-image function:', error)
+
+    // Handle image generation models
+    const result = await fal.subscribe(modelId, {
+      input: settings,
+      logs: true,
+    })
+
+    console.log('Image generation result:', result)
+
     return new Response(
-      JSON.stringify({ 
-        error: error.message || 'Internal server error',
-        details: error.toString()
-      }), 
-      {
+      JSON.stringify(result),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+
+  } catch (error) {
+    console.error('Error:', error)
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
   }

@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Loader } from "lucide-react";
 import { ImageSize, ModelType, FluxSettings, SchnellSettings, ReduxSettings } from "@/types/generation";
-import { MediaUpload } from "../feed/post/create/MediaUpload";
+import { ImageUpload } from "./form/ImageUpload";
+import { SafetyOptions } from "./form/SafetyOptions";
+import { AspectRatioSelect } from "./form/AspectRatioSelect";
 
 interface GenerationFormProps {
   onSubmit: (settings: FluxSettings | SchnellSettings | ReduxSettings) => Promise<void>;
@@ -23,18 +23,14 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
   const [imageSize, setImageSize] = useState<ImageSize>("landscape_16_9");
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
   const [file, setFile] = useState<File | null>(null);
-  const [seed, setSeed] = useState<number | undefined>(undefined);
-  const [syncMode, setSyncMode] = useState(false);
-  const [customWidth, setCustomWidth] = useState(512);
-  const [customHeight, setCustomHeight] = useState(512);
-  const [useCustomSize, setUseCustomSize] = useState(false);
 
   const handleSubmit = async () => {
     const baseSettings = {
       prompt,
-      image_size: useCustomSize ? { width: customWidth, height: customHeight } : imageSize,
+      image_size: imageSize,
       num_images: 1,
       num_inference_steps: numInferenceSteps,
+      enable_safety_checker: enableSafetyChecker,
     };
 
     if (modelType === "image-to-image") {
@@ -48,9 +44,6 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         await onSubmit({
           ...baseSettings,
           image_url: base64,
-          enable_safety_checker: enableSafetyChecker,
-          seed,
-          sync_mode: syncMode,
           file,
         } as ReduxSettings);
       };
@@ -60,7 +53,6 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
     if (modelType === "text-to-video" || modelType === "image-to-video" || modelType === "flux") {
       await onSubmit({
         ...baseSettings,
-        enable_safety_checker: enableSafetyChecker,
       } as SchnellSettings);
     } else {
       await onSubmit({
@@ -74,13 +66,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
   return (
     <div className="space-y-4">
       {modelType === "image-to-image" ? (
-        <div className="space-y-2">
-          <Label>Source Image</Label>
-          <MediaUpload file={file} onFileSelect={setFile} />
-          <div className="text-sm text-muted-foreground">
-            Upload an image to use as a reference for generation
-          </div>
-        </div>
+        <ImageUpload file={file} setFile={setFile} required />
       ) : (
         <div className="space-y-2">
           <Label htmlFor="prompt">Prompt</Label>
@@ -93,56 +79,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label>Image Size</Label>
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="custom-size"
-            checked={useCustomSize}
-            onCheckedChange={setUseCustomSize}
-          />
-          <Label htmlFor="custom-size">Use Custom Size</Label>
-        </div>
-        
-        {useCustomSize ? (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Width</Label>
-              <Input
-                type="number"
-                value={customWidth}
-                onChange={(e) => setCustomWidth(Number(e.target.value))}
-                min={64}
-                max={2048}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Height</Label>
-              <Input
-                type="number"
-                value={customHeight}
-                onChange={(e) => setCustomHeight(Number(e.target.value))}
-                min={64}
-                max={2048}
-              />
-            </div>
-          </div>
-        ) : (
-          <Select value={imageSize as string} onValueChange={(value) => setImageSize(value as ImageSize)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select size" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="square_hd">Square HD</SelectItem>
-              <SelectItem value="square">Square</SelectItem>
-              <SelectItem value="portrait_4_3">Portrait 4:3</SelectItem>
-              <SelectItem value="portrait_16_9">Portrait 16:9</SelectItem>
-              <SelectItem value="landscape_4_3">Landscape 4:3</SelectItem>
-              <SelectItem value="landscape_16_9">Landscape 16:9</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
-      </div>
+      <AspectRatioSelect imageSize={imageSize} setImageSize={setImageSize} />
 
       <div className="space-y-2">
         <Label>Inference Steps ({numInferenceSteps})</Label>
@@ -169,39 +106,10 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
       )}
 
       {(modelType === "text-to-video" || modelType === "image-to-video" || modelType === "image-to-image") && (
-        <>
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="safety-checker"
-              checked={enableSafetyChecker}
-              onCheckedChange={setEnableSafetyChecker}
-            />
-            <Label htmlFor="safety-checker">Enable Safety Checker</Label>
-          </div>
-
-          {modelType === "image-to-image" && (
-            <>
-              <div className="space-y-2">
-                <Label>Seed (Optional)</Label>
-                <Input
-                  type="number"
-                  value={seed || ''}
-                  onChange={(e) => setSeed(e.target.value ? Number(e.target.value) : undefined)}
-                  placeholder="Enter seed for reproducible results"
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="sync-mode"
-                  checked={syncMode}
-                  onCheckedChange={setSyncMode}
-                />
-                <Label htmlFor="sync-mode">Sync Mode (Wait for result)</Label>
-              </div>
-            </>
-          )}
-        </>
+        <SafetyOptions 
+          enableSafetyChecker={enableSafetyChecker}
+          setEnableSafetyChecker={setEnableSafetyChecker}
+        />
       )}
 
       <Button 

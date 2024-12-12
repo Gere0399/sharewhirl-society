@@ -26,9 +26,15 @@ serve(async (req) => {
 
     console.log('Submitting request to FAL AI:', { modelId, settings })
 
-    // Submit initial request
+    // Submit request
     try {
-      const submitResponse = await fetch(`https://api.fal.ai/v1/models/${modelId}`, {
+      // Remove the 'fal-ai/' prefix from the modelId if present
+      const cleanModelId = modelId.replace('fal-ai/', '')
+      const apiUrl = `https://api.fal.ai/v1/models/${cleanModelId}`
+      
+      console.log('Making request to FAL AI URL:', apiUrl)
+
+      const submitResponse = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Key ${falKey}`,

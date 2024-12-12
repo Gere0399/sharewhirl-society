@@ -27,7 +27,7 @@ serve(async (req) => {
       case 'fal-ai/flux/schnell':
         endpoint = 'https://110602490-fast-text-to-image.gateway.alpha.fal.ai/'
         input = {
-          prompt: settings.prompt,
+          prompt: settings.prompt || "",
           image_size: settings.image_size || "landscape_16_9",
           num_images: settings.num_images || 1,
           num_inference_steps: settings.num_inference_steps || 4,
@@ -50,7 +50,7 @@ serve(async (req) => {
       case 'fal-ai/stable-audio':
         endpoint = 'https://110602490-stable-audio-basic.gateway.alpha.fal.ai/'
         input = {
-          prompt: settings.prompt,
+          prompt: settings.prompt || "background music",
           seconds_total: settings.seconds_total || 30,
           steps: settings.steps || 10,
         }
@@ -61,7 +61,7 @@ serve(async (req) => {
         input = {
           gen_text: settings.gen_text,
           ref_text: settings.ref_text,
-          ref_audio_url: settings.audio_url,
+          audio_url: settings.audio_url,
           model_type: settings.model_type || "F5-TTS",
           remove_silence: settings.remove_silence ?? true,
         }

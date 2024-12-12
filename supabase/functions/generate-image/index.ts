@@ -21,7 +21,6 @@ serve(async (req) => {
       throw new Error('FAL_KEY not found in environment variables')
     }
 
-    // Configure FAL client
     fal.config({
       credentials: falKey
     });
@@ -31,21 +30,20 @@ serve(async (req) => {
     switch (modelId) {
       case 'fal-ai/flux/schnell':
         console.log('Generating text-to-image with settings:', settings);
-        result = await fal.subscribe(modelId, {
+        result = await fal.subscribe('fast-text-to-image', {
           input: {
             prompt: settings.prompt || "",
             image_size: settings.image_size || "landscape_16_9",
             num_images: settings.num_images || 1,
             num_inference_steps: settings.num_inference_steps || 4,
             enable_safety_checker: settings.enable_safety_checker
-          },
-          logs: true
+          }
         });
         break;
 
       case 'fal-ai/flux/schnell/redux':
         console.log('Generating image-to-image with settings:', settings);
-        result = await fal.subscribe(modelId, {
+        result = await fal.subscribe('fast-image-to-image', {
           input: {
             prompt: settings.prompt || "enhance this image",
             image_url: settings.image_url,
@@ -53,20 +51,21 @@ serve(async (req) => {
             num_images: settings.num_images || 1,
             num_inference_steps: settings.num_inference_steps || 4,
             enable_safety_checker: settings.enable_safety_checker
-          },
-          logs: true
+          }
         });
         break;
 
       case 'fal-ai/stable-audio':
         console.log('Generating audio with settings:', settings);
-        result = await fal.subscribe(modelId, {
+        if (!settings.prompt) {
+          throw new Error("Prompt is required for audio generation");
+        }
+        result = await fal.subscribe('stable-audio-basic', {
           input: {
-            prompt: settings.prompt || "background music",
+            prompt: settings.prompt,
             seconds_total: settings.seconds_total || 30,
             steps: settings.steps || 10
-          },
-          logs: true
+          }
         });
         break;
 
@@ -79,15 +78,14 @@ serve(async (req) => {
           throw new Error("audio_url is required for speech generation");
         }
         
-        result = await fal.subscribe(modelId, {
+        result = await fal.subscribe('f5-tts', {
           input: {
             gen_text: settings.gen_text,
             ref_text: settings.ref_text,
-            audio_url: settings.audio_url,
+            ref_audio_url: settings.audio_url,
             model_type: settings.model_type || "F5-TTS",
             remove_silence: settings.remove_silence ?? true
-          },
-          logs: true
+          }
         });
         break;
 
@@ -96,6 +94,18 @@ serve(async (req) => {
     }
 
     console.log('FAL AI response:', result);
+
+    // Validate output URL exists
+    let outputUrl;
+    if ('images' in result.data && result.data.images?.[0]?.url) {
+      outputUrl = result.data.images[0].url;
+    } else if ('audio_url' in result.data) {
+      outputUrl = result.data.audio_url.url;
+    } else if ('audio_file' in result.data) {
+      outputUrl = result.data.audio_file.url;
+    } else {
+      throw new Error("No output URL in response from FAL AI");
+    }
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

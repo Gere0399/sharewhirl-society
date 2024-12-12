@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ModelId, GenerationSettings } from "@/types/generation";
+import { ModelId, GenerationSettings, SchnellSettings, ReduxSettings, AudioSettings, SpeechSettings } from "@/types/generation";
 import { useCredits } from "./hooks/useCredits";
 import { useFalAI } from "./hooks/useFalAI";
 import { getModelInfo, getModelType } from "./utils/modelUtils";
@@ -47,11 +47,15 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         const result = await generateWithFalAI(modelId, settings);
         console.log("FAL AI response received:", result);
 
-        if (!result.data.images?.[0]?.url) {
+        let outputUrl;
+        if ('images' in result.data && result.data.images?.[0]?.url) {
+          outputUrl = result.data.images[0].url;
+        } else if ('audio_url' in result.data) {
+          outputUrl = result.data.audio_url;
+        } else {
           throw new Error("No output URL in response from FAL AI");
         }
 
-        const outputUrl = result.data.images[0].url;
         const storedUrl = await saveToStorage(outputUrl, getModelType(modelId));
 
         if (!isSchnellModel || dailyGenerations >= 10) {
@@ -63,11 +67,19 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           if (creditError) throw creditError;
         }
 
+        // Get the prompt based on the settings type
+        let promptValue = '';
+        if ('prompt' in settings) {
+          promptValue = settings.prompt;
+        } else if ('gen_text' in settings) {
+          promptValue = settings.gen_text;
+        }
+
         const { error: generationError } = await supabase.from('generations').insert({
           user_id: user.id,
           model_name: modelId,
           model_type: getModelType(modelId),
-          prompt: settings.prompt,
+          prompt: promptValue,
           settings: settings as unknown as Database['public']['Tables']['generations']['Insert']['settings'],
           output_url: storedUrl,
           cost: isSchnellModel && dailyGenerations < 10 ? 0 : modelCost

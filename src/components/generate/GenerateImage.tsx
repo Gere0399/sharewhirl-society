@@ -31,11 +31,17 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
   const fetchCredits = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('credits')
         .select('amount')
         .eq('user_id', user.id)
         .single();
+        
+      if (error) {
+        console.error("Error fetching credits:", error);
+        return;
+      }
+      
       setCredits(data?.amount ?? 0);
     }
   };
@@ -44,14 +50,19 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const today = new Date().toISOString().split('T')[0];
-      const { data } = await supabase
+      const { count, error } = await supabase
         .from('generations')
-        .select('id')
+        .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('model_name', 'fal-ai/flux/schnell')
-        .gte('created_at', today)
-        .count();
-      setDailyGenerations(data ?? 0);
+        .gte('created_at', today);
+
+      if (error) {
+        console.error("Error fetching daily generations:", error);
+        return;
+      }
+
+      setDailyGenerations(count ?? 0);
     }
   };
 
@@ -59,6 +70,17 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
     if (modelId.includes("flux/schnell")) return "flux-schnell";
     if (modelId.includes("flux")) return "flux";
     return "sdxl";
+  };
+
+  const getCostDisplay = () => {
+    if (modelId === "fal-ai/flux/schnell") {
+      if (dailyGenerations < 10) {
+        return `Free (${10 - dailyGenerations} remaining today)`;
+      }
+      return "-1 credit";
+    }
+    const cost = MODEL_COSTS[modelId as keyof typeof MODEL_COSTS] || 1;
+    return `-${cost} credits`;
   };
 
   const handleGenerate = async (settings: FluxSettings | FluxSchnellSettings) => {
@@ -102,7 +124,7 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
             model_name: modelId,
             model_type: "image",
             prompt: settings.prompt,
-            settings: settings as any,
+            settings: settings,
             output_url: result.data.images[0].url,
             cost: modelId === "fal-ai/flux/schnell" && dailyGenerations < 10 ? 0 : modelCost
           });
@@ -154,11 +176,9 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
         </Button>
       </div>
 
-      {modelId === "fal-ai/flux/schnell" && (
-        <div className="text-sm text-muted-foreground">
-          {10 - dailyGenerations} free generations remaining today
-        </div>
-      )}
+      <div className="text-sm text-muted-foreground">
+        {getCostDisplay()}
+      </div>
 
       <GenerationForm
         onSubmit={handleGenerate}

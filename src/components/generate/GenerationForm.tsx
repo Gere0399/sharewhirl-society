@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Loader } from "lucide-react";
-import { ImageSize, ModelType, FluxSettings, FluxSchnellSettings, SafetyTolerance } from "@/types/generation";
+import { ImageSize, ModelType, FluxSettings, FluxSchnellSettings } from "@/types/generation";
 
 interface GenerationFormProps {
   onSubmit: (settings: FluxSettings | FluxSchnellSettings) => Promise<void>;
@@ -15,20 +15,12 @@ interface GenerationFormProps {
   modelType: ModelType;
 }
 
-const IMAGE_MODELS = [
-  { id: "fal-ai/flux", label: "Flux", type: "flux" as ModelType, cost: 1 },
-  { id: "stabilityai/stable-diffusion-xl-base-1.0", label: "Stable Diffusion XL", type: "sdxl" as ModelType, cost: 2 },
-  { id: "fal-ai/flux/schnell", label: "Flux Schnell", type: "flux-schnell" as ModelType, cost: 0 },
-];
-
 export function GenerationForm({ onSubmit, loading, disabled, modelType }: GenerationFormProps) {
   const [prompt, setPrompt] = useState("");
   const [numInferenceSteps, setNumInferenceSteps] = useState(modelType === "flux-schnell" ? 4 : 28);
   const [guidanceScale, setGuidanceScale] = useState(3.5);
   const [imageSize, setImageSize] = useState<ImageSize>("landscape_16_9");
-  const [safetyTolerance, setSafetyTolerance] = useState<SafetyTolerance>("2");
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
-  const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS[0].id);
 
   const handleSubmit = async () => {
     const baseSettings = {
@@ -48,29 +40,12 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         ...baseSettings,
         num_inference_steps: numInferenceSteps,
         guidance_scale: guidanceScale,
-        safety_tolerance: safetyTolerance,
       });
     }
   };
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Model</Label>
-        <Select value={selectedModel} onValueChange={setSelectedModel}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select model" />
-          </SelectTrigger>
-          <SelectContent>
-            {IMAGE_MODELS.map((model) => (
-              <SelectItem key={model.id} value={model.id}>
-                {model.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       <div className="space-y-2">
         <Label htmlFor="prompt">Prompt</Label>
         <Input
@@ -122,7 +97,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         </div>
       )}
 
-      {modelType === "flux-schnell" ? (
+      {modelType === "flux-schnell" && (
         <div className="flex items-center space-x-2">
           <Switch
             id="safety-checker"
@@ -130,22 +105,6 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
             onCheckedChange={setEnableSafetyChecker}
           />
           <Label htmlFor="safety-checker">Enable Safety Checker</Label>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <Label>Safety Tolerance</Label>
-          <Select value={safetyTolerance} onValueChange={(value) => setSafetyTolerance(value as SafetyTolerance)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select tolerance" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">Very Strict</SelectItem>
-              <SelectItem value="2">Strict</SelectItem>
-              <SelectItem value="3">Moderate</SelectItem>
-              <SelectItem value="4">Permissive</SelectItem>
-              <SelectItem value="5">Very Permissive</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       )}
 

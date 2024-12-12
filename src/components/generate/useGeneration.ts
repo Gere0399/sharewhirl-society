@@ -1,84 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { fal } from "@fal-ai/client";
-import { ModelId, FluxSettings, SchnellSettings, ModelType } from "@/types/generation";
+import { ModelId, FluxSettings, SchnellSettings } from "@/types/generation";
+import { useCredits } from "./hooks/useCredits";
+import { useFalAI } from "./hooks/useFalAI";
+import { MODEL_COSTS, getModelType } from "./utils/modelUtils";
+import { saveToStorage } from "./utils/storageUtils";
 import { Database } from "@/integrations/supabase/types";
-
-const MODEL_COSTS: Record<ModelId, number> = {
-  "fal-ai/flux": 1,
-  "stabilityai/stable-diffusion-xl-base-1.0": 2,
-  "fal-ai/text-to-video-schnell": 1,
-  "fal-ai/image-to-video-schnell": 1,
-  "fal-ai/flux/schnell": 1
-};
-
-const getModelType = (modelId: ModelId): ModelType => {
-  if (modelId === "fal-ai/text-to-video-schnell") return "text-to-video";
-  if (modelId === "fal-ai/image-to-video-schnell") return "image-to-video";
-  if (modelId.includes("flux")) return "flux";
-  return "sdxl";
-};
 
 export function useGeneration(modelId: ModelId, dailyGenerations: number, onGenerate: () => void) {
   const [loading, setLoading] = useState(false);
-  const [credits, setCredits] = useState<number | null>(null);
-
-  useEffect(() => {
-    fetchCredits();
-  }, []);
-
-  const fetchCredits = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data, error } = await supabase
-        .from('credits')
-        .select('amount')
-        .eq('user_id', user.id)
-        .single();
-        
-      if (error) {
-        console.error("Error fetching credits:", error);
-        return;
-      }
-      
-      setCredits(data?.amount ?? 0);
-    }
-  };
-
-  const getFalKey = async (): Promise<string> => {
-    const { data: secretData, error: secretError } = await supabase.rpc('get_secret', {
-      secret_name: 'FAL_KEY'
-    });
-
-    if (secretError) throw new Error("Unable to access FAL AI services");
-    if (!secretData) throw new Error("FAL AI key not found");
-    
-    return secretData;
-  };
-
-  const saveToStorage = async (imageUrl: string, modelType: string): Promise<string> => {
-    try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const fileExt = imageUrl.split('.').pop() || 'jpg';
-      const filePath = `${modelType}/${crypto.randomUUID()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('generated')
-        .upload(filePath, blob);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('generated')
-        .getPublicUrl(filePath);
-
-      return publicUrl;
-    } catch (error) {
-      console.error("Error saving to storage:", error);
-      throw error;
-    }
-  };
+  const { credits, setCredits } = useCredits();
+  const { generateWithFalAI } = useFalAI();
 
   const handleGenerate = async (settings: FluxSettings | SchnellSettings) => {
     try {
@@ -103,34 +35,8 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
       setLoading(true);
       console.log("Starting generation with settings:", settings);
 
-      const falKey = await getFalKey();
-      console.log("FAL key retrieved successfully");
-      
-      fal.config({
-        credentials: falKey
-      });
-
       try {
-        console.log("Submitting request to FAL AI model:", modelId);
-        const result = await fal.subscribe(modelId, {
-          input: {
-            prompt: settings.prompt,
-            image_size: settings.image_size,
-            num_images: settings.num_images,
-            num_inference_steps: settings.num_inference_steps,
-            enable_safety_checker: 'enable_safety_checker' in settings ? settings.enable_safety_checker : true,
-          },
-          pollInterval: 1000,
-          logs: true,
-          onQueueUpdate: (update) => {
-            if (update.status === "IN_PROGRESS") {
-              console.log("Generation progress:", update.logs.map(log => log.message));
-              update.logs.map((log) => log.message).forEach(console.log);
-            }
-          },
-        });
-
-        console.log("FAL AI response:", result);
+        const result = await generateWithFalAI(modelId, settings);
 
         if (!result.data.images?.[0]?.url && !result.data.video?.url) {
           throw new Error("No output received from FAL AI");
@@ -139,7 +45,6 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         const outputUrl = result.data.images?.[0]?.url || result.data.video?.url;
         if (!outputUrl) throw new Error("No output URL in response");
 
-        // Save the image to Supabase storage
         const storedUrl = await saveToStorage(outputUrl, getModelType(modelId));
 
         if (!isSchnellModel || dailyGenerations >= 10) {

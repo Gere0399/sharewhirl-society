@@ -4,37 +4,53 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Loader } from "lucide-react";
-import { GenerationSettings, ImageSize, SafetyTolerance } from "@/types/generation";
+import { ImageSize, ModelType, FluxSettings, FluxSchnellSettings } from "@/types/generation";
 
 interface GenerationFormProps {
-  onSubmit: (settings: GenerationSettings) => Promise<void>;
+  onSubmit: (settings: FluxSettings | FluxSchnellSettings) => Promise<void>;
   loading: boolean;
   disabled: boolean;
+  modelType: ModelType;
 }
 
 const IMAGE_MODELS = [
-  { id: "fal-ai/flux", label: "Flux" },
-  { id: "stabilityai/stable-diffusion-xl-base-1.0", label: "Stable Diffusion XL" },
+  { id: "fal-ai/flux", label: "Flux", type: "flux" as ModelType, cost: 1 },
+  { id: "stabilityai/stable-diffusion-xl-base-1.0", label: "Stable Diffusion XL", type: "sdxl" as ModelType, cost: 2 },
+  { id: "fal-ai/flux/schnell", label: "Flux Schnell", type: "flux-schnell" as ModelType, cost: 1 },
 ];
 
-export function GenerationForm({ onSubmit, loading, disabled }: GenerationFormProps) {
+export function GenerationForm({ onSubmit, loading, disabled, modelType }: GenerationFormProps) {
   const [prompt, setPrompt] = useState("");
-  const [numInferenceSteps, setNumInferenceSteps] = useState(28);
+  const [numInferenceSteps, setNumInferenceSteps] = useState(modelType === "flux-schnell" ? 4 : 28);
   const [guidanceScale, setGuidanceScale] = useState(3.5);
   const [imageSize, setImageSize] = useState<ImageSize>("landscape_16_9");
   const [safetyTolerance, setSafetyTolerance] = useState<SafetyTolerance>("2");
+  const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
   const [selectedModel, setSelectedModel] = useState(IMAGE_MODELS[0].id);
 
   const handleSubmit = async () => {
-    await onSubmit({
+    const baseSettings = {
       prompt,
-      num_inference_steps: numInferenceSteps,
-      guidance_scale: guidanceScale,
       image_size: imageSize,
-      safety_tolerance: safetyTolerance,
       num_images: 1,
-    });
+    };
+
+    if (modelType === "flux-schnell") {
+      await onSubmit({
+        ...baseSettings,
+        num_inference_steps: numInferenceSteps,
+        enable_safety_checker: enableSafetyChecker,
+      });
+    } else {
+      await onSubmit({
+        ...baseSettings,
+        num_inference_steps: numInferenceSteps,
+        guidance_scale: guidanceScale,
+        safety_tolerance: safetyTolerance,
+      });
+    }
   };
 
   return (
@@ -87,38 +103,51 @@ export function GenerationForm({ onSubmit, loading, disabled }: GenerationFormPr
         <Slider
           value={[numInferenceSteps]}
           onValueChange={([value]) => setNumInferenceSteps(value)}
-          min={1}
-          max={50}
+          min={modelType === "flux-schnell" ? 1 : 1}
+          max={modelType === "flux-schnell" ? 10 : 50}
           step={1}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label>Guidance Scale ({guidanceScale})</Label>
-        <Slider
-          value={[guidanceScale]}
-          onValueChange={([value]) => setGuidanceScale(value)}
-          min={1}
-          max={20}
-          step={0.1}
-        />
-      </div>
+      {modelType !== "flux-schnell" && (
+        <div className="space-y-2">
+          <Label>Guidance Scale ({guidanceScale})</Label>
+          <Slider
+            value={[guidanceScale]}
+            onValueChange={([value]) => setGuidanceScale(value)}
+            min={1}
+            max={20}
+            step={0.1}
+          />
+        </div>
+      )}
 
-      <div className="space-y-2">
-        <Label>Safety Tolerance</Label>
-        <Select value={safetyTolerance} onValueChange={(value) => setSafetyTolerance(value as SafetyTolerance)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select tolerance" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1">Very Strict</SelectItem>
-            <SelectItem value="2">Strict</SelectItem>
-            <SelectItem value="3">Moderate</SelectItem>
-            <SelectItem value="4">Permissive</SelectItem>
-            <SelectItem value="5">Very Permissive</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {modelType === "flux-schnell" ? (
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="safety-checker"
+            checked={enableSafetyChecker}
+            onCheckedChange={setEnableSafetyChecker}
+          />
+          <Label htmlFor="safety-checker">Enable Safety Checker</Label>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <Label>Safety Tolerance</Label>
+          <Select value={safetyTolerance} onValueChange={(value) => setSafetyTolerance(value as SafetyTolerance)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select tolerance" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">Very Strict</SelectItem>
+              <SelectItem value="2">Strict</SelectItem>
+              <SelectItem value="3">Moderate</SelectItem>
+              <SelectItem value="4">Permissive</SelectItem>
+              <SelectItem value="5">Very Permissive</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <Button 
         onClick={handleSubmit} 

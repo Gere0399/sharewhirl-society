@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { fal } from "@fal-ai/client";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { GenerateImageProps, GenerationSettings } from "@/types/generation";
+import { GenerateImageProps, FluxSettings, FluxSchnellSettings, ModelType } from "@/types/generation";
 import { GenerationForm } from "./GenerationForm";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
@@ -10,7 +10,8 @@ import { useNavigate } from "react-router-dom";
 
 const MODEL_COSTS = {
   "fal-ai/flux": 1,
-  "stabilityai/stable-diffusion-xl-base-1.0": 2
+  "stabilityai/stable-diffusion-xl-base-1.0": 2,
+  "fal-ai/flux/schnell": 1,
 };
 
 export function GenerateImage({ modelId }: GenerateImageProps) {
@@ -35,7 +36,13 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
     }
   };
 
-  const handleGenerate = async (settings: GenerationSettings) => {
+  const getModelType = (modelId: string): ModelType => {
+    if (modelId.includes("flux/schnell")) return "flux-schnell";
+    if (modelId.includes("flux")) return "flux";
+    return "sdxl";
+  };
+
+  const handleGenerate = async (settings: FluxSettings | FluxSchnellSettings) => {
     try {
       const modelCost = MODEL_COSTS[modelId as keyof typeof MODEL_COSTS] || 1;
       
@@ -72,12 +79,7 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
             model_name: modelId,
             model_type: "image",
             prompt: settings.prompt,
-            settings: {
-              num_inference_steps: settings.num_inference_steps,
-              guidance_scale: settings.guidance_scale,
-              image_size: settings.image_size,
-              safety_tolerance: settings.safety_tolerance,
-            },
+            settings: settings,
             output_url: result.data.images[0].url,
             cost: modelCost
           });
@@ -121,6 +123,7 @@ export function GenerateImage({ modelId }: GenerateImageProps) {
         onSubmit={handleGenerate}
         loading={loading}
         disabled={credits === null || credits < (MODEL_COSTS[modelId as keyof typeof MODEL_COSTS] || 1)}
+        modelType={getModelType(modelId)}
       />
     </div>
   );

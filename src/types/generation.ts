@@ -1,3 +1,5 @@
+import { Json } from "@/integrations/supabase/types";
+
 export type ImageSize = 
   | "square_hd"
   | "square"
@@ -15,16 +17,15 @@ export interface BaseGenerationSettings {
   prompt: string;
   image_size: ImageSize;
   num_images: number;
+  num_inference_steps: number;
 }
 
 export interface FluxSettings extends BaseGenerationSettings {
-  num_inference_steps: number;
   guidance_scale: number;
   safety_tolerance?: string;
 }
 
 export interface FluxSchnellSettings extends BaseGenerationSettings {
-  num_inference_steps: number;
   enable_safety_checker: boolean;
   seed?: number;
 }
@@ -40,4 +41,9 @@ export interface ImageModel {
   label: string;
   type: ModelType;
   cost: number;
+}
+
+// Helper type for Supabase compatibility
+export type GenerationSettings = {
+  [K in keyof (FluxSettings & FluxSchnellSettings)]?: (FluxSettings & FluxSchnellSettings)[K];
 }

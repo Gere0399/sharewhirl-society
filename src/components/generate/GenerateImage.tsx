@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { fal } from "@fal-ai/client";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { GenerateImageProps, FluxSettings, FluxSchnellSettings, ModelType, ModelId } from "@/types/generation";
+import { GenerateImageProps, FluxSettings, FluxSchnellSettings, ModelType, ModelId, GenerationSettings } from "@/types/generation";
 import { GenerationForm } from "./GenerationForm";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
@@ -74,7 +74,7 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
 
       setLoading(true);
 
-      const result = await fal.subscribe(modelId as string, {
+      const result = await fal.subscribe(modelId, {
         input: settings,
         logs: true,
       });
@@ -90,13 +90,25 @@ export function GenerateImage({ modelId, dailyGenerations, onGenerate }: Extende
           if (creditError) throw creditError;
         }
 
+        // Convert settings to a JSON-compatible object
+        const generationSettings: GenerationSettings = {
+          prompt: settings.prompt,
+          image_size: settings.image_size,
+          num_images: settings.num_images,
+          num_inference_steps: settings.num_inference_steps,
+          ...(('guidance_scale' in settings) ? { guidance_scale: settings.guidance_scale } : {}),
+          ...(('safety_tolerance' in settings) ? { safety_tolerance: settings.safety_tolerance } : {}),
+          ...(('enable_safety_checker' in settings) ? { enable_safety_checker: settings.enable_safety_checker } : {}),
+          ...(('seed' in settings) ? { seed: settings.seed } : {})
+        };
+
         // Save generation
         const { error: generationError } = await supabase.from("generations").insert({
           user_id: user.id,
           model_name: modelId,
           model_type: "image",
           prompt: settings.prompt,
-          settings: settings,
+          settings: generationSettings,
           output_url: result.data.images[0].url,
           cost: modelId === "fal-ai/flux/schnell" && dailyGenerations < 10 ? 0 : modelCost
         });

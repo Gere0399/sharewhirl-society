@@ -24,6 +24,15 @@ type DeductCreditsParams = {
   user_id: string;
 };
 
+type GetSecretParams = {
+  secret_name: string;
+};
+
+type RPCResponse<T> = {
+  data: T;
+  error: Error | null;
+};
+
 export function useGeneration(modelId: ModelId, dailyGenerations: number, onGenerate: () => void) {
   const [loading, setLoading] = useState(false);
   const [credits, setCredits] = useState<number | null>(null);
@@ -72,7 +81,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
 
       setLoading(true);
 
-      const { data: secretData, error: secretError } = await supabase.rpc('get_secret' as never, {
+      const { data: secretData, error: secretError } = await supabase.rpc<string, GetSecretParams>('get_secret', {
         secret_name: 'FAL_KEY'
       });
 
@@ -106,7 +115,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
 
       if (result.data.images?.[0]?.url || result.data.video?.url) {
         if (!isSchnellModel || dailyGenerations >= 10) {
-          const { error: creditError } = await supabase.rpc<DeductCreditsParams>('deduct_credits' as never, {
+          const { error: creditError } = await supabase.rpc<void, DeductCreditsParams>('deduct_credits', {
             amount: modelCost,
             user_id: user.id
           });

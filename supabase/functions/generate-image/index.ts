@@ -57,7 +57,9 @@ serve(async (req) => {
           image_size: settings.image_size,
           num_inference_steps: settings.num_inference_steps,
           num_images: settings.num_images || 1,
-          enable_safety_checker: settings.enable_safety_checker
+          enable_safety_checker: settings.enable_safety_checker,
+          seed: settings.seed,
+          sync_mode: settings.sync_mode
         } : settings,
         logs: true,
         onQueueUpdate: (update) => {
@@ -85,7 +87,7 @@ serve(async (req) => {
       const { error: uploadError } = await supabase.storage
         .from('generated')
         .upload(filePath, imageBlob, {
-          contentType: result.data.images[0].content_type,
+          contentType: result.data.images[0].content_type || 'image/jpeg',
           upsert: false
         });
 

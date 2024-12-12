@@ -23,11 +23,16 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
   const [imageSize, setImageSize] = useState<ImageSize>("landscape_16_9");
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
   const [file, setFile] = useState<File | null>(null);
+  const [seed, setSeed] = useState<number | undefined>(undefined);
+  const [syncMode, setSyncMode] = useState(false);
+  const [customWidth, setCustomWidth] = useState(512);
+  const [customHeight, setCustomHeight] = useState(512);
+  const [useCustomSize, setUseCustomSize] = useState(false);
 
   const handleSubmit = async () => {
     const baseSettings = {
       prompt,
-      image_size: imageSize,
+      image_size: useCustomSize ? { width: customWidth, height: customHeight } : imageSize,
       num_images: 1,
       num_inference_steps: numInferenceSteps,
     };
@@ -44,6 +49,8 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
           ...baseSettings,
           image_url: base64,
           enable_safety_checker: enableSafetyChecker,
+          seed,
+          sync_mode: syncMode,
           file,
         } as ReduxSettings);
       };
@@ -88,19 +95,53 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
 
       <div className="space-y-2">
         <Label>Image Size</Label>
-        <Select value={imageSize} onValueChange={(value) => setImageSize(value as ImageSize)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select size" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="square_hd">Square HD</SelectItem>
-            <SelectItem value="square">Square</SelectItem>
-            <SelectItem value="portrait_4_3">Portrait 4:3</SelectItem>
-            <SelectItem value="portrait_16_9">Portrait 16:9</SelectItem>
-            <SelectItem value="landscape_4_3">Landscape 4:3</SelectItem>
-            <SelectItem value="landscape_16_9">Landscape 16:9</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="custom-size"
+            checked={useCustomSize}
+            onCheckedChange={setUseCustomSize}
+          />
+          <Label htmlFor="custom-size">Use Custom Size</Label>
+        </div>
+        
+        {useCustomSize ? (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Width</Label>
+              <Input
+                type="number"
+                value={customWidth}
+                onChange={(e) => setCustomWidth(Number(e.target.value))}
+                min={64}
+                max={2048}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Height</Label>
+              <Input
+                type="number"
+                value={customHeight}
+                onChange={(e) => setCustomHeight(Number(e.target.value))}
+                min={64}
+                max={2048}
+              />
+            </div>
+          </div>
+        ) : (
+          <Select value={imageSize as string} onValueChange={(value) => setImageSize(value as ImageSize)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select size" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="square_hd">Square HD</SelectItem>
+              <SelectItem value="square">Square</SelectItem>
+              <SelectItem value="portrait_4_3">Portrait 4:3</SelectItem>
+              <SelectItem value="portrait_16_9">Portrait 16:9</SelectItem>
+              <SelectItem value="landscape_4_3">Landscape 4:3</SelectItem>
+              <SelectItem value="landscape_16_9">Landscape 16:9</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -128,14 +169,39 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
       )}
 
       {(modelType === "text-to-video" || modelType === "image-to-video" || modelType === "image-to-image") && (
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="safety-checker"
-            checked={enableSafetyChecker}
-            onCheckedChange={setEnableSafetyChecker}
-          />
-          <Label htmlFor="safety-checker">Enable Safety Checker</Label>
-        </div>
+        <>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="safety-checker"
+              checked={enableSafetyChecker}
+              onCheckedChange={setEnableSafetyChecker}
+            />
+            <Label htmlFor="safety-checker">Enable Safety Checker</Label>
+          </div>
+
+          {modelType === "image-to-image" && (
+            <>
+              <div className="space-y-2">
+                <Label>Seed (Optional)</Label>
+                <Input
+                  type="number"
+                  value={seed || ''}
+                  onChange={(e) => setSeed(e.target.value ? Number(e.target.value) : undefined)}
+                  placeholder="Enter seed for reproducible results"
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="sync-mode"
+                  checked={syncMode}
+                  onCheckedChange={setSyncMode}
+                />
+                <Label htmlFor="sync-mode">Sync Mode (Wait for result)</Label>
+              </div>
+            </>
+          )}
+        </>
       )}
 
       <Button 

@@ -4,7 +4,8 @@ export type ImageSize =
   | "portrait_4_3"
   | "portrait_16_9"
   | "landscape_4_3"
-  | "landscape_16_9";
+  | "landscape_16_9"
+  | { width: number; height: number };
 
 export type ModelId = 
   | "fal-ai/flux"
@@ -33,6 +34,8 @@ export interface SchnellSettings extends BaseGenerationSettings {
 export interface ReduxSettings extends BaseGenerationSettings {
   image_url?: string;
   enable_safety_checker: boolean;
+  seed?: number;
+  sync_mode?: boolean;
   file?: File;
 }
 

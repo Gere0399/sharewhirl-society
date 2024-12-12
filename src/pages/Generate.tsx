@@ -37,6 +37,7 @@ export default function Generate() {
   const [selectedModel, setSelectedModel] = useState<ModelId>(IMAGE_MODELS[0].id);
   const [credits, setCredits] = useState<number | null>(null);
   const [dailyGenerations, setDailyGenerations] = useState<number>(0);
+  const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -90,6 +91,10 @@ export default function Generate() {
       return dailyGenerations < 10 ? 0 : 1;
     }
     return model?.cost ?? 1;
+  };
+
+  const handleGenerate = () => {
+    setHistoryRefreshTrigger(prev => prev + 1);
   };
 
   return (
@@ -151,6 +156,7 @@ export default function Generate() {
                     modelId={selectedModel} 
                     dailyGenerations={dailyGenerations}
                     onGenerate={() => {
+                      handleGenerate();
                       if (selectedModel === "fal-ai/flux/schnell") {
                         setDailyGenerations(prev => prev + 1);
                       }
@@ -159,7 +165,11 @@ export default function Generate() {
                 )}
               </Card>
               <Card className="p-4 overflow-x-hidden bg-[#111111]">
-                <GenerationHistory type={selectedType} modelId={selectedModel} />
+                <GenerationHistory 
+                  type={selectedType} 
+                  modelId={selectedModel} 
+                  refreshTrigger={historyRefreshTrigger}
+                />
               </Card>
             </div>
 

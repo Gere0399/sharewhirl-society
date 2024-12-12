@@ -12,6 +12,14 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
   const { credits, setCredits } = useCredits();
   const { generateWithFalAI } = useFalAI();
 
+  const getRequiredCredits = () => {
+    const isSchnellModel = modelId.includes("schnell");
+    if (isSchnellModel) {
+      return dailyGenerations >= 10 ? 1 : 0;
+    }
+    return MODEL_COSTS[modelId] || 1;
+  };
+
   const handleGenerate = async (settings: FluxSettings | SchnellSettings) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -19,7 +27,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         throw new Error("You must be logged in to generate images");
       }
 
-      const modelCost = MODEL_COSTS[modelId] || 1;
+      const modelCost = getRequiredCredits();
       const isSchnellModel = modelId.includes("schnell");
       
       if (isSchnellModel) {
@@ -113,5 +121,6 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
     credits,
     handleGenerate,
     isDisabled,
+    getRequiredCredits,
   };
 }

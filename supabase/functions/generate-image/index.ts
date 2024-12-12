@@ -26,7 +26,7 @@ serve(async (req) => {
 
     switch (modelId) {
       case 'fal-ai/flux/schnell':
-        endpoint = 'https://110602490-flux-schnell.gateway.alpha.fal.ai/'
+        endpoint = 'https://110602490-fast-text-to-image.gateway.alpha.fal.ai/'
         input = {
           prompt: settings.prompt,
           image_size: settings.image_size || "landscape_16_9",
@@ -37,7 +37,7 @@ serve(async (req) => {
         break;
 
       case 'fal-ai/flux/schnell/redux':
-        endpoint = 'https://110602490-flux-schnell-redux.gateway.alpha.fal.ai/'
+        endpoint = 'https://110602490-fast-image-to-image.gateway.alpha.fal.ai/'
         input = {
           prompt: settings.prompt || "enhance this image",
           image_url: settings.image_url,

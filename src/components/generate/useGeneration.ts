@@ -24,14 +24,10 @@ type DeductCreditsParams = {
   user_id: string;
 };
 
-type GetSecretParams = {
-  secret_name: string;
-};
-
-type RPCResponse<T> = {
-  data: T;
+interface GetSecretResponse {
+  data: string | null;
   error: Error | null;
-};
+}
 
 export function useGeneration(modelId: ModelId, dailyGenerations: number, onGenerate: () => void) {
   const [loading, setLoading] = useState(false);
@@ -59,6 +55,17 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
     }
   };
 
+  const getFalKey = async (): Promise<string> => {
+    const { data, error } = await supabase.rpc<string>('get_secret', {
+      secret_name: 'FAL_KEY'
+    });
+
+    if (error) throw new Error("Unable to access FAL AI services");
+    if (!data) throw new Error("FAL AI key not found");
+    
+    return data;
+  };
+
   const handleGenerate = async (settings: FluxSettings | SchnellSettings) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -81,21 +88,10 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
 
       setLoading(true);
 
-      const { data: secretData, error: secretError } = await supabase.rpc<string, GetSecretParams>('get_secret', {
-        secret_name: 'FAL_KEY'
-      });
-
-      if (secretError) {
-        console.error("Error fetching FAL_KEY:", secretError);
-        throw new Error("Unable to access FAL AI services. Please try again later.");
-      }
-
-      if (!secretData) {
-        throw new Error("FAL AI integration is not properly configured. Please contact support.");
-      }
-
+      const falKey = await getFalKey();
+      
       fal.config({
-        credentials: secretData
+        credentials: falKey
       });
 
       const result = await fal.subscribe(modelId, {

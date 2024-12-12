@@ -4,13 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Loader, DollarSign } from "lucide-react";
-import { ImageSize, ModelType, FluxSettings, SchnellSettings, ReduxSettings } from "@/types/generation";
+import { ImageSize, ModelType, GenerationSettings } from "@/types/generation";
 import { ImageUpload } from "./form/ImageUpload";
 import { SafetyOptions } from "./form/SafetyOptions";
 import { AspectRatioSelect } from "./form/AspectRatioSelect";
 
 interface GenerationFormProps {
-  onSubmit: (settings: FluxSettings | SchnellSettings | ReduxSettings) => Promise<void>;
+  onSubmit: (settings: GenerationSettings) => Promise<void>;
   loading: boolean;
   disabled: boolean;
   modelType: ModelType;
@@ -19,7 +19,7 @@ interface GenerationFormProps {
 
 export function GenerationForm({ onSubmit, loading, disabled, modelType, modelCost }: GenerationFormProps) {
   const [prompt, setPrompt] = useState("");
-  const [numInferenceSteps, setNumInferenceSteps] = useState(modelType === "text-to-video" || modelType === "image-to-video" ? 4 : 4);
+  const [numInferenceSteps, setNumInferenceSteps] = useState(4);
   const [imageSize, setImageSize] = useState<ImageSize>("landscape_16_9");
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
   const [file, setFile] = useState<File | null>(null);
@@ -47,12 +47,12 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType, modelCo
         await onSubmit({
           ...baseSettings,
           image_url: base64,
-        } as ReduxSettings);
+        });
       };
       return;
     }
 
-    await onSubmit(baseSettings as SchnellSettings);
+    await onSubmit(baseSettings);
   };
 
   return (
@@ -79,7 +79,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType, modelCo
           value={[numInferenceSteps]}
           onValueChange={([value]) => setNumInferenceSteps(value)}
           min={1}
-          max={modelType === "text-to-video" || modelType === "image-to-video" ? 10 : 50}
+          max={50}
           step={1}
         />
       </div>

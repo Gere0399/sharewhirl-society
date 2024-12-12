@@ -27,6 +27,11 @@ export const AVAILABLE_MODELS: ModelInfo[] = [
   }
 ];
 
+export const MODEL_COSTS: Record<ModelId, number> = {
+  "fal-ai/flux/schnell": 1,
+  "fal-ai/flux/schnell/redux": 1
+};
+
 export const getModelInfo = (modelId: ModelId): ModelInfo | undefined => {
   return AVAILABLE_MODELS.find(model => model.id === modelId);
 };

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ModelId, FluxSettings, SchnellSettings } from "@/types/generation";
+import { ModelId, GenerationSettings } from "@/types/generation";
 import { useCredits } from "./useCredits";
 import { useFalAI } from "./useFalAI";
 import { MODEL_COSTS, getModelType } from "../utils/modelUtils";
@@ -20,7 +20,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
     return MODEL_COSTS[modelId] || 1;
   };
 
-  const handleGenerate = async (settings: FluxSettings | SchnellSettings) => {
+  const handleGenerate = async (settings: GenerationSettings) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {

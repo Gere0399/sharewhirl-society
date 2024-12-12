@@ -7,8 +7,6 @@ export type ImageSize =
   | "landscape_16_9";
 
 export type ModelId = 
-  | "fal-ai/text-to-video-schnell"
-  | "fal-ai/image-to-video-schnell"
   | "fal-ai/flux/schnell"
   | "fal-ai/flux/schnell/redux";
 
@@ -27,8 +25,10 @@ export interface ReduxSettings extends BaseGenerationSettings {
   image_url?: string;
 }
 
+export type GenerationSettings = SchnellSettings | ReduxSettings;
+
 export interface GenerateImageProps {
   modelId: ModelId;
 }
 
-export type ModelType = "text-to-video" | "image-to-video" | "image-to-image" | "text-to-image";
+export type ModelType = "text-to-image" | "image-to-image";

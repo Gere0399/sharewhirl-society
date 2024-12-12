@@ -52,14 +52,12 @@ serve(async (req) => {
 
       // Generate image with FAL AI
       const result = await fal.subscribe(modelId, {
-        input: modelId.includes('redux') ? {
+        input: modelId === "fal-ai/flux/schnell/redux" ? {
           image_url: settings.image_url,
           image_size: settings.image_size,
           num_inference_steps: settings.num_inference_steps,
           num_images: settings.num_images || 1,
           enable_safety_checker: settings.enable_safety_checker,
-          seed: settings.seed,
-          sync_mode: settings.sync_mode
         } : settings,
         logs: true,
         onQueueUpdate: (update) => {

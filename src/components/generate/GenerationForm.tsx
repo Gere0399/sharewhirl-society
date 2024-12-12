@@ -65,19 +65,19 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
 
   return (
     <div className="space-y-4">
-      {modelType === "image-to-image" ? (
+      {modelType === "image-to-image" && (
         <ImageUpload file={file} setFile={setFile} required />
-      ) : (
-        <div className="space-y-2">
-          <Label htmlFor="prompt">Prompt</Label>
-          <Input
-            id="prompt"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Enter your prompt..."
-          />
-        </div>
       )}
+
+      <div className="space-y-2">
+        <Label htmlFor="prompt">Prompt</Label>
+        <Input
+          id="prompt"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Enter your prompt..."
+        />
+      </div>
 
       <AspectRatioSelect imageSize={imageSize} setImageSize={setImageSize} />
 
@@ -114,7 +114,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
 
       <Button 
         onClick={handleSubmit} 
-        disabled={disabled || loading || (!file && modelType === "image-to-image") || (!prompt.trim() && modelType !== "image-to-image")}
+        disabled={disabled || loading || (!file && modelType === "image-to-image")}
         className="w-full"
       >
         {loading ? (

@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader, Upload } from "lucide-react";
+import { Loader } from "lucide-react";
 import { ImageSize, ModelType, FluxSettings, SchnellSettings, ReduxSettings } from "@/types/generation";
 import { MediaUpload } from "../feed/post/create/MediaUpload";
 
@@ -35,7 +35,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
     if (modelType === "image-to-image") {
       if (!file) return;
       
-      // Convert file to base64
+      // Convert file to base64 for image-to-image generation
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {
@@ -44,6 +44,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
           ...baseSettings,
           image_url: base64,
           enable_safety_checker: enableSafetyChecker,
+          file,
         } as ReduxSettings);
       };
       return;
@@ -69,6 +70,9 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
         <div className="space-y-2">
           <Label>Source Image</Label>
           <MediaUpload file={file} onFileSelect={setFile} />
+          <div className="text-sm text-muted-foreground">
+            Upload an image to use as a reference for generation
+          </div>
         </div>
       ) : (
         <div className="space-y-2">

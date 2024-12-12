@@ -15,14 +15,12 @@ serve(async (req) => {
   try {
     const falKey = Deno.env.get('FAL_KEY')
     if (!falKey) {
-      console.error('FAL API key not configured')
       throw new Error('FAL API key not configured')
     }
 
     const { modelId, settings } = await req.json()
 
     if (!modelId || !settings) {
-      console.error('Missing required parameters:', { modelId, settings })
       throw new Error('Missing required parameters')
     }
 
@@ -46,7 +44,6 @@ serve(async (req) => {
         throw new Error('No authorization header')
       }
 
-      // Verify the JWT token and get the user ID
       const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
       
       if (authError || !user) {
@@ -55,7 +52,13 @@ serve(async (req) => {
 
       // Generate image with FAL AI
       const result = await fal.subscribe(modelId, {
-        input: settings,
+        input: modelId.includes('redux') ? {
+          image_url: settings.image_url,
+          image_size: settings.image_size,
+          num_inference_steps: settings.num_inference_steps,
+          num_images: settings.num_images || 1,
+          enable_safety_checker: settings.enable_safety_checker
+        } : settings,
         logs: true,
         onQueueUpdate: (update) => {
           if (update.status === "IN_PROGRESS") {

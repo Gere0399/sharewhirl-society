@@ -31,8 +31,9 @@ export interface SchnellSettings extends BaseGenerationSettings {
 }
 
 export interface ReduxSettings extends BaseGenerationSettings {
-  image_url: string;
+  image_url?: string;
   enable_safety_checker: boolean;
+  file?: File;
 }
 
 export interface GenerateImageProps {

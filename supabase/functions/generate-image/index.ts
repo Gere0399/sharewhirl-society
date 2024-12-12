@@ -39,6 +39,7 @@ serve(async (req) => {
         num_inference_steps: settings.num_inference_steps,
         num_images: settings.num_images || 1,
         enable_safety_checker: settings.enable_safety_checker,
+        prompt: settings.prompt || "enhance this image"
       } : {
         prompt: settings.prompt,
         image_size: settings.image_size,

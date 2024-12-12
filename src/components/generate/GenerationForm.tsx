@@ -40,7 +40,7 @@ export function GenerationForm({ onSubmit, loading, disabled, modelType }: Gener
     if (modelType === "image-to-image") {
       if (!file) return;
       
-      // Convert file to base64 for image-to-image generation
+      // Convert file to base64
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {

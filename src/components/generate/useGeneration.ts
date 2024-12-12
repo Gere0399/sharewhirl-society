@@ -96,7 +96,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
 
       if (result.data.images?.[0]?.url || result.data.video?.url) {
         if (!isSchnellModel || dailyGenerations >= 10) {
-          const { error: creditError } = await supabase.rpc('deduct_credits', {
+          const { error: creditError } = await supabase.rpc('deduct_credits' as never, {
             amount: modelCost,
             user_id: user.id
           });

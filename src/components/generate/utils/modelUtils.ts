@@ -8,14 +8,14 @@ export interface ModelInfo {
   type: ModelType;
   hasFreeDaily?: boolean;
   freeDailyLimit?: number;
-  category: "image" | "audio";
+  category: "image" | "audio" | "speech";
 }
 
 export const AVAILABLE_MODELS: ModelInfo[] = [
   {
     id: "fal-ai/flux/schnell",
     label: "Schnell Text to Image",
-    cost: 1,  // We'll store costs as integers (credits) instead of decimals
+    cost: 1,
     type: "text-to-image",
     hasFreeDaily: true,
     freeDailyLimit: 10,
@@ -24,7 +24,7 @@ export const AVAILABLE_MODELS: ModelInfo[] = [
   {
     id: "fal-ai/flux/schnell/redux",
     label: "Schnell Image to Image",
-    cost: 35, // We'll store costs as integers (credits) instead of decimals
+    cost: 35,
     type: "image-to-image",
     category: "image"
   },
@@ -34,6 +34,13 @@ export const AVAILABLE_MODELS: ModelInfo[] = [
     cost: 100,
     type: "audio",
     category: "audio"
+  },
+  {
+    id: "fal-ai/speech-to-speech",
+    label: "Speech to Speech",
+    cost: 150,
+    type: "speech",
+    category: "speech"
   }
 ];
 
@@ -46,6 +53,6 @@ export const getModelType = (modelId: ModelId): ModelType => {
   return model?.type || "text-to-image";
 };
 
-export const getModelsByCategory = (category: "image" | "audio") => {
+export const getModelsByCategory = (category: "image" | "audio" | "speech") => {
   return AVAILABLE_MODELS.filter(model => model.category === category);
 };

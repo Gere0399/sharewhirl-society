@@ -8,6 +8,7 @@ import { ImageSize, ModelType, GenerationSettings } from "@/types/generation";
 import { ImageUpload } from "./form/ImageUpload";
 import { SafetyOptions } from "./form/SafetyOptions";
 import { AspectRatioSelect } from "./form/AspectRatioSelect";
+import { AudioUpload } from "./form/AudioUpload";
 
 interface GenerationFormProps {
   onSubmit: (settings: GenerationSettings) => Promise<void>;
@@ -42,12 +43,29 @@ export function GenerationForm({
       return;
     }
 
+    if (modelType === "speech" && !file) {
+      return;
+    }
+
     if (modelType === "audio") {
       await onSubmit({
         prompt: prompt || "background music",
         seconds_total: secondsTotal,
         steps: numInferenceSteps,
       });
+      return;
+    }
+
+    if (modelType === "speech") {
+      const reader = new FileReader();
+      reader.readAsDataURL(file!);
+      reader.onload = async () => {
+        const base64 = reader.result as string;
+        await onSubmit({
+          audio_url: base64,
+          steps: numInferenceSteps,
+        });
+      };
       return;
     }
 
@@ -83,29 +101,35 @@ export function GenerationForm({
         <ImageUpload file={file} setFile={setFile} required />
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="prompt">Prompt {modelType === "image-to-image" && "(Optional)"}</Label>
-        <Input
-          id="prompt"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder={modelType === "image-to-image" ? "Enhance this image (optional)" : "Enter your prompt..."}
-        />
-      </div>
+      {modelType === "speech" && (
+        <AudioUpload file={file} setFile={setFile} required />
+      )}
 
-      {modelType !== "audio" && (
+      {modelType !== "speech" && (
+        <div className="space-y-2">
+          <Label htmlFor="prompt">Prompt {modelType === "image-to-image" && "(Optional)"}</Label>
+          <Input
+            id="prompt"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder={modelType === "image-to-image" ? "Enhance this image (optional)" : "Enter your prompt..."}
+          />
+        </div>
+      )}
+
+      {modelType !== "audio" && modelType !== "speech" && (
         <AspectRatioSelect imageSize={imageSize} setImageSize={setImageSize} />
       )}
 
       <div className="space-y-2">
         <Label>
-          {modelType === "audio" ? "Steps" : "Inference Steps"} ({numInferenceSteps})
+          {modelType === "audio" || modelType === "speech" ? "Steps" : "Inference Steps"} ({numInferenceSteps})
         </Label>
         <Slider
           value={[numInferenceSteps]}
           onValueChange={([value]) => setNumInferenceSteps(value)}
           min={1}
-          max={modelType === "audio" ? 100 : 50}
+          max={modelType === "audio" || modelType === "speech" ? 100 : 50}
           step={1}
         />
       </div>
@@ -124,7 +148,7 @@ export function GenerationForm({
         </div>
       )}
 
-      {modelType !== "audio" && (
+      {modelType !== "audio" && modelType !== "speech" && (
         <SafetyOptions 
           enableSafetyChecker={enableSafetyChecker}
           setEnableSafetyChecker={setEnableSafetyChecker}
@@ -133,7 +157,7 @@ export function GenerationForm({
 
       <Button 
         onClick={handleSubmit} 
-        disabled={disabled || loading || (modelType === "image-to-image" && !file)}
+        disabled={disabled || loading || (modelType === "image-to-image" && !file) || (modelType === "speech" && !file)}
         className="w-full"
       >
         {loading ? (

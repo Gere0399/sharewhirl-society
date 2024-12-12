@@ -71,7 +71,7 @@ export default function Generate() {
     }
   };
 
-  const renderModelDropdown = (category: "image" | "audio") => (
+  const renderModelDropdown = (category: "image" | "audio" | "speech") => (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-1 text-sm whitespace-nowrap">
         <span className="text-[hsl(262,83%,74%)]">
@@ -126,12 +126,16 @@ export default function Generate() {
                   <TabsList>
                     <TabsTrigger value="image">Image</TabsTrigger>
                     <TabsTrigger value="audio">Audio</TabsTrigger>
+                    <TabsTrigger value="speech">Speech</TabsTrigger>
                   </TabsList>
                   <TabsContent value="image" className="mt-0">
                     {renderModelDropdown("image")}
                   </TabsContent>
                   <TabsContent value="audio" className="mt-0">
                     {renderModelDropdown("audio")}
+                  </TabsContent>
+                  <TabsContent value="speech" className="mt-0">
+                    {renderModelDropdown("speech")}
                   </TabsContent>
                 </Tabs>
               </div>

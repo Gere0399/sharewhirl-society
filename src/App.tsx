@@ -12,6 +12,7 @@ import Profile from "./pages/Profile";
 import PostView from "./pages/PostView";
 import Notifications from "./pages/Notifications";
 import Generate from "./pages/Generate";
+import Subscriptions from "./pages/Subscriptions";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/post/:postId" element={<PostView />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/generate" element={<Generate />} />
+            <Route path="/subscriptions" element={<Subscriptions />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

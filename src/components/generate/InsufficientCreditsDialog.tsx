@@ -23,6 +23,11 @@ export function InsufficientCreditsDialog({
 }: InsufficientCreditsDialogProps) {
   const navigate = useNavigate();
 
+  const handleSubscribe = () => {
+    onOpenChange(false);
+    navigate("/subscriptions");
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -36,7 +41,7 @@ export function InsufficientCreditsDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={() => navigate("/subscriptions")}>
+          <Button onClick={handleSubscribe}>
             Get More Credits
           </Button>
         </div>

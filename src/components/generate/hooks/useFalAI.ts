@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const useFalAI = () => {
   const getFalKey = async (): Promise<string> => {
+    console.log("Fetching FAL key from Supabase...");
+    
     const { data: secretData, error: secretError } = await supabase.rpc('get_secret', {
       secret_name: 'FAL_KEY'
     });
@@ -27,7 +29,10 @@ export const useFalAI = () => {
       startsWithFal: cleanKey?.startsWith('fal_'),
       isEmpty: !cleanKey?.trim(),
       // Add a safe preview of the key format
-      preview: cleanKey ? `${cleanKey.substring(0, 4)}...${cleanKey.substring(cleanKey.length - 4)}` : 'none'
+      preview: cleanKey ? `${cleanKey.substring(0, 4)}...${cleanKey.substring(cleanKey.length - 4)}` : 'none',
+      // Add character type information
+      firstChar: cleanKey ? cleanKey.charAt(0) : 'none',
+      containsSpecialChars: /[^a-zA-Z0-9_]/.test(cleanKey)
     });
     
     if (typeof cleanKey !== 'string' || !cleanKey.trim()) {

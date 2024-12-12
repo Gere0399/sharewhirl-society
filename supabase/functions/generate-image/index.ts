@@ -54,7 +54,7 @@ serve(async (req) => {
       endpoint = 'https://110602490-f5-tts.gateway.alpha.fal.ai/'
       input = {
         gen_text: settings.gen_text,
-        ref_text: settings.ref_text,
+        ref_text: settings.ref_text || undefined,
         ref_audio_url: settings.audio_url,
         model_type: settings.model_type || "F5-TTS",
         remove_silence: settings.remove_silence ?? true,

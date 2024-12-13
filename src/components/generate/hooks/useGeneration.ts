@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ModelId, GenerationSettings } from "@/types/generation";
-import { useCredits } from "./useCredits";
-import { useFalAI } from "./useFalAI";
+import { useCredits } from "@/components/generate/hooks/useCredits";
+import { useFalAI } from "@/components/generate/hooks/useFalAI";
 import { getModelInfo, getModelType } from "../utils/modelUtils";
 import { saveToStorage } from "../utils/storageUtils";
 import { Database } from "@/integrations/supabase/types";
@@ -61,8 +61,14 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         if (!result.data) throw new Error("No response received from generation function");
 
         // Extract the output URL from the nested response structure
-        const outputUrl = result.data.data?.images?.[0]?.url;
-        if (!outputUrl) {
+        let outputUrl;
+        if (result.data.data?.images?.[0]?.url) {
+          outputUrl = result.data.data.images[0].url;
+        } else if (result.data.data?.audio_url) {
+          outputUrl = result.data.data.audio_url;
+        } else if (result.data.data?.audio_file?.url) {
+          outputUrl = result.data.data.audio_file.url;
+        } else {
           console.error("Response structure:", result);
           throw new Error("No output URL in response");
         }

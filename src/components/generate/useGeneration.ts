@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ModelId, GenerationSettings } from "@/types/generation";
-import { useCredits } from "./useCredits";
-import { useFalAI } from "./useFalAI";
+import { useCredits } from "@/components/generate/hooks/useCredits";
+import { useFalAI } from "@/components/generate/hooks/useFalAI";
 import { getModelInfo, getModelType } from "./utils/modelUtils";
 import { saveToStorage } from "./utils/storageUtils";
 import { Database } from "@/integrations/supabase/types";

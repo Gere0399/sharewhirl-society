@@ -36,7 +36,7 @@ export const AVAILABLE_MODELS: ModelInfo[] = [
     category: "audio"
   },
   {
-    id: "fal-ai/f5-tts",
+    id: "fal-ai/speech-to-speech",
     label: "Speech to Speech",
     cost: 150,
     type: "speech",

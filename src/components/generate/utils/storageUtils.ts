@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const saveToStorage = async (url: string, modelType: string): Promise<string> => {
   try {
     // For audio files, we'll store the URL directly since we can't fetch it due to CORS
-    if (modelType === 'speech') {
+    if (modelType === 'audio') {
       return url;
     }
 

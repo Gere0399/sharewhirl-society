@@ -51,10 +51,6 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           result = await supabase.functions.invoke('generate-flux-image', {
             body: { modelId, settings }
           });
-        } else if (modelId.includes('speech')) {
-          result = await supabase.functions.invoke('generate-speech', {
-            body: { modelId, settings }
-          });
         } else {
           result = await supabase.functions.invoke('generate-image', {
             body: { modelId, settings }
@@ -70,6 +66,8 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           outputUrl = result.data.data.images[0].url;
         } else if ('audio_url' in result.data.data) {
           outputUrl = result.data.data.audio_url;
+        } else if ('audio_file' in result.data.data && result.data.data.audio_file?.url) {
+          outputUrl = result.data.data.audio_file.url;
         } else {
           throw new Error("No output URL in response");
         }

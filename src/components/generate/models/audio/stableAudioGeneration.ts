@@ -1,28 +1,31 @@
 import { supabase } from "@/integrations/supabase/client";
 import { BaseGenerationResult, BaseGenerationOptions } from "../types";
-import { saveToStorage } from "../../utils/storageUtils";
 import { AudioSettings } from "@/types/generation";
+import { saveToStorage } from "../../utils/storageUtils";
+
+export interface StableAudioSettings extends AudioSettings {
+  prompt: string;
+  seconds_total: number;
+  steps: number;
+}
 
 export async function generateWithStableAudio(
-  settings: AudioSettings,
+  settings: StableAudioSettings,
   options: BaseGenerationOptions
 ): Promise<BaseGenerationResult> {
   try {
     console.log("Starting Stable Audio generation with settings:", settings);
 
-    const result = await supabase.functions.invoke('generate-stable-audio', {
+    const { data, error } = await supabase.functions.invoke('generate-stable-audio', {
       body: settings
     });
 
-    console.log("Stable Audio response:", result);
+    if (error) throw error;
+    if (!data?.audio_url) throw new Error("No audio URL in response");
 
-    if (!result.data?.audio_file?.url) {
-      throw new Error("No audio URL in response");
-    }
+    const outputUrl = await saveToStorage(data.audio_url, options.modelType);
 
-    const outputUrl = await saveToStorage(result.data.audio_file.url, options.modelType);
-
-    const { error: generationError } = await supabase.from('generations').insert({
+    const { error: dbError } = await supabase.from('generations').insert({
       user_id: options.userId,
       model_name: options.modelId,
       model_type: options.modelType,
@@ -31,20 +34,20 @@ export async function generateWithStableAudio(
       output_url: outputUrl,
     });
 
-    if (generationError) throw generationError;
+    if (dbError) throw dbError;
 
     options.onSuccess?.();
 
     return {
       success: true,
-      message: "Generation successful",
-      description: "Your audio has been generated and saved to your history.",
+      message: "Audio generated successfully",
+      description: "Your audio has been generated and saved.",
     };
   } catch (error: any) {
     console.error("Stable Audio generation error:", error);
     return {
       success: false,
-      message: "Generation failed",
+      message: "Audio generation failed",
       description: error.message || "Failed to generate audio. Please try again.",
     };
   }

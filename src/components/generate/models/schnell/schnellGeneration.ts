@@ -1,7 +1,15 @@
 import { supabase } from "@/integrations/supabase/client";
 import { BaseGenerationResult, BaseGenerationOptions } from "../types";
-import { saveToStorage } from "../../utils/storageUtils";
 import { SchnellSettings } from "@/types/generation";
+import { saveToStorage } from "../../utils/storageUtils";
+
+export interface SchnellGenerationSettings {
+  prompt?: string;
+  image_size?: string;
+  num_images?: number;
+  num_inference_steps: number;
+  enable_safety_checker: boolean;
+}
 
 export async function generateWithSchnell(
   settings: SchnellSettings,
@@ -10,23 +18,16 @@ export async function generateWithSchnell(
   try {
     console.log("Starting Schnell generation with settings:", settings);
 
-    const result = await supabase.functions.invoke('generate-flux-image', {
-      body: { modelId: options.modelId, settings }
+    const { data, error } = await supabase.functions.invoke('generate-flux-image', {
+      body: settings
     });
 
-    console.log("Schnell generation response:", result);
+    if (error) throw error;
+    if (!data?.image_url) throw new Error("No image URL in response");
 
-    if (!result.data) {
-      throw new Error("No response received from generation function");
-    }
+    const outputUrl = await saveToStorage(data.image_url, options.modelType);
 
-    if (!result.data.data.images?.[0]?.url) {
-      throw new Error("No image URL in response");
-    }
-
-    const outputUrl = await saveToStorage(result.data.data.images[0].url, options.modelType);
-
-    const { error: generationError } = await supabase.from('generations').insert({
+    const { error: dbError } = await supabase.from('generations').insert({
       user_id: options.userId,
       model_name: options.modelId,
       model_type: options.modelType,
@@ -35,20 +36,20 @@ export async function generateWithSchnell(
       output_url: outputUrl,
     });
 
-    if (generationError) throw generationError;
+    if (dbError) throw dbError;
 
     options.onSuccess?.();
 
     return {
       success: true,
-      message: "Generation successful",
-      description: "Your image has been generated and saved to your history.",
+      message: "Image generated successfully",
+      description: "Your image has been generated and saved.",
     };
   } catch (error: any) {
     console.error("Schnell generation error:", error);
     return {
       success: false,
-      message: "Generation failed",
+      message: "Image generation failed",
       description: error.message || "Failed to generate image. Please try again.",
     };
   }

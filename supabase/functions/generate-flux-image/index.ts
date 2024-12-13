@@ -32,6 +32,11 @@ serve(async (req) => {
       num_images: 1,
     };
 
+    // For image-to-image model, ensure image_url is present
+    if (modelId === 'fal-ai/flux/schnell/redux' && !settings.image_url) {
+      throw new Error('Image URL is required for image-to-image model');
+    }
+
     console.log('Submitting request with validated settings:', validatedSettings);
 
     const result = await fal.subscribe(modelId, {
@@ -44,16 +49,16 @@ serve(async (req) => {
       },
     });
 
+    // Create a Supabase client with service role key for storage operations
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
     // Save the generated image to Supabase Storage
     if (result.data.images?.[0]?.url) {
       const imageUrl = result.data.images[0].url;
       const response = await fetch(imageUrl);
       const imageBlob = await response.blob();
-
-      // Create a Supabase client with service role key
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
       // Upload to storage
       const fileName = `${crypto.randomUUID()}.jpg`;

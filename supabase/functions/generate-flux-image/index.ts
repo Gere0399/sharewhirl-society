@@ -61,15 +61,9 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
     // Extract image URL from the response
-    let imageUrl;
-    if (result.data.images && Array.isArray(result.data.images) && result.data.images.length > 0) {
-      imageUrl = result.data.images[0].url;
-    } else if (result.data.image && typeof result.data.image === 'string') {
-      imageUrl = result.data.image;
-    }
-
+    const imageUrl = result.data.images?.[0]?.url;
     if (!imageUrl) {
-      console.error('No image URL found in response:', result.data);
+      console.error('Response structure:', result.data);
       throw new Error('No image URL in response');
     }
 
@@ -108,17 +102,15 @@ serve(async (req) => {
     console.log('Public URL generated:', publicUrl);
 
     // Return the result with the stored image URL
-    return new Response(JSON.stringify({ 
-      data: {
-        ...result,
-        data: {
-          ...result.data,
-          images: [{
-            ...result.data.images?.[0],
-            url: publicUrl
-          }]
-        }
-      }
+    return new Response(JSON.stringify({
+      images: [{
+        url: publicUrl,
+        content_type: 'image/jpeg'
+      }],
+      timings: result.data.timings,
+      seed: result.data.seed,
+      has_nsfw_concepts: result.data.has_nsfw_concepts,
+      prompt: result.data.prompt
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

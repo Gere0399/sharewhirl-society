@@ -58,16 +58,15 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
 
         console.log("Generation response received:", result);
 
-        if (!result.data) throw new Error("No response received from generation function");
+        if (!result.data) {
+          console.error("Empty response received:", result);
+          throw new Error("No response received from generation function");
+        }
 
-        // Extract the output URL from the nested response structure
+        // Extract the output URL from the response
         let outputUrl;
-        if (result.data.data?.images?.[0]?.url) {
-          outputUrl = result.data.data.images[0].url;
-        } else if (result.data.data?.audio_url) {
-          outputUrl = result.data.data.audio_url;
-        } else if (result.data.data?.audio_file?.url) {
-          outputUrl = result.data.data.audio_file.url;
+        if (result.data.images?.[0]?.url) {
+          outputUrl = result.data.images[0].url;
         } else {
           console.error("Response structure:", result);
           throw new Error("No output URL in response");

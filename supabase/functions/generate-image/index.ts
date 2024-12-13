@@ -35,12 +35,19 @@ serve(async (req) => {
         break;
       case 'fal-ai/flux/schnell':
         console.log('Generating text-to-image with settings:', settings);
-        result = await fal.subscribe('fast-text-to-image', {
+        result = await fal.subscribe('fal-ai/flux/schnell', {
           input: {
             prompt: settings.prompt,
             image_size: settings.image_size || "1024x1024",
             num_inference_steps: settings.num_inference_steps || 30,
-            enable_safety_checker: settings.enable_safety_checker
+            enable_safety_checker: settings.enable_safety_checker,
+            num_images: 1
+          },
+          logs: true,
+          onQueueUpdate: (update) => {
+            if (update.status === "IN_PROGRESS") {
+              update.logs.map((log) => log.message).forEach(console.log);
+            }
           }
         });
         break;
@@ -49,12 +56,19 @@ serve(async (req) => {
         if (!settings.image_url) {
           throw new Error('Image URL is required for image-to-image generation');
         }
-        result = await fal.subscribe('fast-image-to-image', {
+        result = await fal.subscribe('fal-ai/flux/schnell/redux', {
           input: {
             prompt: settings.prompt,
             image_url: settings.image_url,
             num_inference_steps: settings.num_inference_steps || 30,
-            enable_safety_checker: settings.enable_safety_checker
+            enable_safety_checker: settings.enable_safety_checker,
+            num_images: 1
+          },
+          logs: true,
+          onQueueUpdate: (update) => {
+            if (update.status === "IN_PROGRESS") {
+              update.logs.map((log) => log.message).forEach(console.log);
+            }
           }
         });
         break;

@@ -44,19 +44,28 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
       console.log("Starting generation with settings:", settings);
 
       try {
-        const result = await generateWithFalAI(modelId, settings);
-        console.log("FAL AI response received:", result);
-
-        let outputUrl;
-        if ('images' in result.data && result.data.images?.[0]?.url) {
-          outputUrl = result.data.images[0].url;
-        } else if ('audio_url' in result.data) {
-          outputUrl = result.data.audio_url;
+        let result;
+        
+        if (modelId.includes('flux')) {
+          result = await supabase.functions.invoke('generate-flux-image', {
+            body: { modelId, settings }
+          });
         } else {
-          throw new Error("No output URL in response from FAL AI");
+          result = await supabase.functions.invoke('generate-image', {
+            body: { modelId, settings }
+          });
         }
 
-        const storedUrl = await saveToStorage(outputUrl, getModelType(modelId));
+        console.log("Generation response received:", result);
+
+        if (!result.data) throw new Error("No response received from generation function");
+
+        // Extract the output URL from the nested response structure
+        const outputUrl = result.data.data?.images?.[0]?.url;
+        if (!outputUrl) {
+          console.error("Response structure:", result);
+          throw new Error("No output URL in response");
+        }
 
         if (!isSchnellModel || dailyGenerations >= 10) {
           const { error: creditError } = await supabase
@@ -67,14 +76,21 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           if (creditError) throw creditError;
         }
 
+        // Get the prompt based on the settings type
+        let promptValue = '';
+        if ('prompt' in settings) {
+          promptValue = settings.prompt;
+        } else if ('gen_text' in settings) {
+          promptValue = settings.gen_text;
+        }
+
         const { error: generationError } = await supabase.from('generations').insert({
           user_id: user.id,
           model_name: modelId,
           model_type: getModelType(modelId),
-          prompt: 'prompt' in settings ? settings.prompt : 
-                  'gen_text' in settings ? settings.gen_text : '',
+          prompt: promptValue,
           settings: settings as unknown as Database['public']['Tables']['generations']['Insert']['settings'],
-          output_url: storedUrl,
+          output_url: outputUrl,
           cost: isSchnellModel && dailyGenerations < 10 ? 0 : modelCost
         });
 
@@ -92,7 +108,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           description: "Your content has been generated and saved to your history.",
         };
       } catch (error: any) {
-        console.error("FAL AI error:", error);
+        console.error("Generation error:", error);
         if (error.message?.includes("ValidationError")) {
           throw new Error("Invalid generation settings. Please check your input and try again.");
         }

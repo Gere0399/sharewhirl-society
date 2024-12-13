@@ -11,6 +11,8 @@ export interface SchnellGenerationSettings {
   enable_safety_checker: boolean;
 }
 
+export { SchnellSettings };
+
 export async function generateWithSchnell(
   settings: SchnellSettings,
   options: BaseGenerationOptions

@@ -15,10 +15,6 @@ export type ModelId =
 export type ModelType = "text-to-image" | "image-to-image" | "audio" | "speech";
 
 export interface BaseGenerationSettings {
-  [key: string]: string | number | boolean | undefined;
-}
-
-export interface SchnellSettings extends BaseGenerationSettings {
   prompt?: string;
   image_size?: ImageSize;
   num_images?: number;
@@ -26,23 +22,29 @@ export interface SchnellSettings extends BaseGenerationSettings {
   enable_safety_checker: boolean;
 }
 
-export interface AudioSettings extends BaseGenerationSettings {
+export interface SchnellSettings extends BaseGenerationSettings {
+}
+
+export interface ReduxSettings extends BaseGenerationSettings {
+  image_url: string;
+}
+
+export interface AudioSettings {
   prompt: string;
   seconds_total: number;
   steps: number;
 }
 
-export interface SpeechSettings extends BaseGenerationSettings {
-  input_text: string;
+export interface SpeechSettings {
+  gen_text: string;
+  ref_text?: string;
   audio_url: string;
   model_type: "F5-TTS" | "E2-TTS";
   remove_silence?: boolean;
 }
 
-export type GenerationSettings = SchnellSettings | AudioSettings | SpeechSettings;
+export type GenerationSettings = SchnellSettings | ReduxSettings | AudioSettings | SpeechSettings;
 
 export interface GenerateImageProps {
   modelId: ModelId;
-  dailyGenerations: number;
-  onGenerate: () => void;
 }

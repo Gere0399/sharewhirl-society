@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ModelId, GenerationSettings, AudioSettings, SpeechSettings, SchnellSettings } from "@/types/generation";
+import { ModelId, GenerationSettings } from "@/types/generation";
 import { useCredits } from "@/components/generate/hooks/useCredits";
+import { useFalAI } from "@/components/generate/hooks/useFalAI";
 import { getModelInfo, getModelType } from "../utils/modelUtils";
-import { generateWithSchnell } from "../models/schnell/schnellGeneration";
-import { generateWithStableAudio } from "../models/audio/stableAudioGeneration";
-import { generateWithSpeech } from "../models/speech/speechGeneration";
+import { Database } from "@/integrations/supabase/types";
 
 export function useGeneration(modelId: ModelId, dailyGenerations: number, onGenerate: () => void) {
   const [loading, setLoading] = useState(false);
   const { credits, setCredits } = useCredits();
+  const { generateWithFalAI } = useFalAI();
 
   const getRequiredCredits = () => {
     const modelInfo = getModelInfo(modelId);
@@ -40,33 +40,87 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
       }
 
       setLoading(true);
+      console.log("Starting generation with settings:", settings);
 
-      let result;
-      const modelType = getModelType(modelId);
-      const baseOptions = {
-        userId: user.id,
-        modelId,
-        modelType,
-        onSuccess: () => {
-          onGenerate();
-          if (!isSchnellModel || dailyGenerations >= 10) {
-            setCredits(prev => prev !== null ? prev - modelCost : null);
-          }
+      try {
+        let result;
+        
+        if (modelId.includes('flux')) {
+          result = await supabase.functions.invoke('generate-flux-image', {
+            body: { modelId, settings }
+          });
+        } else {
+          result = await supabase.functions.invoke('generate-image', {
+            body: { modelId, settings }
+          });
         }
-      };
 
-      switch (modelType) {
-        case "audio":
-          result = await generateWithStableAudio(settings as AudioSettings, baseOptions);
-          break;
-        case "speech":
-          result = await generateWithSpeech(settings as SpeechSettings, baseOptions);
-          break;
-        default:
-          result = await generateWithSchnell(settings as SchnellSettings, baseOptions);
+        console.log("Generation response received:", result);
+
+        if (!result.data) {
+          console.error("Empty response received:", result);
+          throw new Error("No response received from generation function");
+        }
+
+        // Extract the output URL from the response
+        let outputUrl;
+        if (result.data.images?.[0]?.url) {
+          outputUrl = result.data.images[0].url;
+        } else {
+          console.error("Response structure:", result.data);
+          throw new Error("No output URL in response");
+        }
+
+        if (!isSchnellModel || dailyGenerations >= 10) {
+          const { error: creditError } = await supabase
+            .from('credits')
+            .update({ amount: credits! - modelCost })
+            .eq('user_id', user.id);
+
+          if (creditError) throw creditError;
+        }
+
+        // Get the prompt based on the settings type
+        let promptValue = '';
+        if ('prompt' in settings) {
+          promptValue = settings.prompt;
+        } else if ('gen_text' in settings) {
+          promptValue = settings.gen_text;
+        }
+
+        const { error: generationError } = await supabase.from('generations').insert({
+          user_id: user.id,
+          model_name: modelId,
+          model_type: getModelType(modelId),
+          prompt: promptValue,
+          settings: settings as unknown as Database['public']['Tables']['generations']['Insert']['settings'],
+          output_url: outputUrl,
+          cost: isSchnellModel && dailyGenerations < 10 ? 0 : modelCost
+        });
+
+        if (generationError) throw generationError;
+
+        onGenerate();
+        
+        if (!isSchnellModel || dailyGenerations >= 10) {
+          setCredits(prev => prev !== null ? prev - modelCost : null);
+        }
+
+        return {
+          success: true,
+          message: "Generation successful",
+          description: "Your content has been generated and saved to your history.",
+        };
+      } catch (error: any) {
+        console.error("Generation error:", error);
+        if (error.message?.includes("ValidationError")) {
+          throw new Error("Invalid generation settings. Please check your input and try again.");
+        }
+        if (error.message?.includes("Load failed")) {
+          throw new Error("Generation timed out. Please try again.");
+        }
+        throw error;
       }
-
-      return result;
     } catch (error: any) {
       console.error("Generation error:", error);
       return {

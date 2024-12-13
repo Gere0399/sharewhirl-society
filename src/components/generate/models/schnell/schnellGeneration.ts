@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { BaseGenerationResult, BaseGenerationOptions } from "../types";
-import { SchnellSettings } from "@/types/generation";
+import type { SchnellSettings } from "@/types/generation";
 import { saveToStorage } from "../../utils/storageUtils";
 
 export interface SchnellGenerationSettings {
@@ -11,7 +11,7 @@ export interface SchnellGenerationSettings {
   enable_safety_checker: boolean;
 }
 
-export { SchnellSettings };
+export type { SchnellSettings };
 
 export async function generateWithSchnell(
   settings: SchnellSettings,

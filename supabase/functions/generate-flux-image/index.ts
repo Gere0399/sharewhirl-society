@@ -49,6 +49,8 @@ serve(async (req) => {
       },
     });
 
+    console.log('FAL AI response received:', result);
+
     // Create a Supabase client with service role key for storage operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -57,28 +59,39 @@ serve(async (req) => {
     // Save the generated image to Supabase Storage
     if (result.data.images?.[0]?.url) {
       const imageUrl = result.data.images[0].url;
+      console.log('Downloading image from:', imageUrl);
+      
       const response = await fetch(imageUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to download image: ${response.statusText}`);
+      }
+      
       const imageBlob = await response.blob();
-
-      // Upload to storage
       const fileName = `${crypto.randomUUID()}.jpg`;
-      const { data: storageData, error: storageError } = await supabase
-        .storage
+      const filePath = `generated/${fileName}`;
+
+      console.log('Uploading image to Supabase Storage:', filePath);
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('generated')
-        .upload(fileName, imageBlob, {
+        .upload(filePath, imageBlob, {
           contentType: 'image/jpeg',
           upsert: false
         });
 
-      if (storageError) {
-        throw storageError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw uploadError;
       }
 
+      console.log('Image uploaded successfully:', uploadData);
+
       // Get the public URL
-      const { data: { publicUrl } } = supabase
-        .storage
+      const { data: { publicUrl } } = supabase.storage
         .from('generated')
-        .getPublicUrl(fileName);
+        .getPublicUrl(filePath);
+
+      console.log('Public URL generated:', publicUrl);
 
       // Return the result with the stored image URL
       return new Response(JSON.stringify({ 

@@ -7,6 +7,7 @@ import { ModelType } from "@/types/generation";
 import { ImageUpload } from "./ImageUpload";
 import { SafetyOptions } from "./SafetyOptions";
 import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ImageGenerationFormProps {
   onSubmit: (settings: any) => Promise<void>;
@@ -31,7 +32,8 @@ export function ImageGenerationForm({
 }: ImageGenerationFormProps) {
   const [prompt, setPrompt] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [inferenceSteps, setInferenceSteps] = useState(30);
+  const [inferenceSteps, setInferenceSteps] = useState(4);
+  const [imageSize, setImageSize] = useState("landscape_4_3");
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
 
   const handleSubmit = async () => {
@@ -41,7 +43,7 @@ export function ImageGenerationForm({
       prompt,
       num_inference_steps: inferenceSteps,
       enable_safety_checker: enableSafetyChecker,
-      image_size: "1024x1024",
+      image_size: imageSize,
     };
 
     if (modelType === "image-to-image" && file) {
@@ -80,12 +82,29 @@ export function ImageGenerationForm({
       )}
 
       <div className="space-y-2">
+        <Label>Resolution</Label>
+        <Select value={imageSize} onValueChange={setImageSize}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select resolution" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="square_hd">Square HD</SelectItem>
+            <SelectItem value="square">Square</SelectItem>
+            <SelectItem value="portrait_4_3">Portrait 4:3</SelectItem>
+            <SelectItem value="portrait_16_9">Portrait 16:9</SelectItem>
+            <SelectItem value="landscape_4_3">Landscape 4:3</SelectItem>
+            <SelectItem value="landscape_16_9">Landscape 16:9</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
         <Label>Inference Steps ({inferenceSteps})</Label>
         <Slider
           value={[inferenceSteps]}
           onValueChange={(value) => setInferenceSteps(value[0])}
-          min={10}
-          max={50}
+          min={1}
+          max={12}
           step={1}
         />
         <div className="text-sm text-muted-foreground">

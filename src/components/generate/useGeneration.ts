@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ModelId, GenerationSettings } from "@/types/generation";
-import { useCredits } from "./hooks/useCredits";
-import { useFalAI } from "./hooks/useFalAI";
+import { useCredits } from "./useCredits";
+import { useFalAI } from "./useFalAI";
 import { getModelInfo, getModelType } from "./utils/modelUtils";
 import { saveToStorage } from "./utils/storageUtils";
 import { Database } from "@/integrations/supabase/types";
@@ -44,18 +44,32 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
       console.log("Starting generation with settings:", settings);
 
       try {
-        const result = await generateWithFalAI(modelId, settings);
-        console.log("FAL AI response received:", result);
+        let result;
+        
+        // Use different endpoints based on model type
+        if (modelId.includes('flux')) {
+          result = await supabase.functions.invoke('generate-flux-image', {
+            body: { modelId, settings }
+          });
+        } else {
+          result = await supabase.functions.invoke('generate-image', {
+            body: { modelId, settings }
+          });
+        }
+
+        console.log("Generation response received:", result);
+
+        if (!result.data) throw new Error("No response received from generation function");
 
         let outputUrl;
-        if ('images' in result.data && result.data.images?.[0]?.url) {
-          outputUrl = result.data.images[0].url;
-        } else if ('audio_url' in result.data) {
-          outputUrl = result.data.audio_url;
-        } else if ('audio_file' in result.data && result.data.audio_file?.url) {
-          outputUrl = result.data.audio_file.url;
+        if ('images' in result.data.data && result.data.data.images?.[0]?.url) {
+          outputUrl = result.data.data.images[0].url;
+        } else if ('audio_url' in result.data.data) {
+          outputUrl = result.data.data.audio_url;
+        } else if ('audio_file' in result.data.data && result.data.data.audio_file?.url) {
+          outputUrl = result.data.data.audio_file.url;
         } else {
-          throw new Error("No output URL in response from FAL AI");
+          throw new Error("No output URL in response");
         }
 
         const storedUrl = await saveToStorage(outputUrl, getModelType(modelId));
@@ -101,7 +115,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           description: "Your content has been generated and saved to your history.",
         };
       } catch (error: any) {
-        console.error("FAL AI error:", error);
+        console.error("Generation error:", error);
         if (error.message?.includes("ValidationError")) {
           throw new Error("Invalid generation settings. Please check your input and try again.");
         }

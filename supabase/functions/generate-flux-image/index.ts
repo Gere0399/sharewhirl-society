@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { fal } from "npm:@fal-ai/client"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -43,14 +44,62 @@ serve(async (req) => {
       },
     });
 
+    // Save the generated image to Supabase Storage
+    if (result.data.images?.[0]?.url) {
+      const imageUrl = result.data.images[0].url;
+      const response = await fetch(imageUrl);
+      const imageBlob = await response.blob();
+
+      // Create a Supabase client
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      // Upload to storage
+      const fileName = `${crypto.randomUUID()}.jpg`;
+      const { data: storageData, error: storageError } = await supabase
+        .storage
+        .from('generated')
+        .upload(fileName, imageBlob, {
+          contentType: 'image/jpeg',
+          upsert: false
+        });
+
+      if (storageError) {
+        throw storageError;
+      }
+
+      // Get the public URL
+      const { data: { publicUrl } } = supabase
+        .storage
+        .from('generated')
+        .getPublicUrl(fileName);
+
+      // Return the result with the stored image URL
+      return new Response(JSON.stringify({ 
+        data: {
+          ...result,
+          data: {
+            ...result.data,
+            images: [{
+              ...result.data.images[0],
+              url: publicUrl
+            }]
+          }
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     return new Response(JSON.stringify({ data: result }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    });
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    });
   }
 })

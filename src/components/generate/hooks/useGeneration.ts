@@ -4,7 +4,6 @@ import { ModelId, GenerationSettings } from "@/types/generation";
 import { useCredits } from "@/components/generate/hooks/useCredits";
 import { useFalAI } from "@/components/generate/hooks/useFalAI";
 import { getModelInfo, getModelType } from "../utils/modelUtils";
-import { saveToStorage } from "../utils/storageUtils";
 import { Database } from "@/integrations/supabase/types";
 
 export function useGeneration(modelId: ModelId, dailyGenerations: number, onGenerate: () => void) {
@@ -68,7 +67,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         if (result.data.images?.[0]?.url) {
           outputUrl = result.data.images[0].url;
         } else {
-          console.error("Response structure:", result);
+          console.error("Response structure:", result.data);
           throw new Error("No output URL in response");
         }
 

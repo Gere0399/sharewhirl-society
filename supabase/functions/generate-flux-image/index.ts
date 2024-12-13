@@ -51,68 +51,78 @@ serve(async (req) => {
 
     console.log('FAL AI response received:', result);
 
+    if (!result.data) {
+      throw new Error('No response data received from FAL AI');
+    }
+
     // Create a Supabase client with service role key for storage operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
-    // Save the generated image to Supabase Storage
-    if (result.data.images?.[0]?.url) {
-      const imageUrl = result.data.images[0].url;
-      console.log('Downloading image from:', imageUrl);
-      
-      const response = await fetch(imageUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to download image: ${response.statusText}`);
-      }
-      
-      const imageBlob = await response.blob();
-      const fileName = `${crypto.randomUUID()}.jpg`;
-      const filePath = `generated/${fileName}`;
-
-      console.log('Uploading image to Supabase Storage:', filePath);
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('generated')
-        .upload(filePath, imageBlob, {
-          contentType: 'image/jpeg',
-          upsert: false
-        });
-
-      if (uploadError) {
-        console.error('Storage upload error:', uploadError);
-        throw uploadError;
-      }
-
-      console.log('Image uploaded successfully:', uploadData);
-
-      // Get the public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('generated')
-        .getPublicUrl(filePath);
-
-      console.log('Public URL generated:', publicUrl);
-
-      // Return the result with the stored image URL
-      return new Response(JSON.stringify({ 
-        data: {
-          ...result,
-          data: {
-            ...result.data,
-            images: [{
-              ...result.data.images[0],
-              url: publicUrl
-            }]
-          }
-        }
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // Extract image URL from the response
+    let imageUrl;
+    if (result.data.images && Array.isArray(result.data.images) && result.data.images.length > 0) {
+      imageUrl = result.data.images[0].url;
+    } else if (result.data.image && typeof result.data.image === 'string') {
+      imageUrl = result.data.image;
     }
 
-    return new Response(JSON.stringify({ data: result }), {
+    if (!imageUrl) {
+      console.error('No image URL found in response:', result.data);
+      throw new Error('No image URL in response');
+    }
+
+    console.log('Downloading image from:', imageUrl);
+    
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to download image: ${response.statusText}`);
+    }
+    
+    const imageBlob = await response.blob();
+    const fileName = `${crypto.randomUUID()}.jpg`;
+    const filePath = `generated/${fileName}`;
+
+    console.log('Uploading image to Supabase Storage:', filePath);
+    
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('generated')
+      .upload(filePath, imageBlob, {
+        contentType: 'image/jpeg',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error('Storage upload error:', uploadError);
+      throw uploadError;
+    }
+
+    console.log('Image uploaded successfully:', uploadData);
+
+    // Get the public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('generated')
+      .getPublicUrl(filePath);
+
+    console.log('Public URL generated:', publicUrl);
+
+    // Return the result with the stored image URL
+    return new Response(JSON.stringify({ 
+      data: {
+        ...result,
+        data: {
+          ...result.data,
+          images: [{
+            ...result.data.images?.[0],
+            url: publicUrl
+          }]
+        }
+      }
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+
   } catch (error) {
     console.error('Error:', error);
     return new Response(JSON.stringify({ error: error.message }), {

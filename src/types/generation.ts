@@ -42,9 +42,9 @@ export interface AudioSettings {
 export interface SpeechSettings {
   [key: string]: string | number | boolean | undefined;
   input_text: string;
-  voice_id: string;
-  stability: number;
-  similarity_boost: number;
+  audio_url: string;
+  model_type: string;
+  remove_silence?: boolean;
 }
 
 export type GenerationSettings = SchnellSettings | ReduxSettings | AudioSettings | SpeechSettings;

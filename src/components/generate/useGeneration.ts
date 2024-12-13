@@ -46,7 +46,6 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
       try {
         let result;
         
-        // Use different endpoints based on model type
         if (modelId.includes('flux')) {
           result = await supabase.functions.invoke('generate-flux-image', {
             body: { modelId, settings }
@@ -59,20 +58,19 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
 
         console.log("Generation response received:", result);
 
-        if (!result.data) throw new Error("No response received from generation function");
-
-        let outputUrl;
-        if ('images' in result.data.data && result.data.data.images?.[0]?.url) {
-          outputUrl = result.data.data.images[0].url;
-        } else if ('audio_url' in result.data.data) {
-          outputUrl = result.data.data.audio_url;
-        } else if ('audio_file' in result.data.data && result.data.data.audio_file?.url) {
-          outputUrl = result.data.data.audio_file.url;
-        } else {
-          throw new Error("No output URL in response");
+        if (!result.data) {
+          console.error("Empty response received:", result);
+          throw new Error("No response received from generation function");
         }
 
-        const storedUrl = await saveToStorage(outputUrl, getModelType(modelId));
+        // Extract the output URL from the response
+        let outputUrl;
+        if (result.data.images?.[0]?.url) {
+          outputUrl = result.data.images[0].url;
+        } else {
+          console.error("Response structure:", result.data);
+          throw new Error("No output URL in response");
+        }
 
         if (!isSchnellModel || dailyGenerations >= 10) {
           const { error: creditError } = await supabase
@@ -91,13 +89,18 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           promptValue = settings.gen_text;
         }
 
+        const settingsForDb = Object.entries(settings).reduce((acc, [key, value]) => {
+          acc[key] = typeof value === 'boolean' ? String(value) : value;
+          return acc;
+        }, {} as Record<string, string | number | undefined>);
+
         const { error: generationError } = await supabase.from('generations').insert({
           user_id: user.id,
           model_name: modelId,
           model_type: getModelType(modelId),
           prompt: promptValue,
-          settings: settings as unknown as Database['public']['Tables']['generations']['Insert']['settings'],
-          output_url: storedUrl,
+          settings: settingsForDb,
+          output_url: outputUrl,
           cost: isSchnellModel && dailyGenerations < 10 ? 0 : modelCost
         });
 

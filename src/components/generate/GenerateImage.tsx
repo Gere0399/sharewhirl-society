@@ -9,7 +9,8 @@ import { useState } from "react";
 import { InsufficientCreditsDialog } from "./InsufficientCreditsDialog";
 import { getModelInfo } from "./utils/modelUtils";
 
-interface ExtendedGenerateImageProps extends GenerateImageProps {
+interface ExtendedGenerateImageProps {
+  modelId: GenerateImageProps['modelId'];
   dailyGenerations: number;
   onGenerate: () => void;
 }

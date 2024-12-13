@@ -36,7 +36,7 @@ export interface AudioSettings {
 }
 
 export interface SpeechSettings {
-  [key: string]: string | boolean | undefined; // Add index signature
+  [key: string]: string | boolean | number | undefined; // Updated to include number
   gen_text: string;
   ref_text?: string;
   audio_url: string;
@@ -45,3 +45,7 @@ export interface SpeechSettings {
 }
 
 export type GenerationSettings = SchnellSettings | ReduxSettings | AudioSettings | SpeechSettings;
+
+export interface GenerateImageProps {
+  modelId: ModelId;
+}

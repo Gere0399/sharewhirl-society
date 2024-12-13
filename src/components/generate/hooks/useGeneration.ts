@@ -63,7 +63,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         }
 
         // Extract the output URL from the response
-        let outputUrl;
+        let outputUrl = '';
         if (result.data.images?.[0]?.url) {
           outputUrl = result.data.images[0].url;
         } else {
@@ -84,8 +84,8 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         let promptValue = '';
         if ('prompt' in settings) {
           promptValue = settings.prompt;
-        } else if ('gen_text' in settings) {
-          promptValue = settings.gen_text;
+        } else if ('input_text' in settings) {
+          promptValue = settings.input_text;
         }
 
         const { error: generationError } = await supabase.from('generations').insert({

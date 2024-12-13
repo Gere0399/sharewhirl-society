@@ -1,15 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import { BaseGenerationResult, BaseGenerationOptions } from "../types";
 import { saveToStorage } from "../../utils/storageUtils";
-
-export interface StableAudioSettings {
-  prompt: string;
-  seconds_total: number;
-  steps: number;
-}
+import { AudioSettings } from "@/types/generation";
 
 export async function generateWithStableAudio(
-  settings: StableAudioSettings,
+  settings: AudioSettings,
   options: BaseGenerationOptions
 ): Promise<BaseGenerationResult> {
   try {
@@ -32,7 +27,7 @@ export async function generateWithStableAudio(
       model_name: options.modelId,
       model_type: options.modelType,
       prompt: settings.prompt,
-      settings,
+      settings: settings as unknown as Record<string, unknown>,
       output_url: outputUrl,
     });
 

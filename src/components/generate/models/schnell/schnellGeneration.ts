@@ -1,15 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { BaseGenerationResult, BaseGenerationOptions } from "../types";
 import { saveToStorage } from "../../utils/storageUtils";
-
-export interface SchnellSettings {
-  prompt: string;
-  num_inference_steps: number;
-  enable_safety_checker: boolean;
-  image_size: string;
-  num_images: number;
-  image_url?: string;
-}
+import { SchnellSettings } from "@/types/generation";
 
 export async function generateWithSchnell(
   settings: SchnellSettings,
@@ -39,7 +31,7 @@ export async function generateWithSchnell(
       model_name: options.modelId,
       model_type: options.modelType,
       prompt: settings.prompt,
-      settings,
+      settings: settings as unknown as Record<string, unknown>,
       output_url: outputUrl,
     });
 

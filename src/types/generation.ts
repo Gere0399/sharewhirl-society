@@ -9,10 +9,9 @@ export type ImageSize =
 export type ModelId = 
   | "fal-ai/flux/schnell"
   | "fal-ai/flux/schnell/redux"
-  | "fal-ai/stable-audio"
-  | "fal-ai/speech-to-speech";
+  | "fal-ai/stable-audio";
 
-export type ModelType = "text-to-image" | "image-to-image" | "audio" | "speech";
+export type ModelType = "text-to-image" | "image-to-image" | "audio";
 
 export interface BaseGenerationSettings {
   prompt?: string;
@@ -35,15 +34,7 @@ export interface AudioSettings {
   steps: number;
 }
 
-export interface SpeechSettings {
-  gen_text: string;
-  ref_text?: string;
-  audio_url: string;
-  model_type: "F5-TTS" | "E2-TTS";
-  remove_silence?: boolean;
-}
-
-export type GenerationSettings = SchnellSettings | ReduxSettings | AudioSettings | SpeechSettings;
+export type GenerationSettings = SchnellSettings | ReduxSettings | AudioSettings;
 
 export interface GenerateImageProps {
   modelId: ModelId;

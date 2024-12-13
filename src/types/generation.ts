@@ -35,8 +35,14 @@ export interface AudioSettings extends BaseGenerationSettings {
 export interface SpeechSettings extends BaseGenerationSettings {
   input_text: string;
   audio_url: string;
-  model_type: string;
+  model_type: "F5-TTS" | "E2-TTS";
   remove_silence?: boolean;
 }
 
 export type GenerationSettings = SchnellSettings | AudioSettings | SpeechSettings;
+
+export interface GenerateImageProps {
+  modelId: ModelId;
+  dailyGenerations: number;
+  onGenerate: () => void;
+}

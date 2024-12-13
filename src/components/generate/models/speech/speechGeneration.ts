@@ -1,4 +1,3 @@
-import { fal } from "@fal-ai/client";
 import { supabase } from "@/integrations/supabase/client";
 import { BaseGenerationResult, BaseGenerationOptions } from "../types";
 import { SpeechSettings } from "@/types/generation";
@@ -11,32 +10,30 @@ export async function generateWithSpeech(
   try {
     console.log("Starting speech generation with settings:", settings);
 
-    const result = await fal.subscribe("fal-ai/f5-tts", {
-      input: {
+    const { data, error } = await supabase.functions.invoke('generate-speech', {
+      body: {
         gen_text: settings.input_text,
-        ref_audio_url: settings.audio_url,
+        audio_url: settings.audio_url,
         model_type: settings.model_type,
-        remove_silence: settings.remove_silence ?? true
-      },
-      logs: true,
+        remove_silence: settings.remove_silence
+      }
     });
 
-    if (!result.data?.audio_url?.url) {
-      throw new Error("No audio URL in response");
-    }
+    if (error) throw error;
+    if (!data?.data?.audio_url?.url) throw new Error("No audio URL in response");
 
-    const outputUrl = await saveToStorage(result.data.audio_url.url, options.modelType);
+    const outputUrl = await saveToStorage(data.data.audio_url.url, options.modelType);
 
-    const { error } = await supabase.from('generations').insert({
+    const { error: dbError } = await supabase.from('generations').insert({
       user_id: options.userId,
       model_name: options.modelId,
       model_type: options.modelType,
       prompt: settings.input_text,
-      settings: settings as Record<string, unknown>,
+      settings: JSON.parse(JSON.stringify(settings)),
       output_url: outputUrl,
     });
 
-    if (error) throw error;
+    if (dbError) throw dbError;
 
     options.onSuccess?.();
 

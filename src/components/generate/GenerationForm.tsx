@@ -62,27 +62,14 @@ export function GenerationForm({
     }
 
     if (modelType === "audio") {
+      if (!prompt) {
+        return;
+      }
       await onSubmit({
-        prompt: prompt || "background music",
+        prompt,
         seconds_total: secondsTotal,
         steps: numInferenceSteps,
       });
-      return;
-    }
-
-    if (modelType === "speech") {
-      const reader = new FileReader();
-      reader.readAsDataURL(file!);
-      reader.onload = async () => {
-        const base64 = reader.result as string;
-        await onSubmit({
-          gen_text: genText,
-          ref_text: refText || undefined,
-          audio_url: base64,
-          model_type: speechModelType,
-          remove_silence: removeSilence,
-        });
-      };
       return;
     }
 

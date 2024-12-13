@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { fal } from "npm:@fal-ai/client"
+import { generateStableAudio } from "../models/stableAudio.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 
 const corsHeaders = {
@@ -26,6 +27,7 @@ serve(async (req) => {
     });
 
     let result;
+    let outputUrl;
     
     switch (modelId) {
       case 'fal-ai/flux/schnell':
@@ -39,6 +41,7 @@ serve(async (req) => {
             enable_safety_checker: settings.enable_safety_checker
           }
         });
+        outputUrl = result.data.images[0].url;
         break;
 
       case 'fal-ai/flux/schnell/redux':
@@ -53,20 +56,12 @@ serve(async (req) => {
             enable_safety_checker: settings.enable_safety_checker
           }
         });
+        outputUrl = result.data.images[0].url;
         break;
 
       case 'fal-ai/stable-audio':
-        console.log('Generating audio with settings:', settings);
-        if (!settings.prompt) {
-          throw new Error("Prompt is required for audio generation");
-        }
-        result = await fal.subscribe('stable-audio-basic', {
-          input: {
-            prompt: settings.prompt,
-            seconds_total: settings.seconds_total || 30,
-            steps: settings.steps || 10
-          }
-        });
+        result = await generateStableAudio(settings);
+        outputUrl = result.audio_file.url;
         break;
 
       case 'fal-ai/speech-to-speech':
@@ -87,27 +82,14 @@ serve(async (req) => {
             remove_silence: settings.remove_silence ?? true
           }
         });
+        outputUrl = result.data.audio_url;
         break;
 
       default:
         throw new Error(`Unsupported model: ${modelId}`)
     }
 
-    console.log('FAL AI response:', result);
-
-    // Validate output URL exists
-    let outputUrl;
-    if ('images' in result.data && result.data.images?.[0]?.url) {
-      outputUrl = result.data.images[0].url;
-    } else if ('audio_url' in result.data) {
-      outputUrl = result.data.audio_url.url;
-    } else if ('audio_file' in result.data) {
-      outputUrl = result.data.audio_file.url;
-    } else {
-      throw new Error("No output URL in response from FAL AI");
-    }
-
-    return new Response(JSON.stringify(result), {
+    return new Response(JSON.stringify({ data: result }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {

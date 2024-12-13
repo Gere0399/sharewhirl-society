@@ -46,6 +46,15 @@ export function useSpeechGeneration(modelId: ModelId, onGenerate: () => void) {
         throw new Error("No output URL in response");
       }
 
+      // Convert settings to a plain object that matches Json type
+      const settingsForDb = {
+        gen_text: settings.gen_text,
+        ref_text: settings.ref_text,
+        audio_url: settings.audio_url,
+        model_type: settings.model_type,
+        remove_silence: settings.remove_silence
+      };
+
       const { error: creditError } = await supabase
         .from('credits')
         .update({ amount: credits! - modelCost })
@@ -58,7 +67,7 @@ export function useSpeechGeneration(modelId: ModelId, onGenerate: () => void) {
         model_name: modelId,
         model_type: "speech",
         prompt: settings.gen_text,
-        settings: settings,
+        settings: settingsForDb,
         output_url: outputUrl,
         cost: modelCost
       });

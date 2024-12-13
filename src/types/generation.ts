@@ -10,7 +10,7 @@ export type ModelId =
   | "fal-ai/flux/schnell"
   | "fal-ai/flux/schnell/redux"
   | "fal-ai/stable-audio"
-  | "fal-ai/f5-tts";
+  | "fal-ai/speech-to-speech";
 
 export type ModelType = "text-to-image" | "image-to-image" | "audio" | "speech";
 
@@ -36,7 +36,6 @@ export interface AudioSettings {
 }
 
 export interface SpeechSettings {
-  [key: string]: string | boolean | number | undefined; // Updated to include number
   gen_text: string;
   ref_text?: string;
   audio_url: string;

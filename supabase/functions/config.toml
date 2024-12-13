@@ -1,4 +1,4 @@
 project_id = "sycpmhvfcqlrgclybihv"
 
-[global.env]
-FAL_KEY = "std"
+[functions.generate-stable-audio]
+verify_jwt = false

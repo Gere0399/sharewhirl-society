@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ModelType, GenerationSettings } from "@/types/generation";
 import { ImageGenerationForm } from "./form/ImageGenerationForm";
 import { AudioGenerationForm } from "./form/AudioGenerationForm";

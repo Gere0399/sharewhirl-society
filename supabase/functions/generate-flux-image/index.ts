@@ -24,52 +24,24 @@ serve(async (req) => {
       credentials: falKey
     });
 
-    let result;
-    
-    switch (modelId) {
-      case 'fal-ai/flux/schnell':
-        console.log('Generating text-to-image with settings:', settings);
-        result = await fal.subscribe('fal-ai/flux/schnell', {
-          input: {
-            prompt: settings.prompt,
-            image_size: settings.image_size || "landscape_4_3",
-            num_inference_steps: Math.min(settings.num_inference_steps || 4, 12),
-            enable_safety_checker: settings.enable_safety_checker,
-            num_images: 1
-          },
-          logs: true,
-          onQueueUpdate: (update) => {
-            if (update.status === "IN_PROGRESS") {
-              update.logs.map((log) => log.message).forEach(console.log);
-            }
-          }
-        });
-        break;
-      case 'fal-ai/flux/schnell/redux':
-        console.log('Generating image-to-image with settings:', settings);
-        if (!settings.image_url) {
-          throw new Error('Image URL is required for image-to-image generation');
+    // Ensure inference steps are within limits
+    const validatedSettings = {
+      ...settings,
+      num_inference_steps: Math.min(settings.num_inference_steps || 4, 12),
+      num_images: 1,
+    };
+
+    console.log('Submitting request with validated settings:', validatedSettings);
+
+    const result = await fal.subscribe(modelId, {
+      input: validatedSettings,
+      logs: true,
+      onQueueUpdate: (update) => {
+        if (update.status === "IN_PROGRESS") {
+          update.logs.map((log) => log.message).forEach(console.log);
         }
-        result = await fal.subscribe('fal-ai/flux/schnell/redux', {
-          input: {
-            prompt: settings.prompt,
-            image_url: settings.image_url,
-            image_size: settings.image_size || "landscape_4_3",
-            num_inference_steps: Math.min(settings.num_inference_steps || 4, 12),
-            enable_safety_checker: settings.enable_safety_checker,
-            num_images: 1
-          },
-          logs: true,
-          onQueueUpdate: (update) => {
-            if (update.status === "IN_PROGRESS") {
-              update.logs.map((log) => log.message).forEach(console.log);
-            }
-          }
-        });
-        break;
-      default:
-        throw new Error(`Unsupported Flux model: ${modelId}`)
-    }
+      },
+    });
 
     return new Response(JSON.stringify({ data: result }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

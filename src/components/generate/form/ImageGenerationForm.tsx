@@ -33,7 +33,7 @@ export function ImageGenerationForm({
   const [prompt, setPrompt] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [inferenceSteps, setInferenceSteps] = useState(4);
-  const [imageSize, setImageSize] = useState("landscape_4_3");
+  const [imageSize, setImageSize] = useState<string>("landscape_4_3");
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
 
   const handleSubmit = async () => {
@@ -44,6 +44,7 @@ export function ImageGenerationForm({
       num_inference_steps: inferenceSteps,
       enable_safety_checker: enableSafetyChecker,
       image_size: imageSize,
+      num_images: 1
     };
 
     if (modelType === "image-to-image" && file) {
@@ -108,7 +109,7 @@ export function ImageGenerationForm({
           step={1}
         />
         <div className="text-sm text-muted-foreground">
-          Higher values produce better quality but take longer
+          Higher values produce better quality but take longer (max: 12)
         </div>
       </div>
 

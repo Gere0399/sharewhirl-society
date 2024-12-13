@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ModelId, GenerationSettings, SchnellSettings, ReduxSettings, AudioSettings, SpeechSettings } from "@/types/generation";
+import { ModelId, GenerationSettings } from "@/types/generation";
 import { useCredits } from "./hooks/useCredits";
 import { useFalAI } from "./hooks/useFalAI";
 import { getModelInfo, getModelType } from "./utils/modelUtils";
@@ -52,6 +52,8 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           outputUrl = result.data.images[0].url;
         } else if ('audio_url' in result.data) {
           outputUrl = result.data.audio_url;
+        } else if ('audio_file' in result.data && result.data.audio_file?.url) {
+          outputUrl = result.data.audio_file.url;
         } else {
           throw new Error("No output URL in response from FAL AI");
         }

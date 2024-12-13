@@ -28,7 +28,6 @@ serve(async (req) => {
 
     let result;
     
-    // Step 5: Route different model types to their handlers
     switch (modelId) {
       case 'fal-ai/stable-audio':
         console.log('Generating audio with settings:', settings);
@@ -38,43 +37,24 @@ serve(async (req) => {
         console.log('Generating text-to-image with settings:', settings);
         result = await fal.subscribe('fast-text-to-image', {
           input: {
-            prompt: settings.prompt || "",
-            image_size: settings.image_size || "landscape_16_9",
-            num_images: settings.num_images || 1,
-            num_inference_steps: settings.num_inference_steps || 4,
+            prompt: settings.prompt,
+            image_size: settings.image_size || "1024x1024",
+            num_inference_steps: settings.num_inference_steps || 30,
             enable_safety_checker: settings.enable_safety_checker
           }
         });
         break;
       case 'fal-ai/flux/schnell/redux':
         console.log('Generating image-to-image with settings:', settings);
+        if (!settings.image_url) {
+          throw new Error('Image URL is required for image-to-image generation');
+        }
         result = await fal.subscribe('fast-image-to-image', {
           input: {
-            prompt: settings.prompt || "enhance this image",
+            prompt: settings.prompt,
             image_url: settings.image_url,
-            image_size: settings.image_size || "landscape_16_9",
-            num_images: settings.num_images || 1,
-            num_inference_steps: settings.num_inference_steps || 4,
+            num_inference_steps: settings.num_inference_steps || 30,
             enable_safety_checker: settings.enable_safety_checker
-          }
-        });
-        break;
-      case 'fal-ai/speech-to-speech':
-        console.log('Generating speech with settings:', settings);
-        if (!settings.gen_text) {
-          throw new Error("gen_text is required for speech generation");
-        }
-        if (!settings.audio_url) {
-          throw new Error("audio_url is required for speech generation");
-        }
-        
-        result = await fal.subscribe('f5-tts', {
-          input: {
-            gen_text: settings.gen_text,
-            ref_text: settings.ref_text,
-            ref_audio_url: settings.audio_url,
-            model_type: settings.model_type || "F5-TTS",
-            remove_silence: settings.remove_silence ?? true
           }
         });
         break;

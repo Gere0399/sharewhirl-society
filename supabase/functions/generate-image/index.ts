@@ -27,9 +27,12 @@ serve(async (req) => {
     });
 
     let result;
-    let outputUrl;
     
     switch (modelId) {
+      case 'fal-ai/stable-audio':
+        console.log('Generating audio with settings:', settings);
+        result = await generateStableAudio(settings);
+        break;
       case 'fal-ai/flux/schnell':
         console.log('Generating text-to-image with settings:', settings);
         result = await fal.subscribe('fast-text-to-image', {
@@ -41,9 +44,7 @@ serve(async (req) => {
             enable_safety_checker: settings.enable_safety_checker
           }
         });
-        outputUrl = result.data.images[0].url;
         break;
-
       case 'fal-ai/flux/schnell/redux':
         console.log('Generating image-to-image with settings:', settings);
         result = await fal.subscribe('fast-image-to-image', {
@@ -56,14 +57,7 @@ serve(async (req) => {
             enable_safety_checker: settings.enable_safety_checker
           }
         });
-        outputUrl = result.data.images[0].url;
         break;
-
-      case 'fal-ai/stable-audio':
-        result = await generateStableAudio(settings);
-        outputUrl = result.audio_file.url;
-        break;
-
       case 'fal-ai/speech-to-speech':
         console.log('Generating speech with settings:', settings);
         if (!settings.gen_text) {
@@ -82,9 +76,7 @@ serve(async (req) => {
             remove_silence: settings.remove_silence ?? true
           }
         });
-        outputUrl = result.data.audio_url;
         break;
-
       default:
         throw new Error(`Unsupported model: ${modelId}`)
     }

@@ -1,4 +1,5 @@
 import { fal } from "npm:@fal-ai/client";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 export interface StableAudioInput {
   prompt: string;
@@ -22,6 +23,16 @@ export async function generateStableAudio(input: StableAudioInput): Promise<Stab
     throw new Error("Prompt is required for audio generation");
   }
 
+  // Configure FAL AI client
+  const falKey = Deno.env.get('FAL_KEY');
+  if (!falKey) {
+    throw new Error('FAL_KEY not found in environment');
+  }
+  
+  fal.config({
+    credentials: falKey
+  });
+
   const result = await fal.subscribe("fal-ai/stable-audio", {
     input: {
       prompt: input.prompt,
@@ -42,5 +53,42 @@ export async function generateStableAudio(input: StableAudioInput): Promise<Stab
     throw new Error("No audio URL in response from FAL AI");
   }
 
-  return result.data;
+  // Save the file to Supabase storage
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  );
+
+  // Download the audio file
+  const audioResponse = await fetch(result.data.audio_file.url);
+  const audioBlob = await audioResponse.blob();
+
+  // Generate a unique filename
+  const timestamp = new Date().getTime();
+  const filename = `stable-audio/${timestamp}_${crypto.randomUUID()}.wav`;
+
+  // Upload to Supabase storage
+  const { error: uploadError } = await supabase.storage
+    .from('generated')
+    .upload(filename, audioBlob, {
+      contentType: 'audio/wav',
+      upsert: false
+    });
+
+  if (uploadError) {
+    console.error('Error uploading to storage:', uploadError);
+    throw uploadError;
+  }
+
+  // Get the public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from('generated')
+    .getPublicUrl(filename);
+
+  return {
+    audio_file: {
+      ...result.data.audio_file,
+      url: publicUrl
+    }
+  };
 }

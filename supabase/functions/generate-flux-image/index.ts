@@ -50,10 +50,10 @@ serve(async (req) => {
       const response = await fetch(imageUrl);
       const imageBlob = await response.blob();
 
-      // Create a Supabase client
+      // Create a Supabase client with service role key
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
+      const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
       // Upload to storage
       const fileName = `${crypto.randomUUID()}.jpg`;

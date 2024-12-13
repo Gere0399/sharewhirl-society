@@ -1,4 +1,4 @@
-import { fal } from "@fal-ai/client";
+import { fal } from "npm:@fal-ai/client";
 
 export interface StableAudioInput {
   prompt: string;
@@ -22,7 +22,7 @@ export async function generateStableAudio(input: StableAudioInput): Promise<Stab
     throw new Error("Prompt is required for audio generation");
   }
 
-  const result = await fal.subscribe("stable-audio-basic", {
+  const result = await fal.subscribe("fal-ai/stable-audio", {
     input: {
       prompt: input.prompt,
       seconds_total: input.seconds_total || 30,

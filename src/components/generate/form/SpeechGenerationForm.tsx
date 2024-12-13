@@ -25,14 +25,14 @@ export function SpeechGenerationForm({
   dailyGenerations = 0
 }: SpeechGenerationFormProps) {
   const [text, setText] = useState("");
-  const [audioUrl, setAudioUrl] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
   const handleSubmit = async () => {
-    if (!text || !audioUrl) return;
+    if (!text || !file) return;
     
     await onSubmit({
       gen_text: text,
-      audio_url: audioUrl,
+      audio_url: file,
       model_type: "F5-TTS"
     });
   };
@@ -51,12 +51,12 @@ export function SpeechGenerationForm({
 
       <div className="space-y-2">
         <Label>Reference Audio</Label>
-        <AudioUpload onUpload={setAudioUrl} />
+        <AudioUpload file={file} setFile={setFile} required />
       </div>
 
       <Button 
         onClick={handleSubmit} 
-        disabled={disabled || loading || !text || !audioUrl}
+        disabled={disabled || loading || !text || !file}
         className="w-full"
       >
         {loading ? (

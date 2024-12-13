@@ -9,8 +9,8 @@ interface ImageGenerationFormProps {
   onSubmit: (settings: any) => Promise<void>;
   loading: boolean;
   disabled: boolean;
-  modelType: ModelType;
   modelCost: number;
+  modelType: ModelType;
   hasFreeDaily?: boolean;
   freeDailyLimit?: number;
   dailyGenerations?: number;
@@ -20,8 +20,8 @@ export function ImageGenerationForm({
   onSubmit,
   loading,
   disabled,
-  modelType,
   modelCost,
+  modelType,
   hasFreeDaily,
   freeDailyLimit = 0,
   dailyGenerations = 0
@@ -33,6 +33,7 @@ export function ImageGenerationForm({
     
     await onSubmit({
       prompt,
+      image_size: "1024x1024",
       num_inference_steps: 30,
       enable_safety_checker: true
     });

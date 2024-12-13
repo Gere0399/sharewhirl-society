@@ -28,6 +28,7 @@ serve(async (req) => {
 
     let result;
     
+    // Step 5: Route different model types to their handlers
     switch (modelId) {
       case 'fal-ai/stable-audio':
         console.log('Generating audio with settings:', settings);

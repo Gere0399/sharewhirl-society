@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ModelId, GenerationSettings } from "@/types/generation";
+import { ModelId, GenerationSettings, AudioSettings, SpeechSettings, SchnellSettings } from "@/types/generation";
 import { useCredits } from "@/components/generate/hooks/useCredits";
 import { getModelInfo, getModelType } from "../utils/modelUtils";
 import { generateWithSchnell } from "../models/schnell/schnellGeneration";
@@ -57,13 +57,13 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
 
       switch (modelType) {
         case "audio":
-          result = await generateWithStableAudio(settings, baseOptions);
+          result = await generateWithStableAudio(settings as AudioSettings, baseOptions);
           break;
         case "speech":
-          result = await generateWithSpeech(settings, baseOptions);
+          result = await generateWithSpeech(settings as SpeechSettings, baseOptions);
           break;
         default:
-          result = await generateWithSchnell(settings, baseOptions);
+          result = await generateWithSchnell(settings as SchnellSettings, baseOptions);
       }
 
       return result;

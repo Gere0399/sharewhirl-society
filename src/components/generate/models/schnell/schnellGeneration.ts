@@ -31,7 +31,7 @@ export async function generateWithSchnell(
       model_name: options.modelId,
       model_type: options.modelType,
       prompt: settings.prompt,
-      settings: settings as unknown as Record<string, unknown>,
+      settings: JSON.parse(JSON.stringify(settings)),
       output_url: outputUrl,
     });
 

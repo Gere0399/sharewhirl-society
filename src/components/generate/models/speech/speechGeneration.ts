@@ -15,8 +15,8 @@ export async function generateWithSpeech(
       input: {
         gen_text: settings.input_text,
         ref_audio_url: settings.audio_url,
-        model_type: "F5-TTS",
-        remove_silence: true
+        model_type: settings.model_type,
+        remove_silence: settings.remove_silence ?? true
       },
       logs: true,
     });
@@ -25,18 +25,14 @@ export async function generateWithSpeech(
       throw new Error("No audio URL in response");
     }
 
-    const outputUrl = await saveToStorage(
-      result.data.audio_url.url,
-      'audio/wav',
-      options.userId
-    );
+    const outputUrl = await saveToStorage(result.data.audio_url.url, options.modelType);
 
     const { error } = await supabase.from('generations').insert({
       user_id: options.userId,
       model_name: options.modelId,
       model_type: options.modelType,
       prompt: settings.input_text,
-      settings: settings as unknown as Record<string, unknown>,
+      settings: settings as Record<string, unknown>,
       output_url: outputUrl,
     });
 

@@ -16,6 +16,9 @@ export type ModelType = "text-to-image" | "image-to-image" | "audio" | "speech";
 
 export interface BaseGenerationSettings {
   [key: string]: string | number | boolean | undefined;
+}
+
+export interface SchnellSettings extends BaseGenerationSettings {
   prompt?: string;
   image_size?: ImageSize;
   num_images?: number;
@@ -23,34 +26,17 @@ export interface BaseGenerationSettings {
   enable_safety_checker: boolean;
 }
 
-export interface SchnellSettings extends BaseGenerationSettings {
-  [key: string]: string | number | boolean | undefined;
-}
-
-export interface ReduxSettings extends BaseGenerationSettings {
-  [key: string]: string | number | boolean | undefined;
-  image_url: string;
-}
-
-export interface AudioSettings {
-  [key: string]: string | number | boolean | undefined;
+export interface AudioSettings extends BaseGenerationSettings {
   prompt: string;
   seconds_total: number;
   steps: number;
 }
 
-export interface SpeechSettings {
-  [key: string]: string | number | boolean | undefined;
+export interface SpeechSettings extends BaseGenerationSettings {
   input_text: string;
   audio_url: string;
   model_type: string;
   remove_silence?: boolean;
 }
 
-export type GenerationSettings = SchnellSettings | ReduxSettings | AudioSettings | SpeechSettings;
-
-export interface GenerateImageProps {
-  modelId: ModelId;
-  dailyGenerations: number;
-  onGenerate: () => void;
-}
+export type GenerationSettings = SchnellSettings | AudioSettings | SpeechSettings;

@@ -35,19 +35,24 @@ export function SpeechGenerationForm({
   const handleSubmit = async () => {
     if (!text || !file) return;
     
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
+      // Generate a unique filename
+      const timestamp = new Date().getTime();
+      const fileExt = file.name.split('.').pop();
+      const uniqueFileName = `speech-ref-${timestamp}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('media')
-        .upload(`speech/${file.name}`, file);
+        .upload(`speech/${uniqueFileName}`, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
         .from('media')
-        .getPublicUrl(`speech/${file.name}`);
+        .getPublicUrl(`speech/${uniqueFileName}`);
 
       await onSubmit({
         gen_text: text,

@@ -36,8 +36,16 @@ export function useSpeechGeneration(modelId: string, onGenerate: () => void) {
       setLoading(true);
       console.log("Starting Speech generation with settings:", settings);
 
+      // Generate a unique filename for the uploaded audio
+      const timestamp = new Date().getTime();
+      const fileName = `speech-${timestamp}-${Math.random().toString(36).substring(7)}.mp3`;
+
+      // Call the edge function to generate speech
       const result = await supabase.functions.invoke('generate-speech', {
-        body: settings
+        body: {
+          ...settings,
+          fileName
+        }
       });
 
       console.log("Speech generation response:", result);

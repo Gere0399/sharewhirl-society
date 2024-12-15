@@ -1,14 +1,19 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCredits } from "@/components/generate/hooks/useCredits";
-import { BaseGenerationResult } from "../types";
-import { saveToStorage } from "../../utils/storageUtils";
+import { toast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
 
 export interface SpeechSettings {
   gen_text: string;
   audio_url: string;
   model_type: "F5-TTS";
+}
+
+interface SpeechGenerationResult {
+  success: boolean;
+  message: string;
+  description: string;
 }
 
 export function useSpeechGeneration(modelId: string, onGenerate: () => void) {
@@ -21,7 +26,7 @@ export function useSpeechGeneration(modelId: string, onGenerate: () => void) {
     return credits === null || credits < getRequiredCredits();
   };
 
-  const handleGenerate = async (settings: SpeechSettings): Promise<BaseGenerationResult> => {
+  const handleGenerate = async (settings: SpeechSettings): Promise<SpeechGenerationResult> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -40,11 +45,11 @@ export function useSpeechGeneration(modelId: string, onGenerate: () => void) {
         body: settings
       });
 
+      console.log("Speech generation response:", result);
+
       if (!result.data?.audio_url) {
         throw new Error("No audio URL in response");
       }
-
-      const outputUrl = await saveToStorage(result.data.audio_url, "speech");
 
       const { error: creditError } = await supabase
         .from('credits')
@@ -59,7 +64,7 @@ export function useSpeechGeneration(modelId: string, onGenerate: () => void) {
         model_type: "speech",
         prompt: settings.gen_text,
         settings: settings as unknown as Database['public']['Tables']['generations']['Insert']['settings'],
-        output_url: outputUrl,
+        output_url: result.data.audio_url,
         cost: modelCost
       });
 
@@ -67,6 +72,11 @@ export function useSpeechGeneration(modelId: string, onGenerate: () => void) {
 
       onGenerate();
       setCredits(prev => prev !== null ? prev - modelCost : null);
+
+      toast({
+        title: "Generation successful",
+        description: "Your speech has been generated and saved to your history.",
+      });
 
       return {
         success: true,
@@ -76,6 +86,13 @@ export function useSpeechGeneration(modelId: string, onGenerate: () => void) {
 
     } catch (error: any) {
       console.error("Speech generation error:", error);
+      
+      toast({
+        title: "Generation failed",
+        description: error.message || "Failed to generate speech. Please try again.",
+        variant: "destructive"
+      });
+      
       return {
         success: false,
         message: "Generation failed",

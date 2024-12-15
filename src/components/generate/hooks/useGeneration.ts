@@ -61,8 +61,6 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           });
         }
 
-        console.log("Generation response received:", result);
-
         if (!result.data) {
           console.error("Empty response received:", result);
           throw new Error("No response received from generation function");

@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Loader, DollarSign, Badge } from "lucide-react";
 import { ImageUpload } from "../../form/ImageUpload";
-import { SafetyOptions } from "../../form/SafetyOptions";
-import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { PulidPromptInput } from "./inputs/PulidPromptInput";
+import { PulidSliders } from "./inputs/PulidSliders";
+import { PulidOptions } from "./inputs/PulidOptions";
+import { ImageSize } from "@/types/generation";
 
 interface PulidModelProps {
   onSubmit: (settings: any) => Promise<void>;
@@ -31,7 +29,7 @@ export function PulidModel({
   const [prompt, setPrompt] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [inferenceSteps, setInferenceSteps] = useState(20);
-  const [imageSize, setImageSize] = useState<string>("landscape_4_3");
+  const [imageSize, setImageSize] = useState<ImageSize>("landscape_4_3");
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
   const [guidanceScale, setGuidanceScale] = useState(4);
   const [idWeight, setIdWeight] = useState(1);
@@ -62,17 +60,13 @@ export function PulidModel({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="prompt">Image Description</Label>
-        <Textarea
-          id="prompt"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe the image you want to generate"
-          className="min-h-[100px]"
-        />
-      </div>
+    <div className="space-y-6">
+      <PulidPromptInput
+        prompt={prompt}
+        setPrompt={setPrompt}
+        negativePrompt={negativePrompt}
+        setNegativePrompt={setNegativePrompt}
+      />
 
       <ImageUpload 
         file={file} 
@@ -80,95 +74,24 @@ export function PulidModel({
         required={true}
       />
 
-      <div className="space-y-2">
-        <Label>Resolution</Label>
-        <Select value={imageSize} onValueChange={setImageSize}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select resolution" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="square_hd">Square HD</SelectItem>
-            <SelectItem value="square">Square</SelectItem>
-            <SelectItem value="portrait_4_3">Portrait 4:3</SelectItem>
-            <SelectItem value="portrait_16_9">Portrait 16:9</SelectItem>
-            <SelectItem value="landscape_4_3">Landscape 4:3</SelectItem>
-            <SelectItem value="landscape_16_9">Landscape 16:9</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Inference Steps ({inferenceSteps})</Label>
-        <Slider
-          value={[inferenceSteps]}
-          onValueChange={(value) => setInferenceSteps(value[0])}
-          min={1}
-          max={50}
-          step={1}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Guidance Scale ({guidanceScale})</Label>
-        <Slider
-          value={[guidanceScale]}
-          onValueChange={(value) => setGuidanceScale(value[0])}
-          min={1}
-          max={20}
-          step={0.1}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>ID Weight ({idWeight})</Label>
-        <Slider
-          value={[idWeight]}
-          onValueChange={(value) => setIdWeight(value[0])}
-          min={0}
-          max={5}
-          step={0.1}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>True CFG ({trueCfg})</Label>
-        <Slider
-          value={[trueCfg]}
-          onValueChange={(value) => setTrueCfg(value[0])}
-          min={0}
-          max={5}
-          step={0.1}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Max Sequence Length</Label>
-        <Select value={maxSequenceLength} onValueChange={setMaxSequenceLength}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select sequence length" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="128">128</SelectItem>
-            <SelectItem value="256">256</SelectItem>
-            <SelectItem value="512">512</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="negativePrompt">Negative Prompt</Label>
-        <Textarea
-          id="negativePrompt"
-          value={negativePrompt}
-          onChange={(e) => setNegativePrompt(e.target.value)}
-          placeholder="Enter negative prompt"
-          className="min-h-[100px]"
-        />
-      </div>
-
-      <SafetyOptions
+      <PulidOptions
+        imageSize={imageSize}
+        setImageSize={setImageSize}
+        maxSequenceLength={maxSequenceLength}
+        setMaxSequenceLength={setMaxSequenceLength}
         enableSafetyChecker={enableSafetyChecker}
         setEnableSafetyChecker={setEnableSafetyChecker}
+      />
+
+      <PulidSliders
+        inferenceSteps={inferenceSteps}
+        setInferenceSteps={setInferenceSteps}
+        guidanceScale={guidanceScale}
+        setGuidanceScale={setGuidanceScale}
+        idWeight={idWeight}
+        setIdWeight={setIdWeight}
+        trueCfg={trueCfg}
+        setTrueCfg={setTrueCfg}
       />
 
       <Button 

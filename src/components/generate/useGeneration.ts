@@ -1,120 +1,60 @@
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { ModelId, GenerationSettings } from "@/types/generation";
-import { useCredits } from "@/components/generate/hooks/useCredits";
-import { getModelInfo, getModelType } from "./utils/modelUtils";
-import { generateWithFlux } from "./models/flux/fluxModels";
-import { generateStableAudio } from "./models/audio/stableAudio";
-import { generateSpeech } from "./models/speech/speechModel";
-import { Database } from "@/integrations/supabase/types";
+import { getModelType } from "./utils/modelUtils";
+import { useFluxGeneration } from "./models/flux/FluxModel";
+import { useStableAudioGeneration } from "./models/audio/StableAudioModel";
+import { useSpeechGeneration } from "./models/speech/SpeechModel";
 
 export function useGeneration(modelId: ModelId, dailyGenerations: number, onGenerate: () => void) {
-  const [loading, setLoading] = useState(false);
-  const { credits, setCredits } = useCredits();
+  const fluxGeneration = useFluxGeneration(modelId, dailyGenerations, onGenerate);
+  const stableAudioGeneration = useStableAudioGeneration(modelId, onGenerate);
+  const speechGeneration = useSpeechGeneration(modelId, onGenerate);
+
+  const modelType = getModelType(modelId);
 
   const getRequiredCredits = () => {
-    const modelInfo = getModelInfo(modelId);
-    return modelInfo?.cost || 1;
-  };
-
-  const handleGenerate = async (settings: GenerationSettings) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("You must be logged in to generate content");
-      }
-
-      const modelInfo = getModelInfo(modelId);
-      if (!modelInfo) throw new Error("Invalid model");
-      
-      const modelCost = getRequiredCredits();
-      const isSchnellModel = modelId.includes("schnell");
-      
-      if (isSchnellModel) {
-        if (dailyGenerations >= 10) {
-          if (credits === null || credits < modelCost) {
-            throw new Error("You've used all free generations. Please purchase credits to continue.");
-          }
-        }
-      } else if (credits === null || credits < modelCost) {
-        throw new Error("Insufficient credits");
-      }
-
-      setLoading(true);
-      console.log("Starting generation with settings:", settings);
-
-      let result;
-      const modelType = getModelType(modelId);
-
-      // Call the appropriate model generation function
-      if (modelId.includes('flux') || modelId.includes('schnell')) {
-        result = await generateWithFlux(modelId, settings);
-      } else if (modelType === 'audio') {
-        result = await generateStableAudio(settings);
-      } else if (modelType === 'speech') {
-        result = await generateSpeech(settings);
-      } else {
-        throw new Error("Unsupported model type");
-      }
-
-      if (result.success) {
-        if (!isSchnellModel || dailyGenerations >= 10) {
-          const { error: creditError } = await supabase
-            .from('credits')
-            .update({ amount: credits! - modelCost })
-            .eq('user_id', user.id);
-
-          if (creditError) throw creditError;
-        }
-
-        // Get the prompt based on the settings type
-        let promptValue = '';
-        if ('prompt' in settings) {
-          promptValue = settings.prompt;
-        } else if ('gen_text' in settings) {
-          promptValue = settings.gen_text;
-        }
-
-        const { error: generationError } = await supabase.from('generations').insert({
-          user_id: user.id,
-          model_name: modelId,
-          model_type: modelType,
-          prompt: promptValue,
-          settings: settings as unknown as Database['public']['Tables']['generations']['Insert']['settings'],
-          output_url: result.output_url,
-          cost: isSchnellModel && dailyGenerations < 10 ? 0 : modelCost
-        });
-
-        if (generationError) throw generationError;
-
-        onGenerate();
-        
-        if (!isSchnellModel || dailyGenerations >= 10) {
-          setCredits(prev => prev !== null ? prev - modelCost : null);
-        }
-      }
-
-      return result;
-
-    } catch (error: any) {
-      console.error("Generation error:", error);
-      return {
-        success: false,
-        message: "Generation failed",
-        description: error.message || "Failed to generate content. Please check your configuration.",
-      };
-    } finally {
-      setLoading(false);
+    switch (modelType) {
+      case "audio":
+        return stableAudioGeneration.getRequiredCredits();
+      case "speech":
+        return speechGeneration.getRequiredCredits();
+      default:
+        return fluxGeneration.getRequiredCredits();
     }
   };
 
   const isDisabled = () => {
-    const isSchnellModel = modelId.includes("schnell");
-    if (isSchnellModel) {
-      return dailyGenerations >= 10 && (credits === null || credits < getRequiredCredits());
+    switch (modelType) {
+      case "audio":
+        return stableAudioGeneration.isDisabled();
+      case "speech":
+        return speechGeneration.isDisabled();
+      default:
+        return fluxGeneration.isDisabled();
     }
-    return credits === null || credits < getRequiredCredits();
   };
+
+  const handleGenerate = async (settings: GenerationSettings) => {
+    switch (modelType) {
+      case "audio":
+        return stableAudioGeneration.handleGenerate(settings);
+      case "speech":
+        return speechGeneration.handleGenerate(settings);
+      default:
+        return fluxGeneration.handleGenerate(settings);
+    }
+  };
+
+  const loading = modelType === "audio" 
+    ? stableAudioGeneration.loading 
+    : modelType === "speech" 
+      ? speechGeneration.loading 
+      : fluxGeneration.loading;
+
+  const credits = modelType === "audio"
+    ? stableAudioGeneration.credits
+    : modelType === "speech"
+      ? speechGeneration.credits
+      : fluxGeneration.credits;
 
   return {
     loading,

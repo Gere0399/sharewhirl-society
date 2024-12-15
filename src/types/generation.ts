@@ -22,8 +22,7 @@ export interface BaseGenerationSettings {
   enable_safety_checker: boolean;
 }
 
-export interface SchnellSettings extends BaseGenerationSettings {
-}
+export type SchnellSettings = BaseGenerationSettings;
 
 export interface ReduxSettings extends BaseGenerationSettings {
   image_url: string;
@@ -37,10 +36,8 @@ export interface AudioSettings {
 
 export interface SpeechSettings {
   gen_text: string;
-  ref_text?: string;
   audio_url: string;
-  model_type: "F5-TTS" | "E2-TTS";
-  remove_silence?: boolean;
+  model_type: "F5-TTS";
 }
 
 export type GenerationSettings = SchnellSettings | ReduxSettings | AudioSettings | SpeechSettings;

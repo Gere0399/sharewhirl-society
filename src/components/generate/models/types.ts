@@ -1,13 +1,11 @@
-import { ModelType } from "@/types/generation";
-
 export interface BaseGenerationResult {
   success: boolean;
   message: string;
   description: string;
+  output_url?: string;
 }
 
 export interface BaseGenerationOptions {
   modelId: string;
-  modelType: ModelType;
   settings: any;
 }

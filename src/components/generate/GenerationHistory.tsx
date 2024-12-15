@@ -50,7 +50,7 @@ export function GenerationHistory({ type, modelId, refreshTrigger = 0 }: Generat
   }
 
   const renderGenerationItem = (generation: any) => {
-    if (type === "audio") {
+    if (type === "audio" || type === "speech") {
       return (
         <div className="space-y-2">
           <audio 

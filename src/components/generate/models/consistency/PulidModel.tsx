@@ -61,17 +61,17 @@ export function PulidModel({
 
   return (
     <div className="space-y-6">
+      <ImageUpload 
+        file={file} 
+        setFile={setFile}
+        required={true}
+      />
+
       <PulidPromptInput
         prompt={prompt}
         setPrompt={setPrompt}
         negativePrompt={negativePrompt}
         setNegativePrompt={setNegativePrompt}
-      />
-
-      <ImageUpload 
-        file={file} 
-        setFile={setFile}
-        required={true}
       />
 
       <PulidOptions

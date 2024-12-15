@@ -1,10 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import { BaseGenerationResult } from "../types";
-import { AudioSettings } from "@/types/generation";
+import { StableAudioSettings } from "@/types/generation";
 import { saveToStorage } from "../../utils/storageUtils";
 
 export async function generateStableAudio(
-  settings: AudioSettings
+  settings: StableAudioSettings
 ): Promise<BaseGenerationResult> {
   try {
     console.log("Starting Stable Audio generation with settings:", settings);

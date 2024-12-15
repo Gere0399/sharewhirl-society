@@ -45,6 +45,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
       try {
         let result;
         
+        // Specifically check for Pulid model and use its dedicated endpoint
         if (modelId === 'fal-ai/flux-pulid') {
           console.log("Using Pulid endpoint with settings:", settings);
           result = await supabase.functions.invoke('generate-pulid-image', {

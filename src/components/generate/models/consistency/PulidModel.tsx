@@ -6,6 +6,8 @@ import { Loader, DollarSign, Badge } from "lucide-react";
 import { ImageUpload } from "../../form/ImageUpload";
 import { SafetyOptions } from "../../form/SafetyOptions";
 import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 interface PulidModelProps {
   onSubmit: (settings: any) => Promise<void>;
@@ -29,11 +31,13 @@ export function PulidModel({
   const [prompt, setPrompt] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [inferenceSteps, setInferenceSteps] = useState(20);
+  const [imageSize, setImageSize] = useState<string>("landscape_4_3");
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
   const [guidanceScale, setGuidanceScale] = useState(4);
   const [idWeight, setIdWeight] = useState(1);
   const [trueCfg, setTrueCfg] = useState(1);
   const [negativePrompt, setNegativePrompt] = useState("bad quality, worst quality, text, signature, watermark, extra limbs");
+  const [maxSequenceLength, setMaxSequenceLength] = useState<string>("128");
 
   const handleSubmit = async () => {
     if (!prompt || !file) return;
@@ -44,12 +48,14 @@ export function PulidModel({
       await onSubmit({
         prompt,
         reference_image_url: base64Data,
+        image_size: imageSize,
         num_inference_steps: inferenceSteps,
         guidance_scale: guidanceScale,
         negative_prompt: negativePrompt,
         true_cfg: trueCfg,
         id_weight: idWeight,
         enable_safety_checker: enableSafetyChecker,
+        max_sequence_length: maxSequenceLength
       });
     };
     reader.readAsDataURL(file);
@@ -59,11 +65,12 @@ export function PulidModel({
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="prompt">Image Description</Label>
-        <Input
+        <Textarea
           id="prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="Describe the image you want to generate"
+          className="min-h-[100px]"
         />
       </div>
 
@@ -72,6 +79,23 @@ export function PulidModel({
         setFile={setFile}
         required={true}
       />
+
+      <div className="space-y-2">
+        <Label>Resolution</Label>
+        <Select value={imageSize} onValueChange={setImageSize}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select resolution" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="square_hd">Square HD</SelectItem>
+            <SelectItem value="square">Square</SelectItem>
+            <SelectItem value="portrait_4_3">Portrait 4:3</SelectItem>
+            <SelectItem value="portrait_16_9">Portrait 16:9</SelectItem>
+            <SelectItem value="landscape_4_3">Landscape 4:3</SelectItem>
+            <SelectItem value="landscape_16_9">Landscape 16:9</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="space-y-2">
         <Label>Inference Steps ({inferenceSteps})</Label>
@@ -118,12 +142,27 @@ export function PulidModel({
       </div>
 
       <div className="space-y-2">
+        <Label>Max Sequence Length</Label>
+        <Select value={maxSequenceLength} onValueChange={setMaxSequenceLength}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select sequence length" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="128">128</SelectItem>
+            <SelectItem value="256">256</SelectItem>
+            <SelectItem value="512">512</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="negativePrompt">Negative Prompt</Label>
-        <Input
+        <Textarea
           id="negativePrompt"
           value={negativePrompt}
           onChange={(e) => setNegativePrompt(e.target.value)}
           placeholder="Enter negative prompt"
+          className="min-h-[100px]"
         />
       </div>
 

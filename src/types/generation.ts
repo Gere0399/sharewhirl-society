@@ -47,16 +47,25 @@ export interface SpeechSettings {
   remove_silence?: boolean;
 }
 
-export interface PulidSettings extends BaseGenerationSettings {
+export interface PulidSettings {
+  prompt: string;
   reference_image_url: string;
+  image_size?: ImageSize;
+  num_inference_steps?: number;
   guidance_scale?: number;
   negative_prompt?: string;
   true_cfg?: number;
   id_weight?: number;
-  max_sequence_length?: number;
+  enable_safety_checker?: boolean;
+  max_sequence_length?: string;
 }
 
-export type GenerationSettings = FluxGenerationSettings | ReduxSettings | StableAudioSettings | SpeechSettings | PulidSettings;
+export type GenerationSettings = 
+  | FluxGenerationSettings 
+  | ReduxSettings 
+  | StableAudioSettings 
+  | SpeechSettings 
+  | PulidSettings;
 
 export interface GenerateImageProps {
   modelId: ModelId;

@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ModelId, GenerationSettings } from "@/types/generation";
+import { ModelId, GenerationSettings, PulidSettings } from "@/types/generation";
 import { useCredits } from "@/components/generate/hooks/useCredits";
-import { useFalAI } from "@/components/generate/hooks/useFalAI";
 import { getModelInfo, getModelType } from "../utils/modelUtils";
 import { Database } from "@/integrations/supabase/types";
 
 export function useGeneration(modelId: ModelId, dailyGenerations: number, onGenerate: () => void) {
   const [loading, setLoading] = useState(false);
   const { credits, setCredits } = useCredits();
-  const { generateWithFalAI } = useFalAI();
 
   const getRequiredCredits = () => {
     const modelInfo = getModelInfo(modelId);
@@ -42,37 +40,37 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
       setLoading(true);
       console.log("Starting generation with settings:", settings);
 
-      try {
-        let result;
-        
-        if (modelId === 'fal-ai/flux-pulid') {
-          console.log("Using Pulid endpoint with settings:", settings);
-          result = await supabase.functions.invoke('generate-pulid-image', {
-            body: { 
-              modelId: 'fal-ai/flux-pulid',
-              settings: {
-                prompt: settings.prompt,
-                reference_image_url: settings.reference_image_url,
-                image_size: settings.image_size || "landscape_4_3",
-                num_inference_steps: settings.num_inference_steps || 20,
-                guidance_scale: settings.guidance_scale || 4,
-                negative_prompt: settings.negative_prompt || "bad quality, worst quality, text, signature, watermark, extra limbs",
-                true_cfg: settings.true_cfg || 1,
-                id_weight: settings.id_weight || 1,
-                enable_safety_checker: settings.enable_safety_checker !== undefined ? settings.enable_safety_checker : true,
-                max_sequence_length: settings.max_sequence_length || "128"
-              }
+      let result;
+      
+      if (modelId === 'fal-ai/flux-pulid') {
+        const pulidSettings = settings as PulidSettings;
+        console.log("Using Pulid endpoint with settings:", pulidSettings);
+        result = await supabase.functions.invoke('generate-pulid-image', {
+          body: { 
+            modelId: 'fal-ai/flux-pulid',
+            settings: {
+              prompt: pulidSettings.prompt,
+              reference_image_url: pulidSettings.reference_image_url,
+              image_size: pulidSettings.image_size || "landscape_4_3",
+              num_inference_steps: pulidSettings.num_inference_steps || 20,
+              guidance_scale: pulidSettings.guidance_scale || 4,
+              negative_prompt: pulidSettings.negative_prompt || "bad quality, worst quality, text, signature, watermark, extra limbs",
+              true_cfg: pulidSettings.true_cfg || 1,
+              id_weight: pulidSettings.id_weight || 1,
+              enable_safety_checker: pulidSettings.enable_safety_checker !== undefined ? pulidSettings.enable_safety_checker : true,
+              max_sequence_length: pulidSettings.max_sequence_length || "128"
             }
-          });
-        } else if (modelId.includes('flux')) {
-          result = await supabase.functions.invoke('generate-flux-image', {
-            body: { modelId, settings }
-          });
-        } else {
-          result = await supabase.functions.invoke('generate-image', {
-            body: { modelId, settings }
-          });
-        }
+          }
+        });
+      } else if (modelId.includes('flux')) {
+        result = await supabase.functions.invoke('generate-flux-image', {
+          body: { modelId, settings }
+        });
+      } else {
+        result = await supabase.functions.invoke('generate-image', {
+          body: { modelId, settings }
+        });
+      }
 
         if (!result.data) {
           console.error("Empty response received:", result);
@@ -121,21 +119,12 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           setCredits(prev => prev !== null ? prev - modelCost : null);
         }
 
-        return {
-          success: true,
-          message: "Generation successful",
-          description: "Your content has been generated and saved to your history.",
-        };
-      } catch (error: any) {
-        console.error("Generation error:", error);
-        if (error.message?.includes("ValidationError")) {
-          throw new Error("Invalid generation settings. Please check your input and try again.");
-        }
-        if (error.message?.includes("Load failed")) {
-          throw new Error("Generation timed out. Please try again.");
-        }
-        throw error;
-      }
+      return {
+        success: true,
+        message: "Generation successful",
+        description: "Your content has been generated and saved to your history.",
+      };
+
     } catch (error: any) {
       console.error("Generation error:", error);
       return {

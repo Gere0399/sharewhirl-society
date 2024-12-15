@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Loader, DollarSign, Badge } from "lucide-react";
 import { ImageUpload } from "../../form/ImageUpload";
 import { PulidPromptInput } from "./inputs/PulidPromptInput";
-import { PulidSliders } from "./inputs/PulidSliders";
 import { PulidOptions } from "./inputs/PulidOptions";
 import { ImageSize } from "@/types/generation";
 
@@ -28,14 +27,9 @@ export function PulidModel({
 }: PulidModelProps) {
   const [prompt, setPrompt] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [inferenceSteps, setInferenceSteps] = useState(20);
   const [imageSize, setImageSize] = useState<ImageSize>("landscape_4_3");
   const [enableSafetyChecker, setEnableSafetyChecker] = useState(true);
-  const [guidanceScale, setGuidanceScale] = useState(4);
-  const [idWeight, setIdWeight] = useState(1);
-  const [trueCfg, setTrueCfg] = useState(1);
   const [negativePrompt, setNegativePrompt] = useState("bad quality, worst quality, text, signature, watermark, extra limbs");
-  const [maxSequenceLength, setMaxSequenceLength] = useState<string>("128");
 
   const handleSubmit = async () => {
     if (!prompt || !file) return;
@@ -47,26 +41,20 @@ export function PulidModel({
         prompt,
         reference_image_url: base64Data,
         image_size: imageSize,
-        num_inference_steps: inferenceSteps,
-        guidance_scale: guidanceScale,
+        num_inference_steps: 25, // Default value as per FAL documentation
+        guidance_scale: 7.5, // Default value as per FAL documentation
         negative_prompt: negativePrompt,
-        true_cfg: trueCfg,
-        id_weight: idWeight,
-        enable_safety_checker: enableSafetyChecker,
-        max_sequence_length: maxSequenceLength
+        enable_safety_checker: enableSafetyChecker
       });
       
       await onSubmit({
         prompt,
         reference_image_url: base64Data,
         image_size: imageSize,
-        num_inference_steps: inferenceSteps,
-        guidance_scale: guidanceScale,
+        num_inference_steps: 25,
+        guidance_scale: 7.5,
         negative_prompt: negativePrompt,
-        true_cfg: trueCfg,
-        id_weight: idWeight,
-        enable_safety_checker: enableSafetyChecker,
-        max_sequence_length: maxSequenceLength
+        enable_safety_checker: enableSafetyChecker
       });
     };
     reader.readAsDataURL(file);
@@ -90,21 +78,8 @@ export function PulidModel({
       <PulidOptions
         imageSize={imageSize}
         setImageSize={setImageSize}
-        maxSequenceLength={maxSequenceLength}
-        setMaxSequenceLength={setMaxSequenceLength}
         enableSafetyChecker={enableSafetyChecker}
         setEnableSafetyChecker={setEnableSafetyChecker}
-      />
-
-      <PulidSliders
-        inferenceSteps={inferenceSteps}
-        setInferenceSteps={setInferenceSteps}
-        guidanceScale={guidanceScale}
-        setGuidanceScale={setGuidanceScale}
-        idWeight={idWeight}
-        setIdWeight={setIdWeight}
-        trueCfg={trueCfg}
-        setTrueCfg={setTrueCfg}
       />
 
       <Button 

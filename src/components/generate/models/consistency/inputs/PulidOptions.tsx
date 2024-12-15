@@ -6,8 +6,6 @@ import { ImageSize } from "@/types/generation";
 interface PulidOptionsProps {
   imageSize: ImageSize;
   setImageSize: (value: ImageSize) => void;
-  maxSequenceLength: string;
-  setMaxSequenceLength: (value: string) => void;
   enableSafetyChecker: boolean;
   setEnableSafetyChecker: (value: boolean) => void;
 }
@@ -15,8 +13,6 @@ interface PulidOptionsProps {
 export function PulidOptions({
   imageSize,
   setImageSize,
-  maxSequenceLength,
-  setMaxSequenceLength,
   enableSafetyChecker,
   setEnableSafetyChecker
 }: PulidOptionsProps) {
@@ -35,20 +31,6 @@ export function PulidOptions({
             <SelectItem value="portrait_16_9">Portrait 16:9</SelectItem>
             <SelectItem value="landscape_4_3">Landscape 4:3</SelectItem>
             <SelectItem value="landscape_16_9">Landscape 16:9</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Max Sequence Length</Label>
-        <Select value={maxSequenceLength} onValueChange={setMaxSequenceLength}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select sequence length" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="128">128</SelectItem>
-            <SelectItem value="256">256</SelectItem>
-            <SelectItem value="512">512</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -1,4 +1,4 @@
 project_id = "sycpmhvfcqlrgclybihv"
 
-[functions.generate-stable-audio]
+[functions.generate-pulid-image]
 verify_jwt = false

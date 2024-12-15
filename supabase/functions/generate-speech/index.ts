@@ -43,8 +43,12 @@ serve(async (req) => {
 
     console.log('Speech generation completed:', result)
 
+    if (!result.data?.audio_url) {
+      throw new Error('No audio URL in response')
+    }
+
     return new Response(
-      JSON.stringify({ audio_url: result.data.audio_url.url }),
+      JSON.stringify({ audio_url: result.data.audio_url }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 

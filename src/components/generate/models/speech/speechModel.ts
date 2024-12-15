@@ -36,21 +36,15 @@ export function useSpeechGeneration(modelId: string, onGenerate: () => void) {
       setLoading(true);
       console.log("Starting Speech generation with settings:", settings);
 
-      // Generate a unique filename for the uploaded audio
-      const timestamp = new Date().getTime();
-      const fileName = `speech-${timestamp}-${Math.random().toString(36).substring(7)}.mp3`;
-
       // Call the edge function to generate speech
-      const result = await supabase.functions.invoke('generate-speech', {
-        body: {
-          ...settings,
-          fileName
-        }
+      const { data, error } = await supabase.functions.invoke('generate-speech', {
+        body: settings
       });
 
-      console.log("Speech generation response:", result);
+      if (error) throw error;
+      console.log("Speech generation response:", data);
 
-      if (!result.data?.audio_url) {
+      if (!data?.audio_url?.url) {
         throw new Error("No audio URL in response");
       }
 
@@ -67,7 +61,7 @@ export function useSpeechGeneration(modelId: string, onGenerate: () => void) {
         model_type: "speech",
         prompt: settings.gen_text,
         settings: settings as unknown as Database['public']['Tables']['generations']['Insert']['settings'],
-        output_url: result.data.audio_url,
+        output_url: data.audio_url.url,
         cost: modelCost
       });
 

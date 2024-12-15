@@ -14,8 +14,8 @@ serve(async (req) => {
   }
 
   try {
-    const input = await req.json();
-    console.log('Received input:', input);
+    const { settings } = await req.json();
+    console.log('Received input:', settings);
 
     const falKey = Deno.env.get('FAL_KEY');
     if (!falKey) {
@@ -27,7 +27,7 @@ serve(async (req) => {
     });
 
     const result = await fal.subscribe("fal-ai/flux-pulid", {
-      input: input.settings,
+      input: settings,
       logs: true,
       onQueueUpdate: (update) => {
         if (update.status === "IN_PROGRESS") {

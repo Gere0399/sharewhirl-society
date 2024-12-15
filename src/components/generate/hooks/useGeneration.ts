@@ -47,7 +47,7 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         
         if (modelId === 'fal-ai/flux-pulid') {
           result = await supabase.functions.invoke('generate-pulid-image', {
-            body: { modelId, settings }
+            body: { settings }
           });
         } else if (modelId.includes('flux')) {
           result = await supabase.functions.invoke('generate-flux-image', {

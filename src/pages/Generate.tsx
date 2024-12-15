@@ -80,7 +80,7 @@ export default function Generate() {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
                 {modelInfo?.label || "Generate"}
               </h1>
-              <CreditDisplay credits={credits} modelCost={null} />
+              <CreditDisplay credits={credits} />
             </div>
 
             <div className="bg-black/5 backdrop-blur-lg border border-white/10 rounded-lg p-4 mb-6">

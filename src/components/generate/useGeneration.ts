@@ -2,15 +2,15 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ModelId, GenerationSettings } from "@/types/generation";
 import { useCredits } from "@/components/generate/hooks/useCredits";
-import { useFalAI } from "@/components/generate/hooks/useFalAI";
 import { getModelInfo, getModelType } from "./utils/modelUtils";
-import { saveToStorage } from "./utils/storageUtils";
+import { generateWithFlux } from "./models/flux/fluxModels";
+import { generateStableAudio } from "./models/audio/stableAudio";
+import { generateSpeech } from "./models/speech/speechModel";
 import { Database } from "@/integrations/supabase/types";
 
 export function useGeneration(modelId: ModelId, dailyGenerations: number, onGenerate: () => void) {
   const [loading, setLoading] = useState(false);
   const { credits, setCredits } = useCredits();
-  const { generateWithFalAI } = useFalAI();
 
   const getRequiredCredits = () => {
     const modelInfo = getModelInfo(modelId);
@@ -43,37 +43,21 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
       setLoading(true);
       console.log("Starting generation with settings:", settings);
 
-      try {
-        let result;
-        
-        // Use different endpoints based on model type
-        if (modelId.includes('flux')) {
-          result = await supabase.functions.invoke('generate-flux-image', {
-            body: { modelId, settings }
-          });
-        } else {
-          result = await supabase.functions.invoke('generate-image', {
-            body: { modelId, settings }
-          });
-        }
+      let result;
+      const modelType = getModelType(modelId);
 
-        console.log("Generation response received:", result);
+      // Call the appropriate model generation function
+      if (modelId.includes('flux') || modelId.includes('schnell')) {
+        result = await generateWithFlux(modelId, settings);
+      } else if (modelType === 'audio') {
+        result = await generateStableAudio(settings);
+      } else if (modelType === 'speech') {
+        result = await generateSpeech(settings);
+      } else {
+        throw new Error("Unsupported model type");
+      }
 
-        if (!result.data) throw new Error("No response received from generation function");
-
-        let outputUrl;
-        if ('images' in result.data.data && result.data.data.images?.[0]?.url) {
-          outputUrl = result.data.data.images[0].url;
-        } else if ('audio_url' in result.data.data) {
-          outputUrl = result.data.data.audio_url;
-        } else if ('audio_file' in result.data.data && result.data.data.audio_file?.url) {
-          outputUrl = result.data.data.audio_file.url;
-        } else {
-          throw new Error("No output URL in response");
-        }
-
-        const storedUrl = await saveToStorage(outputUrl, getModelType(modelId));
-
+      if (result.success) {
         if (!isSchnellModel || dailyGenerations >= 10) {
           const { error: creditError } = await supabase
             .from('credits')
@@ -94,10 +78,10 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         const { error: generationError } = await supabase.from('generations').insert({
           user_id: user.id,
           model_name: modelId,
-          model_type: getModelType(modelId),
+          model_type: modelType,
           prompt: promptValue,
           settings: settings as unknown as Database['public']['Tables']['generations']['Insert']['settings'],
-          output_url: storedUrl,
+          output_url: result.output_url,
           cost: isSchnellModel && dailyGenerations < 10 ? 0 : modelCost
         });
 
@@ -108,22 +92,10 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         if (!isSchnellModel || dailyGenerations >= 10) {
           setCredits(prev => prev !== null ? prev - modelCost : null);
         }
-
-        return {
-          success: true,
-          message: "Generation successful",
-          description: "Your content has been generated and saved to your history.",
-        };
-      } catch (error: any) {
-        console.error("Generation error:", error);
-        if (error.message?.includes("ValidationError")) {
-          throw new Error("Invalid generation settings. Please check your input and try again.");
-        }
-        if (error.message?.includes("Load failed")) {
-          throw new Error("Generation timed out. Please try again.");
-        }
-        throw error;
       }
+
+      return result;
+
     } catch (error: any) {
       console.error("Generation error:", error);
       return {

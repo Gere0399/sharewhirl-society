@@ -1,7 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { fal } from "npm:@fal-ai/client";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,19 +25,9 @@ serve(async (req) => {
       credentials: falKey
     });
 
+    console.log('Submitting request to FAL AI with settings:', settings);
     const result = await fal.subscribe("fal-ai/flux-pulid", {
-      input: {
-        prompt: settings.prompt,
-        reference_image_url: settings.reference_image_url,
-        image_size: settings.image_size || "landscape_4_3",
-        num_inference_steps: settings.num_inference_steps || 20,
-        guidance_scale: settings.guidance_scale || 4,
-        negative_prompt: settings.negative_prompt || "bad quality, worst quality, text, signature, watermark, extra limbs",
-        true_cfg: settings.true_cfg || 1,
-        id_weight: settings.id_weight || 1,
-        enable_safety_checker: settings.enable_safety_checker !== undefined ? settings.enable_safety_checker : true,
-        max_sequence_length: settings.max_sequence_length || "128"
-      },
+      input: settings,
       logs: true,
       onQueueUpdate: (update) => {
         if (update.status === "IN_PROGRESS") {
@@ -56,42 +45,16 @@ serve(async (req) => {
       throw new Error('Missing Supabase credentials');
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-
     const imageUrl = result.data.images?.[0]?.url;
     if (!imageUrl) {
       console.error('Response structure:', result.data);
       throw new Error('No image URL in response');
     }
 
-    const imageResponse = await fetch(imageUrl);
-    const imageBlob = await imageResponse.blob();
-
-    const timestamp = new Date().getTime();
-    const filename = `consistency/${timestamp}_${crypto.randomUUID()}.jpg`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('generated')
-      .upload(filename, imageBlob, {
-        contentType: 'image/jpeg',
-        upsert: false
-      });
-
-    if (uploadError) {
-      console.error('Error uploading to storage:', uploadError);
-      throw uploadError;
-    }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('generated')
-      .getPublicUrl(filename);
-
-    console.log('Public URL generated:', publicUrl);
-
     return new Response(JSON.stringify({
       data: {
         images: [{
-          url: publicUrl,
+          url: imageUrl,
           content_type: 'image/jpeg'
         }],
         timings: result.data.timings,

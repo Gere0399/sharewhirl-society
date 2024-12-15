@@ -48,7 +48,21 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         if (modelId === 'fal-ai/flux-pulid') {
           console.log("Using Pulid endpoint with settings:", settings);
           result = await supabase.functions.invoke('generate-pulid-image', {
-            body: { settings }
+            body: { 
+              modelId: 'fal-ai/flux-pulid',
+              settings: {
+                prompt: settings.prompt,
+                reference_image_url: settings.reference_image_url,
+                image_size: settings.image_size || "landscape_4_3",
+                num_inference_steps: settings.num_inference_steps || 20,
+                guidance_scale: settings.guidance_scale || 4,
+                negative_prompt: settings.negative_prompt || "bad quality, worst quality, text, signature, watermark, extra limbs",
+                true_cfg: settings.true_cfg || 1,
+                id_weight: settings.id_weight || 1,
+                enable_safety_checker: settings.enable_safety_checker !== undefined ? settings.enable_safety_checker : true,
+                max_sequence_length: settings.max_sequence_length || "128"
+              }
+            }
           });
         } else if (modelId.includes('flux')) {
           result = await supabase.functions.invoke('generate-flux-image', {

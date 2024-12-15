@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Loader, DollarSign, Badge } from "lucide-react";
 import { AudioUpload } from "./AudioUpload";
+import { Switch } from "@/components/ui/switch";
 
 interface SpeechGenerationFormProps {
   onSubmit: (settings: any) => Promise<void>;
@@ -25,33 +27,74 @@ export function SpeechGenerationForm({
   dailyGenerations = 0
 }: SpeechGenerationFormProps) {
   const [text, setText] = useState("");
+  const [refText, setRefText] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [removeSilence, setRemoveSilence] = useState(true);
 
   const handleSubmit = async () => {
     if (!text || !file) return;
     
-    await onSubmit({
-      gen_text: text,
-      audio_url: file,
-      model_type: "F5-TTS"
-    });
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(`speech/${file.name}`, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(`speech/${file.name}`);
+
+      await onSubmit({
+        gen_text: text,
+        ref_audio_url: publicUrl,
+        ref_text: refText || undefined,
+        model_type: "F5-TTS",
+        remove_silence: removeSilence
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    }
   };
 
   return (
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="text">Text to Convert</Label>
-        <Input
+        <Textarea
           id="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Enter the text you want to convert to speech"
+          className="min-h-[100px]"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="refText">Reference Text (Optional)</Label>
+        <Input
+          id="refText"
+          value={refText}
+          onChange={(e) => setRefText(e.target.value)}
+          placeholder="Enter the reference text"
         />
       </div>
 
       <div className="space-y-2">
         <Label>Reference Audio</Label>
         <AudioUpload file={file} setFile={setFile} required />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="remove-silence"
+          checked={removeSilence}
+          onCheckedChange={setRemoveSilence}
+        />
+        <Label htmlFor="remove-silence">Remove Silence</Label>
       </div>
 
       <Button 

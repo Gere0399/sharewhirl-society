@@ -40,8 +40,10 @@ export interface StableAudioSettings {
 
 export interface SpeechSettings {
   gen_text: string;
-  audio_url: string;
+  ref_audio_url: string;
+  ref_text?: string;
   model_type: "F5-TTS";
+  remove_silence?: boolean;
 }
 
 export type GenerationSettings = FluxGenerationSettings | ReduxSettings | StableAudioSettings | SpeechSettings;

@@ -3,12 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCredits } from "@/components/generate/hooks/useCredits";
 import { toast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
-
-export interface SpeechSettings {
-  gen_text: string;
-  audio_url: string;
-  model_type: "F5-TTS";
-}
+import { SpeechSettings } from "@/types/generation";
 
 interface SpeechGenerationResult {
   success: boolean;

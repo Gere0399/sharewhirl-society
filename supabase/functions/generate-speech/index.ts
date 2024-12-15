@@ -1,5 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+import { fal } from 'npm:@fal-ai/client'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,22 +12,39 @@ serve(async (req) => {
   }
 
   try {
-    const { gen_text, audio_url } = await req.json()
+    const { gen_text, ref_audio_url, ref_text, model_type, remove_silence } = await req.json()
     
-    if (!gen_text || !audio_url) {
+    if (!gen_text || !ref_audio_url) {
       throw new Error('Missing required parameters')
     }
 
-    console.log('Starting speech generation with settings:', { gen_text, audio_url })
+    console.log('Starting speech generation with settings:', { gen_text, ref_audio_url, ref_text, model_type, remove_silence })
 
-    // Mock response for now - replace with actual API call
-    const response = {
-      audio_url: audio_url, // For now, return the same audio URL
-      success: true
-    }
+    // Configure fal client
+    fal.config({
+      credentials: Deno.env.get('FAL_KEY')
+    })
+
+    const result = await fal.subscribe('fal-ai/f5-tts', {
+      input: {
+        gen_text,
+        ref_audio_url,
+        ref_text: ref_text || '',
+        model_type: model_type || 'F5-TTS',
+        remove_silence: remove_silence ?? true
+      },
+      logs: true,
+      onQueueUpdate: (update) => {
+        if (update.status === 'IN_PROGRESS') {
+          update.logs.map((log) => log.message).forEach(console.log)
+        }
+      },
+    })
+
+    console.log('Speech generation completed:', result)
 
     return new Response(
-      JSON.stringify(response),
+      JSON.stringify({ audio_url: result.data.audio_url.url }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 

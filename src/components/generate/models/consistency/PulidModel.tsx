@@ -43,6 +43,19 @@ export function PulidModel({
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64Data = reader.result as string;
+      console.log("Submitting Pulid generation with settings:", {
+        prompt,
+        reference_image_url: base64Data,
+        image_size: imageSize,
+        num_inference_steps: inferenceSteps,
+        guidance_scale: guidanceScale,
+        negative_prompt: negativePrompt,
+        true_cfg: trueCfg,
+        id_weight: idWeight,
+        enable_safety_checker: enableSafetyChecker,
+        max_sequence_length: maxSequenceLength
+      });
+      
       await onSubmit({
         prompt,
         reference_image_url: base64Data,

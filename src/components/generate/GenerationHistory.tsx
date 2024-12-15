@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Download } from "lucide-react";
 
 interface GenerationHistoryProps {
   type: string;
@@ -45,6 +46,25 @@ export function GenerationHistory({ type, modelId, refreshTrigger = 0 }: Generat
     fetchGenerations();
   }, [type, modelId, refreshTrigger]);
 
+  const handleDownload = async (url: string, prompt: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const fileName = `${prompt.slice(0, 30).replace(/[^a-z0-9]/gi, '_')}_${Date.now()}${type === 'audio' || type === 'speech' ? '.mp3' : '.png'}`;
+      
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+    }
+  };
+
   if (loading) {
     return <div>Loading history...</div>;
   }
@@ -52,12 +72,18 @@ export function GenerationHistory({ type, modelId, refreshTrigger = 0 }: Generat
   const renderGenerationItem = (generation: any) => {
     if (type === "audio" || type === "speech") {
       return (
-        <div className="space-y-2">
+        <div className="space-y-2 relative group">
           <audio 
             controls 
             src={generation.output_url}
             className="w-full"
           />
+          <button
+            onClick={() => handleDownload(generation.output_url, generation.prompt)}
+            className="absolute top-2 right-2 p-2 bg-black/60 rounded hover:bg-black/80 transition-colors invisible group-hover:visible"
+          >
+            <Download className="h-4 w-4 text-white" />
+          </button>
           <p className="text-sm text-muted-foreground truncate">
             {generation.prompt}
           </p>
@@ -66,13 +92,19 @@ export function GenerationHistory({ type, modelId, refreshTrigger = 0 }: Generat
     }
 
     return (
-      <div className="space-y-2">
+      <div className="space-y-2 relative group">
         <AspectRatio ratio={16/9}>
           <img
             src={generation.output_url}
             alt={generation.prompt}
             className="rounded-lg object-cover w-full h-full"
           />
+          <button
+            onClick={() => handleDownload(generation.output_url, generation.prompt)}
+            className="absolute top-2 right-2 p-2 bg-black/60 rounded hover:bg-black/80 transition-colors invisible group-hover:visible"
+          >
+            <Download className="h-4 w-4 text-white" />
+          </button>
         </AspectRatio>
         <p className="text-sm text-muted-foreground truncate">
           {generation.prompt}

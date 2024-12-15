@@ -2,6 +2,7 @@ import { ModelType, GenerationSettings } from "@/types/generation";
 import { ImageGenerationForm } from "./form/ImageGenerationForm";
 import { AudioGenerationForm } from "./form/AudioGenerationForm";
 import { SpeechGenerationForm } from "./form/SpeechGenerationForm";
+import { PulidModel } from "./models/consistency/PulidModel";
 
 interface GenerationFormProps {
   onSubmit: (settings: GenerationSettings) => Promise<void>;
@@ -39,6 +40,8 @@ export function GenerationForm({
       return <AudioGenerationForm {...commonProps} />;
     case "speech":
       return <SpeechGenerationForm {...commonProps} />;
+    case "consistency":
+      return <PulidModel {...commonProps} />;
     default:
       return <ImageGenerationForm {...commonProps} modelType={modelType} />;
   }

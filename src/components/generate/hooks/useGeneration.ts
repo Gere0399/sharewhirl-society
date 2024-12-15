@@ -47,19 +47,8 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         console.log("Using Pulid endpoint with settings:", pulidSettings);
         result = await supabase.functions.invoke('generate-pulid-image', {
           body: { 
-            modelId: 'fal-ai/flux-pulid',
-            settings: {
-              prompt: pulidSettings.prompt,
-              reference_image_url: pulidSettings.reference_image_url,
-              image_size: pulidSettings.image_size || "landscape_4_3",
-              num_inference_steps: pulidSettings.num_inference_steps || 20,
-              guidance_scale: pulidSettings.guidance_scale || 4,
-              negative_prompt: pulidSettings.negative_prompt || "bad quality, worst quality, text, signature, watermark, extra limbs",
-              true_cfg: pulidSettings.true_cfg || 1,
-              id_weight: pulidSettings.id_weight || 1,
-              enable_safety_checker: pulidSettings.enable_safety_checker !== undefined ? pulidSettings.enable_safety_checker : true,
-              max_sequence_length: pulidSettings.max_sequence_length || "128"
-            }
+            modelId,
+            settings: pulidSettings
           }
         });
       } else if (modelId.includes('flux')) {
@@ -72,52 +61,52 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
         });
       }
 
-        if (!result.data) {
-          console.error("Empty response received:", result);
-          throw new Error("No response received from generation function");
-        }
+      if (!result.data) {
+        console.error("Empty response received:", result);
+        throw new Error("No response received from generation function");
+      }
 
-        let outputUrl;
-        if (result.data.images?.[0]?.url) {
-          outputUrl = result.data.images[0].url;
-        } else {
-          console.error("Response structure:", result.data);
-          throw new Error("No output URL in response");
-        }
+      let outputUrl;
+      if (result.data.images?.[0]?.url) {
+        outputUrl = result.data.images[0].url;
+      } else {
+        console.error("Response structure:", result.data);
+        throw new Error("No output URL in response");
+      }
 
-        if (!isSchnellModel || dailyGenerations >= 10) {
-          const { error: creditError } = await supabase
-            .from('credits')
-            .update({ amount: credits! - modelCost })
-            .eq('user_id', user.id);
+      if (!isSchnellModel || dailyGenerations >= 10) {
+        const { error: creditError } = await supabase
+          .from('credits')
+          .update({ amount: credits! - modelCost })
+          .eq('user_id', user.id);
 
-          if (creditError) throw creditError;
-        }
+        if (creditError) throw creditError;
+      }
 
-        let promptValue = '';
-        if ('prompt' in settings) {
-          promptValue = settings.prompt;
-        } else if ('gen_text' in settings) {
-          promptValue = settings.gen_text;
-        }
+      let promptValue = '';
+      if ('prompt' in settings) {
+        promptValue = settings.prompt;
+      } else if ('gen_text' in settings) {
+        promptValue = settings.gen_text;
+      }
 
-        const { error: generationError } = await supabase.from('generations').insert({
-          user_id: user.id,
-          model_name: modelId,
-          model_type: getModelType(modelId),
-          prompt: promptValue,
-          settings: settings as unknown as Database['public']['Tables']['generations']['Insert']['settings'],
-          output_url: outputUrl,
-          cost: isSchnellModel && dailyGenerations < 10 ? 0 : modelCost
-        });
+      const { error: generationError } = await supabase.from('generations').insert({
+        user_id: user.id,
+        model_name: modelId,
+        model_type: getModelType(modelId),
+        prompt: promptValue,
+        settings: settings as unknown as Database['public']['Tables']['generations']['Insert']['settings'],
+        output_url: outputUrl,
+        cost: isSchnellModel && dailyGenerations < 10 ? 0 : modelCost
+      });
 
-        if (generationError) throw generationError;
+      if (generationError) throw generationError;
 
-        onGenerate();
-        
-        if (!isSchnellModel || dailyGenerations >= 10) {
-          setCredits(prev => prev !== null ? prev - modelCost : null);
-        }
+      onGenerate();
+      
+      if (!isSchnellModel || dailyGenerations >= 10) {
+        setCredits(prev => prev !== null ? prev - modelCost : null);
+      }
 
       return {
         success: true,

@@ -45,13 +45,11 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
       try {
         let result;
         
-        // Specifically check for Pulid model and use its dedicated endpoint
         if (modelId === 'fal-ai/flux-pulid') {
           console.log("Using Pulid endpoint with settings:", settings);
           result = await supabase.functions.invoke('generate-pulid-image', {
             body: { settings }
           });
-          console.log("Pulid response:", result);
         } else if (modelId.includes('flux')) {
           result = await supabase.functions.invoke('generate-flux-image', {
             body: { modelId, settings }
@@ -67,7 +65,6 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           throw new Error("No response received from generation function");
         }
 
-        // Extract the output URL from the response
         let outputUrl;
         if (result.data.images?.[0]?.url) {
           outputUrl = result.data.images[0].url;
@@ -85,7 +82,6 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
           if (creditError) throw creditError;
         }
 
-        // Get the prompt based on the settings type
         let promptValue = '';
         if ('prompt' in settings) {
           promptValue = settings.prompt;

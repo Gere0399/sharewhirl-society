@@ -27,7 +27,18 @@ serve(async (req) => {
     });
 
     const result = await fal.subscribe("fal-ai/flux-pulid", {
-      input: settings,
+      input: {
+        prompt: settings.prompt,
+        reference_image_url: settings.reference_image_url,
+        image_size: settings.image_size || "landscape_4_3",
+        num_inference_steps: settings.num_inference_steps || 20,
+        guidance_scale: settings.guidance_scale || 4,
+        negative_prompt: settings.negative_prompt || "bad quality, worst quality, text, signature, watermark, extra limbs",
+        true_cfg: settings.true_cfg || 1,
+        id_weight: settings.id_weight || 1,
+        enable_safety_checker: settings.enable_safety_checker !== undefined ? settings.enable_safety_checker : true,
+        max_sequence_length: settings.max_sequence_length || "128"
+      },
       logs: true,
       onQueueUpdate: (update) => {
         if (update.status === "IN_PROGRESS") {

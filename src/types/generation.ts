@@ -10,9 +10,10 @@ export type ModelId =
   | "fal-ai/flux/schnell"
   | "fal-ai/flux/schnell/redux"
   | "fal-ai/stable-audio"
-  | "fal-ai/speech-to-speech";
+  | "fal-ai/speech-to-speech"
+  | "fal-ai/flux-pulid";
 
-export type ModelType = "text-to-image" | "image-to-image" | "audio" | "speech";
+export type ModelType = "text-to-image" | "image-to-image" | "audio" | "speech" | "consistency";
 
 export interface BaseGenerationSettings {
   prompt?: string;
@@ -46,7 +47,16 @@ export interface SpeechSettings {
   remove_silence?: boolean;
 }
 
-export type GenerationSettings = FluxGenerationSettings | ReduxSettings | StableAudioSettings | SpeechSettings;
+export interface PulidSettings extends BaseGenerationSettings {
+  reference_image_url: string;
+  guidance_scale?: number;
+  negative_prompt?: string;
+  true_cfg?: number;
+  id_weight?: number;
+  max_sequence_length?: number;
+}
+
+export type GenerationSettings = FluxGenerationSettings | ReduxSettings | StableAudioSettings | SpeechSettings | PulidSettings;
 
 export interface GenerateImageProps {
   modelId: ModelId;

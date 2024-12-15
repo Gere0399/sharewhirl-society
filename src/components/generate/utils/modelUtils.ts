@@ -13,6 +13,13 @@ export interface ModelInfo {
 
 export const AVAILABLE_MODELS: ModelInfo[] = [
   {
+    id: "fal-ai/flux-pulid",
+    label: "Pulid Consistency",
+    cost: 50,
+    type: "consistency",
+    category: "consistency"
+  },
+  {
     id: "fal-ai/flux/schnell",
     label: "Schnell Text to Image",
     cost: 1,

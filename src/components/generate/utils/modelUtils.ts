@@ -8,7 +8,7 @@ export interface ModelInfo {
   type: ModelType;
   hasFreeDaily?: boolean;
   freeDailyLimit?: number;
-  category: "image" | "audio" | "speech";
+  category: "consistency" | "image" | "video" | "audio" | "speech";
 }
 
 export const AVAILABLE_MODELS: ModelInfo[] = [
@@ -53,6 +53,14 @@ export const getModelType = (modelId: ModelId): ModelType => {
   return model?.type || "text-to-image";
 };
 
-export const getModelsByCategory = (category: "image" | "audio" | "speech") => {
+export const getModelsByCategory = (category: ModelInfo['category']) => {
   return AVAILABLE_MODELS.filter(model => model.category === category);
 };
+
+export const CATEGORIES = [
+  { id: "consistency", label: "Consistency" },
+  { id: "image", label: "Images" },
+  { id: "video", label: "Video" },
+  { id: "audio", label: "Audio" },
+  { id: "speech", label: "Speech" }
+] as const;

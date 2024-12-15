@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { TagInput } from "./TagInput";
 import { MediaUpload } from "./MediaUpload";
+import { useToast } from "@/hooks/use-toast";
 
 interface CreatePostFormProps {
   onSubmit: (data: {
@@ -12,6 +13,7 @@ interface CreatePostFormProps {
     tags: string[];
     isAiGenerated: boolean;
     file: File | null;
+    thumbnail?: File | null;
   }) => Promise<void>;
   uploading: boolean;
 }
@@ -21,13 +23,25 @@ export function CreatePostForm({ onSubmit, uploading }: CreatePostFormProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [isAiGenerated, setIsAiGenerated] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
+  const { toast } = useToast();
 
   const handleSubmit = async () => {
+    if (file?.type.startsWith("video/") && !thumbnail) {
+      toast({
+        title: "Error",
+        description: "Please upload a thumbnail for your video",
+        variant: "destructive",
+      });
+      return;
+    }
+
     await onSubmit({
       title,
       tags,
       isAiGenerated,
       file,
+      thumbnail: file?.type.startsWith("video/") ? thumbnail : null,
     });
     
     // Reset form
@@ -35,6 +49,7 @@ export function CreatePostForm({ onSubmit, uploading }: CreatePostFormProps) {
     setTags([]);
     setIsAiGenerated(false);
     setFile(null);
+    setThumbnail(null);
   };
 
   return (
@@ -56,7 +71,13 @@ export function CreatePostForm({ onSubmit, uploading }: CreatePostFormProps) {
         <Label htmlFor="ai-generated">AI Generated Content</Label>
       </div>
       
-      <MediaUpload file={file} onFileSelect={setFile} />
+      <MediaUpload 
+        file={file} 
+        onFileSelect={setFile}
+        thumbnail={thumbnail}
+        onThumbnailSelect={setThumbnail}
+        showThumbnailUpload={file?.type.startsWith("video/") || false}
+      />
 
       <Button
         onClick={handleSubmit}

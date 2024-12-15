@@ -1,8 +1,8 @@
-import { ModelId, GenerationSettings } from "@/types/generation";
+import { ModelId, GenerationSettings, FluxGenerationSettings, StableAudioSettings, SpeechSettings } from "@/types/generation";
 import { getModelType } from "./utils/modelUtils";
 import { useFluxGeneration } from "./models/flux/FluxModel";
 import { useStableAudioGeneration } from "./models/audio/StableAudioModel";
-import { useSpeechGeneration } from "./models/speech/SpeechModel";
+import { useSpeechGeneration } from "./models/speech/speechModel";
 
 export function useGeneration(modelId: ModelId, dailyGenerations: number, onGenerate: () => void) {
   const fluxGeneration = useFluxGeneration(modelId, dailyGenerations, onGenerate);
@@ -36,11 +36,11 @@ export function useGeneration(modelId: ModelId, dailyGenerations: number, onGene
   const handleGenerate = async (settings: GenerationSettings) => {
     switch (modelType) {
       case "audio":
-        return stableAudioGeneration.handleGenerate(settings);
+        return stableAudioGeneration.handleGenerate(settings as StableAudioSettings);
       case "speech":
-        return speechGeneration.handleGenerate(settings);
+        return speechGeneration.handleGenerate(settings as SpeechSettings);
       default:
-        return fluxGeneration.handleGenerate(settings);
+        return fluxGeneration.handleGenerate(settings as FluxGenerationSettings);
     }
   };
 

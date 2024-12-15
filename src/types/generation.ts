@@ -18,17 +18,21 @@ export interface BaseGenerationSettings {
   prompt?: string;
   image_size?: ImageSize;
   num_images?: number;
+  num_inference_steps?: number;
+  enable_safety_checker?: boolean;
+}
+
+export interface FluxGenerationSettings extends BaseGenerationSettings {
+  prompt: string;
   num_inference_steps: number;
   enable_safety_checker: boolean;
 }
 
-export type SchnellSettings = BaseGenerationSettings;
-
-export interface ReduxSettings extends BaseGenerationSettings {
+export interface ReduxSettings extends FluxGenerationSettings {
   image_url: string;
 }
 
-export interface AudioSettings {
+export interface StableAudioSettings {
   prompt: string;
   seconds_total: number;
   steps: number;
@@ -40,7 +44,7 @@ export interface SpeechSettings {
   model_type: "F5-TTS";
 }
 
-export type GenerationSettings = SchnellSettings | ReduxSettings | AudioSettings | SpeechSettings;
+export type GenerationSettings = FluxGenerationSettings | ReduxSettings | StableAudioSettings | SpeechSettings;
 
 export interface GenerateImageProps {
   modelId: ModelId;

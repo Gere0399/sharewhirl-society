@@ -1,15 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { BaseGenerationResult } from "../types";
-import { GenerationSettings } from "@/types/generation";
+import { FluxGenerationSettings } from "@/types/generation";
 import { saveToStorage } from "../../utils/storageUtils";
-
-export interface FluxGenerationSettings extends GenerationSettings {
-  prompt: string;
-  image_size?: string;
-  num_inference_steps: number;
-  enable_safety_checker: boolean;
-  image_url?: string;
-}
 
 export async function generateWithFlux(
   modelId: string,

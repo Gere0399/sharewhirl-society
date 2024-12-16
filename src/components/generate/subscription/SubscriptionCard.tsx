@@ -35,12 +35,12 @@ export function SubscriptionCard({
     <Card className={cn(
       "relative flex flex-col bg-card/50 backdrop-blur-sm border-border/50 h-full",
       isCurrentPlan && "border-primary",
-      isBestDeal && "ring-2 ring-[#9b87f5] shadow-lg scale-[1.02] mt-4"
+      isBestDeal && "ring-2 ring-[#9b87f5] shadow-lg scale-[1.02]"
     )}>
       {isBestDeal && (
-        <>
+        <div className="best-deal-header">
           <div className="absolute -top-8 left-0 right-0 w-full">
-            <div className="bg-[#9b87f5] text-white px-6 py-2 rounded-t-lg flex items-center justify-center gap-2 mx-auto">
+            <div className="bg-[#9b87f5] text-white px-6 py-2 rounded-t-lg flex items-center justify-center gap-2 mx-auto w-full">
               <ArrowDown className="h-4 w-4" />
               <span className="font-medium">Best Deal</span>
             </div>
@@ -49,7 +49,7 @@ export function SubscriptionCard({
           <div className="absolute inset-x-0 -bottom-px h-[2px] bg-gradient-to-r from-transparent via-[#9b87f5] to-transparent" />
           <div className="absolute inset-y-0 -left-px w-[2px] bg-gradient-to-b from-transparent via-[#9b87f5] to-transparent" />
           <div className="absolute inset-y-0 -right-px w-[2px] bg-gradient-to-b from-transparent via-[#9b87f5] to-transparent" />
-        </>
+        </div>
       )}
       <CardHeader className="space-y-2">
         <div className="space-y-1">

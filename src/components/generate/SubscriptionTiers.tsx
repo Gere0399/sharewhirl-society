@@ -7,7 +7,7 @@ import { PricingHeader } from "./subscription/PricingHeader";
 
 const SUBSCRIPTION_TIERS = [
   {
-    id: "prod_R7RzG9YcXrBRhx",
+    id: "tier_basic",
     name: "Basic",
     description: "Perfect for getting started with AI generation",
     price: 3.99,
@@ -20,7 +20,7 @@ const SUBSCRIPTION_TIERS = [
     ]
   },
   {
-    id: "prod_R7S1FahwYOaUbG",
+    id: "tier_pro",
     name: "Pro",
     description: "For power users who need more generation capacity",
     price: 22.70,
@@ -33,7 +33,7 @@ const SUBSCRIPTION_TIERS = [
     isBestDeal: true
   },
   {
-    id: "prod_R7S1Sdv96HwC69",
+    id: "tier_enterprise",
     name: "Enterprise",
     description: "The perfect plan for enterprises that want to start working with us",
     price: 100,

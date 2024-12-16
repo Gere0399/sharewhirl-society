@@ -7,6 +7,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const PRICE_IDS = {
+  tier_basic: "price_basic",
+  tier_pro: "price_pro",
+  tier_enterprise: "price_enterprise"
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -29,14 +35,10 @@ serve(async (req) => {
     }
 
     const { tier_id } = await req.json();
+    console.log('Received tier_id:', tier_id);
 
-    const { data: tier } = await supabaseClient
-      .from('subscription_tiers')
-      .select('*')
-      .eq('id', tier_id)
-      .single();
-
-    if (!tier) {
+    const priceId = PRICE_IDS[tier_id as keyof typeof PRICE_IDS];
+    if (!priceId) {
       throw new Error('Invalid subscription tier');
     }
 
@@ -44,11 +46,12 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
+    console.log('Creating checkout session with price ID:', priceId);
     const session = await stripe.checkout.sessions.create({
       customer_email: email,
       line_items: [
         {
-          price: tier.price_id,
+          price: priceId,
           quantity: 1,
         },
       ],

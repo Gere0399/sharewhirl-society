@@ -22,7 +22,8 @@ interface PostCardProps {
   isFullView?: boolean;
 }
 
-export function PostCard({ post, currentUserId, onLike, isFullView = false }: PostCardProps) {
+export function PostCard({ post: initialPost, currentUserId, onLike, isFullView = false }: PostCardProps) {
+  const [post, setPost] = useState(initialPost);
   const [isRepostOpen, setIsRepostOpen] = useState(false);
   const [hasBeenViewed, setHasBeenViewed] = useState(false);
   const postRef = useRef<HTMLDivElement>(null);
@@ -30,6 +31,34 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
   const location = useLocation();
   const viewTimeoutRef = useRef<NodeJS.Timeout>();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Subscribe to real-time updates for this post
+    const channel = supabase
+      .channel(`post-${post.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'posts',
+          filter: `id=eq.${post.id}`
+        },
+        (payload: any) => {
+          if (payload.new) {
+            setPost((prevPost: any) => ({
+              ...prevPost,
+              ...payload.new
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [post.id]);
 
   useEffect(() => {
     if (!postRef.current || hasBeenViewed || !currentUserId) return;
@@ -102,6 +131,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
         navigate('/');
       }
     } catch (error: any) {
+      console.error('Delete error:', error);
       toast({
         title: "Error",
         description: "Failed to delete post",

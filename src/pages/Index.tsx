@@ -38,6 +38,26 @@ const Index = () => {
   useEffect(() => {
     if (session) {
       fetchPosts();
+
+      // Subscribe to real-time updates for posts
+      const channel = supabase
+        .channel('public:posts')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'posts'
+          },
+          () => {
+            fetchPosts();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [session, activeTag]);
 
@@ -136,7 +156,7 @@ const Index = () => {
         if (insertError) throw insertError;
       }
 
-      await fetchPosts();
+      // No need to fetch posts here as the real-time subscription will handle the update
     } catch (error: any) {
       console.error("Error handling like:", error);
       toast({

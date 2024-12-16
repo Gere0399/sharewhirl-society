@@ -74,18 +74,11 @@ export function SubscriptionTiers() {
       
       if (!session?.access_token) return;
 
-      const response = await fetch('/functions/v1/get-subscription', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
+      const { data, error } = await supabase.functions.invoke('get-subscription', {
+        method: 'GET'
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      if (error) throw error;
       if (data.subscription) {
         setCurrentSubscription(data.subscription);
       }
@@ -110,23 +103,13 @@ export function SubscriptionTiers() {
         throw new Error('Please log in to subscribe');
       }
 
-      const response = await fetch('/functions/v1/create-checkout', {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ tier_id: tierId }),
+        body: { tier_id: tierId }
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const { url, error } = await response.json();
-
-      if (error) throw new Error(error);
-      if (url) window.location.href = url;
+      if (error) throw error;
+      if (data?.url) window.location.href = data.url;
 
     } catch (error: any) {
       toast({
@@ -149,27 +132,12 @@ export function SubscriptionTiers() {
           subscription={currentSubscription}
           onManageSubscription={async () => {
             try {
-              const { data: { session } } = await supabase.auth.getSession();
-              
-              if (!session?.access_token) {
-                throw new Error('Please log in to manage your subscription');
-              }
-
-              const response = await fetch('/functions/v1/create-portal-session', {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${session.access_token}`,
-                },
+              const { data, error } = await supabase.functions.invoke('create-portal-session', {
+                method: 'POST'
               });
 
-              if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-              }
-
-              const { url, error } = await response.json();
-
-              if (error) throw new Error(error);
-              if (url) window.location.href = url;
+              if (error) throw error;
+              if (data?.url) window.location.href = data.url;
 
             } catch (error: any) {
               toast({

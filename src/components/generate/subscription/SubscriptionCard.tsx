@@ -39,8 +39,8 @@ export function SubscriptionCard({
     )}>
       {isBestDeal && (
         <>
-          <div className="absolute -top-8 left-0 w-full">
-            <div className="bg-[#9b87f5] text-white px-6 py-2 rounded-t-lg flex items-center justify-center gap-2">
+          <div className="absolute -top-8 left-0 right-0 w-full">
+            <div className="bg-[#9b87f5] text-white px-6 py-2 rounded-t-lg flex items-center justify-center gap-2 mx-auto">
               <ArrowDown className="h-4 w-4" />
               <span className="font-medium">Best Deal</span>
             </div>

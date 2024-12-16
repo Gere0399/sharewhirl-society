@@ -35,6 +35,7 @@ export function CommentList({
 
   const handleDeleteComment = async (commentId: string) => {
     try {
+      // Delete the comment
       const { error } = await supabase
         .from('comments')
         .delete()

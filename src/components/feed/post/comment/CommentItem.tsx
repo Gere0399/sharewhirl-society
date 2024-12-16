@@ -46,6 +46,28 @@ export function CommentItem({
   const isExpanded = expandedComments.includes(comment.id);
   const isOwnComment = currentUserId === comment.user_id;
 
+  const handleDelete = async () => {
+    try {
+      // First delete all likes for this comment
+      const { error: likesError } = await supabase
+        .from('comments_likes')
+        .delete()
+        .eq('comment_id', comment.id);
+
+      if (likesError) throw likesError;
+
+      // Then delete the comment
+      await onDelete(comment.id);
+    } catch (error: any) {
+      console.error('Error deleting comment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete comment",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleReplySubmit = async (content: string, file: File | null) => {
     if (replyingTo) {
       await onCommentSubmit(content, file, replyingTo);

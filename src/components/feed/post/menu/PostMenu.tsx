@@ -32,32 +32,7 @@ export function PostMenu({
     e.stopPropagation();
     
     try {
-      // First, delete all reposts that reference this post
-      const { error: repostsError } = await supabase
-        .from('posts')
-        .delete()
-        .eq('reposted_from_id', postId);
-
-      if (repostsError) throw repostsError;
-
-      // Delete all reposts made by this post
-      const { error: repostDeleteError } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', postId)
-        .not('reposted_from_id', 'is', null);
-
-      if (repostDeleteError) throw repostDeleteError;
-
-      // Delete post views
-      const { error: viewsError } = await supabase
-        .from('post_views')
-        .delete()
-        .eq('post_id', postId);
-
-      if (viewsError) throw viewsError;
-
-      // Delete notifications
+      // First, delete all notifications related to this post
       const { error: notificationsError } = await supabase
         .from('notifications')
         .delete()
@@ -65,7 +40,7 @@ export function PostMenu({
 
       if (notificationsError) throw notificationsError;
 
-      // Delete comments likes
+      // Delete all comments likes
       const { data: comments } = await supabase
         .from('comments')
         .select('id')
@@ -89,13 +64,21 @@ export function PostMenu({
 
       if (commentsError) throw commentsError;
 
-      // Delete likes
+      // Delete post likes
       const { error: likesError } = await supabase
         .from('likes')
         .delete()
         .eq('post_id', postId);
 
       if (likesError) throw likesError;
+
+      // Delete post views
+      const { error: viewsError } = await supabase
+        .from('post_views')
+        .delete()
+        .eq('post_id', postId);
+
+      if (viewsError) throw viewsError;
 
       // Finally delete the post itself
       const { error: postError } = await supabase

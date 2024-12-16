@@ -6,12 +6,12 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { PostHeader } from "./post/PostHeader";
-import { PostContent } from "./post/PostContent";
-import { PostMedia } from "./post/PostMedia";
-import { PostActions } from "./post/PostActions";
+import { PostHeader } from "@/components/feed/post/PostHeader";
+import { PostContent } from "@/components/feed/post/PostContent";
+import { PostMedia } from "@/components/feed/post/PostMedia";
+import { PostActions } from "@/components/feed/post/PostActions";
 import { trackPostView } from "@/utils/viewTracking";
-import { RepostDialog } from "./post/RepostDialog";
+import { RepostDialog } from "@/components/feed/post/RepostDialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -32,6 +32,8 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
   const { toast } = useToast();
 
   useEffect(() => {
+    if (!post?.id) return; // Guard against undefined post id
+
     // Subscribe to real-time updates for this post
     const channel = supabase
       .channel(`post-${post.id}`)
@@ -66,6 +68,8 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
           filter: `post_id=eq.${post.id}`
         },
         async () => {
+          if (!post.id) return; // Guard against undefined post id
+
           // Fetch updated post data including likes
           const { data } = await supabase
             .from('posts')
@@ -75,7 +79,9 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
                 username,
                 avatar_url,
                 created_at,
-                bio
+                bio,
+                user_id,
+                followers_count
               ),
               likes (
                 user_id
@@ -95,23 +101,22 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
       supabase.removeChannel(channel);
       supabase.removeChannel(likesChannel);
     };
-  }, [post.id]);
+  }, [post?.id]); // Only depend on post.id
 
   useEffect(() => {
-    if (!postRef.current || hasBeenViewed || !currentUserId) return;
+    if (!postRef.current || hasBeenViewed || !currentUserId || !post?.id) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Track view as soon as any part of the post is visible
             trackPostView(post.id, currentUserId);
             setHasBeenViewed(true);
           }
         });
       },
       {
-        threshold: 0.1, // Post is considered viewed when 10% is visible
+        threshold: 0.1,
       }
     );
 
@@ -120,7 +125,7 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
     return () => {
       observer.disconnect();
     };
-  }, [post.id, currentUserId, hasBeenViewed]);
+  }, [post?.id, currentUserId, hasBeenViewed]);
 
   const handleNavigateToPost = (e: React.MouseEvent) => {
     if (isFullView) return;
@@ -164,6 +169,8 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
       });
     }
   };
+
+  if (!post?.id) return null; // Don't render if post id is undefined
 
   return (
     <Card className="overflow-hidden border-0 bg-card transition-colors w-full">

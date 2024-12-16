@@ -8,9 +8,9 @@ const corsHeaders = {
 };
 
 const PRICE_IDS = {
-  tier_basic: "price_1OQxXXXXXXXXXXXX", // Replace with your actual Stripe price ID for Basic tier
-  tier_pro: "price_2OQxXXXXXXXXXXXX",   // Replace with your actual Stripe price ID for Pro tier
-  tier_enterprise: "price_3OQxXXXXXXXXXXXX" // Replace with your actual Stripe price ID for Enterprise tier
+  tier_basic: "price_1QFD5mLs5rDcVK7GJmEpfrzS",    // $3.99 plan
+  tier_pro: "price_1QFD73Ls5rDcVK7GkWxFpcDi",      // $22.70 plan
+  tier_enterprise: "price_1QFD7dLs5rDcVK7GVpKkPoam" // $100 plan
 };
 
 serve(async (req) => {

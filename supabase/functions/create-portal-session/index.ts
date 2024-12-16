@@ -22,43 +22,28 @@ serve(async (req) => {
     const token = authHeader.replace('Bearer ', '');
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
-    const email = user?.email;
 
-    if (!email) {
-      throw new Error('No email found');
-    }
-
-    const { tier_id } = await req.json();
-
-    const { data: tier } = await supabaseClient
-      .from('subscription_tiers')
-      .select('*')
-      .eq('id', tier_id)
-      .single();
-
-    if (!tier) {
-      throw new Error('Invalid subscription tier');
+    if (!user) {
+      throw new Error('User not found');
     }
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     });
 
-    const session = await stripe.checkout.sessions.create({
-      customer_email: email,
-      line_items: [
-        {
-          price: tier.price_id,
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/subscriptions`,
-      cancel_url: `${req.headers.get('origin')}/subscriptions`,
-      metadata: {
-        user_id: user.id,
-        tier_id: tier_id,
-      },
+    // Get Stripe customer ID
+    const { data: customers } = await stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
+
+    if (!customers || customers.length === 0) {
+      throw new Error('No Stripe customer found');
+    }
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customers[0].id,
+      return_url: `${req.headers.get('origin')}/subscriptions`,
     });
 
     return new Response(

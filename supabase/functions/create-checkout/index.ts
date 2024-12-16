@@ -8,9 +8,9 @@ const corsHeaders = {
 };
 
 const PRICE_IDS = {
-  tier_basic: "price_basic",
-  tier_pro: "price_pro",
-  tier_enterprise: "price_enterprise"
+  tier_basic: "price_1OQxXXXXXXXXXXXX", // Replace with your actual Stripe price ID for Basic tier
+  tier_pro: "price_2OQxXXXXXXXXXXXX",   // Replace with your actual Stripe price ID for Pro tier
+  tier_enterprise: "price_3OQxXXXXXXXXXXXX" // Replace with your actual Stripe price ID for Enterprise tier
 };
 
 serve(async (req) => {

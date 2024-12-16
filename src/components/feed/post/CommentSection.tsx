@@ -17,6 +17,27 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
 
   useEffect(() => {
     fetchComments();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('comments-channel')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments',
+          filter: `post_id=eq.${postId}`
+        },
+        () => {
+          fetchComments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [postId]);
 
   const fetchComments = async () => {
@@ -106,8 +127,6 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
       });
 
       if (error) throw error;
-
-      fetchComments();
       
       toast({
         title: "Success",

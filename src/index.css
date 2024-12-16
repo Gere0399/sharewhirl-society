@@ -59,13 +59,14 @@
 .subscription-background {
   background-image: 
     radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(to bottom, #1A1F2C, rgba(10, 10, 10, 0.8));
+    linear-gradient(to bottom, #1A1F2C, rgba(26, 31, 44, 0.8));
   background-size: 50px 50px, 100% 100%;
   position: relative;
   overflow: hidden;
   margin-left: -16px;
   margin-right: -16px;
   width: calc(100% + 32px);
+  min-height: 100vh;
 }
 
 .subscription-background::before {
@@ -80,4 +81,15 @@
   background-size: 100px 100px;
   opacity: 0.1;
   pointer-events: none;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  .subscription-card {
+    margin-bottom: 2rem;
+  }
+  
+  .subscription-card:last-child {
+    margin-bottom: 0;
+  }
 }

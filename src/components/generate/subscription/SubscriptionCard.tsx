@@ -33,16 +33,15 @@ export function SubscriptionCard({
 }: SubscriptionCardProps) {
   return (
     <Card className={cn(
-      "relative flex flex-col bg-card/50 backdrop-blur-sm border-border/50 h-full",
+      "relative flex flex-col bg-[#1A1F2C]/90 backdrop-blur-sm border-[#2A2F3C] h-full",
       isCurrentPlan && "border-primary",
-      isBestDeal && "ring-2 ring-[#9b87f5] shadow-lg scale-[1.02] mt-4"
+      isBestDeal && "ring-2 ring-[#9b87f5] shadow-lg scale-[1.02] mt-4 mb-8 md:mb-0"
     )}>
       {isBestDeal && (
         <>
-          <div className="absolute -top-8 left-0 right-0 w-full">
+          <div className="absolute -top-8 left-[-3px] right-[-3px]">
             <div className="bg-[#9b87f5] text-white px-6 py-2 rounded-t-lg flex items-center justify-center gap-2 mx-auto">
-              <ArrowDown className="h-4 w-4" />
-              <span className="font-medium">Best Deal</span>
+              <span className="font-medium">Most Popular</span>
             </div>
           </div>
           <div className="absolute inset-x-0 -top-px h-[2px] bg-gradient-to-r from-transparent via-[#9b87f5] to-transparent" />
@@ -53,13 +52,13 @@ export function SubscriptionCard({
       )}
       <CardHeader className="space-y-2">
         <div className="space-y-1">
-          <h3 className="text-2xl font-semibold">{name}</h3>
-          <p className="text-sm text-muted-foreground">{description}</p>
+          <h3 className="text-2xl font-semibold text-white">{name}</h3>
+          <p className="text-sm text-gray-400">{description}</p>
         </div>
         <div className="pt-4">
-          <div className="text-4xl font-bold">
+          <div className="text-4xl font-bold text-white">
             ${price}
-            <span className="text-sm font-normal text-muted-foreground">/month</span>
+            <span className="text-sm font-normal text-gray-400">/month</span>
           </div>
         </div>
       </CardHeader>
@@ -68,7 +67,7 @@ export function SubscriptionCard({
           {features.map((feature, i) => (
             <li key={i} className="flex items-center gap-2">
               <Check className="h-4 w-4 text-[#9b87f5]" />
-              <span className="text-sm">{feature}</span>
+              <span className="text-sm text-gray-300">{feature}</span>
             </li>
           ))}
         </ul>
@@ -79,7 +78,8 @@ export function SubscriptionCard({
           disabled={isLoading && selectedTier === id || isCurrentPlan}
           className={cn(
             "w-full",
-            isBestDeal ? "bg-[#9b87f5] hover:bg-[#9b87f5]/90" : "bg-background hover:bg-accent"
+            isBestDeal ? "bg-[#9b87f5] hover:bg-[#9b87f5]/90" : "bg-[#2A2F3C] hover:bg-[#3A3F4C]",
+            "text-white"
           )}
           size="lg"
         >

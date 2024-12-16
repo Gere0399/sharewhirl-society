@@ -33,14 +33,14 @@ export function SubscriptionCard({
 }: SubscriptionCardProps) {
   return (
     <Card className={cn(
-      "relative flex flex-col bg-card/50 backdrop-blur-sm border-border/50 h-full",
+      "relative flex flex-col bg-card/50 backdrop-blur-sm border-border/50 h-full transition-all duration-300",
       isCurrentPlan && "border-primary",
-      isBestDeal && "ring-2 ring-[#9b87f5] shadow-lg scale-[1.02] mt-4"
+      isBestDeal && "ring-2 ring-[#9b87f5] shadow-lg scale-[1.02] mt-4 md:mt-0"
     )}>
       {isBestDeal && (
         <>
-          <div className="absolute -top-8 left-0 right-0 w-full">
-            <div className="bg-[#9b87f5] text-white px-6 py-2 rounded-t-lg flex items-center justify-center gap-2 mx-auto">
+          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 w-[calc(100%+6px)]">
+            <div className="bg-[#9b87f5] text-white px-6 py-2 rounded-t-lg flex items-center justify-center gap-2 mx-auto w-fit">
               <ArrowDown className="h-4 w-4" />
               <span className="font-medium">Best Deal</span>
             </div>

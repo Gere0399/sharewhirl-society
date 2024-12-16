@@ -124,7 +124,7 @@ export function SubscriptionTiers() {
   };
 
   return (
-    <div className="min-h-screen subscription-background">
+    <div className="min-h-screen subscription-background -ml-16">
       <div className="container px-4 mx-auto py-20">
         <PricingHeader />
         
@@ -149,7 +149,7 @@ export function SubscriptionTiers() {
           }}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 max-w-6xl mx-auto">
           {SUBSCRIPTION_TIERS.map((tier) => {
             const isCurrentTier = currentSubscription?.price?.product?.id === tier.id;
             

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Upload } from "lucide-react";
 
 interface EditProfileDialogProps {
   open: boolean;
@@ -39,7 +40,6 @@ export function EditProfileDialog({
     setIsLoading(true);
 
     try {
-      // Check if username is already taken
       const { data: existingUser } = await supabase
         .from("profiles")
         .select("username")
@@ -93,12 +93,17 @@ export function EditProfileDialog({
     if (!file) return;
 
     try {
+      setIsLoading(true);
       const fileExt = file.name.split('.').pop();
-      const filePath = `${profile.user_id}/avatar.${fileExt}`;
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${profile.user_id}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data } = await supabase.storage
         .from('media')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file, { 
+          upsert: true,
+          contentType: file.type 
+        });
 
       if (uploadError) throw uploadError;
 
@@ -107,12 +112,19 @@ export function EditProfileDialog({
         .getPublicUrl(filePath);
 
       setFormData(prev => ({ ...prev, avatar_url: publicUrl }));
+      
+      toast({
+        title: "Avatar uploaded",
+        description: "Your avatar has been uploaded successfully.",
+      });
     } catch (error: any) {
       toast({
         title: "Error uploading avatar",
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -124,16 +136,23 @@ export function EditProfileDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex flex-col items-center gap-4">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src={formData.avatar_url} />
-              <AvatarFallback>{formData.username?.[0]?.toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="flex items-center gap-2">
-              <Input
+            <div className="relative group">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={formData.avatar_url} />
+                <AvatarFallback>{formData.username?.[0]?.toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <label 
+                htmlFor="avatar-upload" 
+                className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 rounded-full cursor-pointer transition-opacity"
+              >
+                <Upload className="h-6 w-6 text-white" />
+              </label>
+              <input
+                id="avatar-upload"
                 type="file"
                 accept="image/*"
                 onChange={handleAvatarUpload}
-                className="w-full"
+                className="hidden"
               />
             </div>
           </div>

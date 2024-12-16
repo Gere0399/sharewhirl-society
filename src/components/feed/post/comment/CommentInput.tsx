@@ -45,23 +45,27 @@ export function CommentInput({ onSubmit, loading, placeholder = "Write a comment
   };
 
   return (
-    <div className="flex gap-4 p-4 border-b">
+    <div className="flex gap-2 p-4 border-b relative">
       <Textarea
         placeholder={placeholder}
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        className="flex-1"
+        className="flex-1 pr-20"
       />
-      <div className="flex flex-col gap-2">
+      <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2">
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
           onClick={handleFileSelect}
-          className="h-10 w-10"
+          className="h-8 w-8"
         >
           <Upload className="h-4 w-4" />
         </Button>
-        <Button onClick={handleSubmit} disabled={loading}>
+        <Button 
+          onClick={handleSubmit} 
+          disabled={loading}
+          size="sm"
+        >
           Post
         </Button>
       </div>

@@ -124,7 +124,7 @@ export function SubscriptionTiers() {
   };
 
   return (
-    <div className="min-h-screen subscription-background -ml-16">
+    <div className="min-h-screen subscription-background">
       <div className="container px-4 mx-auto py-20">
         <PricingHeader />
         

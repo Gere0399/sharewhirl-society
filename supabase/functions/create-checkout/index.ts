@@ -8,9 +8,9 @@ const corsHeaders = {
 };
 
 const PRICE_IDS = {
-  tier_basic: "price_1QFD5mLs5rDcVK7GJmEpfrzS",    // $3.99 plan
-  tier_pro: "price_1QFD73Ls5rDcVK7GkWxFpcDi",      // $22.70 plan
-  tier_enterprise: "price_1QFD7dLs5rDcVK7GVpKkPoam" // $100 plan
+  tier_basic: "price_1QWlhuL2LtArUNDYHQaZyjlh",    // $3.99 plan
+  tier_pro: "price_1QWliIL2LtArUNDY3iyZQnWP",      // $22.70 plan
+  tier_enterprise: "price_1QWlitL2LtArUNDYtRbjM6qw" // $100 plan
 };
 
 serve(async (req) => {

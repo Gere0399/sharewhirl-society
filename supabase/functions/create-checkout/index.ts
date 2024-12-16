@@ -50,6 +50,9 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       customer_email: email,
       payment_method_types: ['card'],
+      currency: 'usd',
+      allow_promotion_codes: true,
+      billing_address_collection: 'auto',
       line_items: [
         {
           price: priceId,
@@ -57,12 +60,13 @@ serve(async (req) => {
         },
       ],
       mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/subscriptions?success=true`,
+      success_url: `${req.headers.get('origin')}/subscriptions?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/subscriptions?canceled=true`,
       metadata: {
         user_id: user.id,
         tier_id: tier_id,
       },
+      payment_method_collection: 'always',
     });
 
     console.log('Checkout session created successfully:', session.id);

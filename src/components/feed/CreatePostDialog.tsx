@@ -24,11 +24,13 @@ export function CreatePostDialog({ isOpen, onOpenChange }: CreatePostDialogProps
     tags,
     isAiGenerated,
     file,
+    thumbnail,
   }: {
     title: string;
     tags: string[];
     isAiGenerated: boolean;
     file: File | null;
+    thumbnail?: File | null;
   }) => {
     if (!title.trim()) {
       toast({
@@ -59,6 +61,7 @@ export function CreatePostDialog({ isOpen, onOpenChange }: CreatePostDialogProps
 
       let mediaUrl = null;
       let mediaType = null;
+      let thumbnailUrl = null;
 
       if (file) {
         const fileExt = file.name.split(".").pop();
@@ -68,6 +71,20 @@ export function CreatePostDialog({ isOpen, onOpenChange }: CreatePostDialogProps
           mediaType = "image";
         } else if (file.type.startsWith("video/")) {
           mediaType = "video";
+          
+          if (!thumbnail) {
+            throw new Error("Thumbnail is required for video uploads");
+          }
+          
+          const thumbnailExt = thumbnail.name.split(".").pop();
+          const thumbnailName = `${Math.random()}.${thumbnailExt}`;
+          
+          const { error: thumbnailUploadError, data: thumbnailData } = await supabase.storage
+            .from("media")
+            .upload(thumbnailName, thumbnail);
+
+          if (thumbnailUploadError) throw thumbnailUploadError;
+          thumbnailUrl = thumbnailData.path;
         } else if (file.type.startsWith("audio/")) {
           mediaType = "audio";
         }
@@ -85,6 +102,7 @@ export function CreatePostDialog({ isOpen, onOpenChange }: CreatePostDialogProps
         content: title,
         media_url: mediaUrl,
         media_type: mediaType,
+        thumbnail_url: thumbnailUrl,
         user_id: profile.user_id,
         tags,
         is_ai_generated: isAiGenerated

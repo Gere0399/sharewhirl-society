@@ -67,23 +67,14 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            if (viewTimeoutRef.current) {
-              clearTimeout(viewTimeoutRef.current);
-            }
-
-            viewTimeoutRef.current = setTimeout(async () => {
-              await trackPostView(post.id, currentUserId);
-              setHasBeenViewed(true);
-            }, 2000);
-          } else {
-            if (viewTimeoutRef.current) {
-              clearTimeout(viewTimeoutRef.current);
-            }
+            // Track view as soon as any part of the post is visible
+            trackPostView(post.id, currentUserId);
+            setHasBeenViewed(true);
           }
         });
       },
       {
-        threshold: 0.5,
+        threshold: 0.1, // Post is considered viewed when 10% is visible
       }
     );
 
@@ -91,9 +82,6 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
     
     return () => {
       observer.disconnect();
-      if (viewTimeoutRef.current) {
-        clearTimeout(viewTimeoutRef.current);
-      }
     };
   }, [post.id, currentUserId, hasBeenViewed]);
 

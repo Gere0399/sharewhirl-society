@@ -8,7 +8,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
-import { ReportPostDialog } from "../ReportPostDialog";
 import { supabase } from "@/integrations/supabase/client";
 
 interface PostMenuProps {
@@ -24,7 +23,6 @@ export function PostMenu({
   isOwnPost,
   onDeleteClick,
 }: PostMenuProps) {
-  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -32,13 +30,13 @@ export function PostMenu({
     e.stopPropagation();
     
     try {
-      // First, delete all notifications related to this post
-      const { error: notificationsError } = await supabase
-        .from('notifications')
+      // First, delete all reposts that reference this post
+      const { error: repostsError } = await supabase
+        .from('posts')
         .delete()
-        .eq('post_id', postId);
+        .eq('reposted_from_id', postId);
 
-      if (notificationsError) throw notificationsError;
+      if (repostsError) throw repostsError;
 
       // Delete all comments likes
       const { data: comments } = await supabase
@@ -120,7 +118,7 @@ export function PostMenu({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {isOwnPost ? (
+          {isOwnPost && (
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
               onClick={handleDelete}
@@ -128,26 +126,9 @@ export function PostMenu({
               <Trash2 className="mr-2 h-4 w-4" />
               Delete post
             </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setIsReportDialogOpen(true);
-              }}
-            >
-              Report post
-            </DropdownMenuItem>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-
-      <ReportPostDialog
-        isOpen={isReportDialogOpen}
-        onClose={() => setIsReportDialogOpen(false)}
-        postId={postId}
-        postTitle={postTitle}
-      />
     </>
   );
 }

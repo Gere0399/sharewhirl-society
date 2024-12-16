@@ -27,7 +27,6 @@ export const trackPostView = async (postId: string, userId?: string) => {
       }
     }
   } catch (error: any) {
-    // Log any errors but don't throw them to avoid breaking the UI
     console.error('Error in trackPostView:', error);
   }
 };

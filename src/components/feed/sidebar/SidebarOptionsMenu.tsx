@@ -1,9 +1,10 @@
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, CreditCard } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +38,11 @@ export function SidebarOptionsMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="end" className="w-48">
+        <DropdownMenuItem onClick={() => navigate("/subscriptions")}>
+          <CreditCard className="mr-2 h-4 w-4" />
+          <span>Subscriptions</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Sign Out</span>

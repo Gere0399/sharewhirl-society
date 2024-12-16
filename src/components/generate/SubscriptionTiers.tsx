@@ -1,20 +1,10 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { SubscriptionCard } from "./subscription/SubscriptionCard";
+import { CurrentSubscription } from "./subscription/CurrentSubscription";
 
-interface SubscriptionTier {
-  id: string;
-  name: string;
-  description: string;
-  credits_amount: number;
-  price_id: string;
-}
-
-interface CustomerSubscription {
+export interface CustomerSubscription {
   id: string;
   status: string;
   cancel_at_period_end: boolean;
@@ -24,6 +14,14 @@ interface CustomerSubscription {
       id: string;
     }
   }
+}
+
+interface SubscriptionTier {
+  id: string;
+  name: string;
+  description: string;
+  credits_amount: number;
+  price_id: string;
 }
 
 export function SubscriptionTiers() {
@@ -139,60 +137,35 @@ export function SubscriptionTiers() {
 
   return (
     <div className="space-y-8">
-      {currentSubscription && (
-        <div className="text-center space-y-2">
-          <h2 className="text-xl font-semibold">Your Current Subscription</h2>
-          <p className="text-muted-foreground">
-            Status: {currentSubscription.status}
-            {currentSubscription.cancel_at_period_end && " (Cancels at period end)"}
-          </p>
-          <Button 
-            variant="outline" 
-            onClick={handleManageSubscription}
-          >
-            Manage Subscription
-          </Button>
-        </div>
-      )}
+      <div className="text-center space-y-4 max-w-3xl mx-auto mb-12">
+        <h1 className="text-4xl font-bold">Unlock Your Creative Potential</h1>
+        <p className="text-xl text-muted-foreground">
+          Choose a plan that fits your needs and start creating amazing content today
+        </p>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <CurrentSubscription 
+        subscription={currentSubscription}
+        onManageSubscription={handleManageSubscription}
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
         {tiers.map((tier) => {
           const isCurrentTier = currentSubscription?.price?.product?.id === tier.id;
           
           return (
-            <Card key={tier.id} className={`flex flex-col relative ${isCurrentTier ? 'border-primary' : ''}`}>
-              {isCurrentTier && (
-                <Badge className="absolute top-2 right-2">
-                  Current Plan
-                </Badge>
-              )}
-              <CardHeader>
-                <CardTitle>{tier.name}</CardTitle>
-                <CardDescription>{tier.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-3xl font-bold">{tier.credits_amount} Credits</p>
-                <p className="text-sm text-muted-foreground mt-2">Monthly subscription</p>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  onClick={() => handleSubscribe(tier.id)}
-                  disabled={loading && selectedTier === tier.id || isCurrentTier}
-                  className="w-full"
-                >
-                  {loading && selectedTier === tier.id ? (
-                    <>
-                      <Loader className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : isCurrentTier ? (
-                    "Current Plan"
-                  ) : (
-                    "Subscribe"
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
+            <SubscriptionCard
+              key={tier.id}
+              id={tier.id}
+              name={tier.name}
+              description={tier.description}
+              price={tier.credits_amount === 50 ? 3.99 : tier.credits_amount === 300 ? 22.70 : 100}
+              creditsAmount={tier.credits_amount}
+              isCurrentPlan={isCurrentTier}
+              isLoading={loading}
+              selectedTier={selectedTier}
+              onSubscribe={() => handleSubscribe(tier.id)}
+            />
           );
         })}
       </div>

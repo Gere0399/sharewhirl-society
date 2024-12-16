@@ -140,8 +140,8 @@ export function SubscriptionTiers() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1A1F2C] to-background/80 py-20">
-      <div className="container px-4 mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-[#1A1F2C] to-background/80">
+      <div className="container px-4 mx-auto py-20">
         <PricingHeader />
         
         <CurrentSubscription 

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { SubscriptionCard } from "./subscription/SubscriptionCard";
 import { CurrentSubscription } from "./subscription/CurrentSubscription";
+import { PricingHeader } from "./subscription/PricingHeader";
 
 export interface CustomerSubscription {
   id: string;
@@ -68,7 +69,7 @@ export function SubscriptionTiers() {
       if (data.subscription) {
         setCurrentSubscription(data.subscription);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching subscription:', error);
       toast({
         title: "Error",
@@ -119,74 +120,45 @@ export function SubscriptionTiers() {
     }
   };
 
-  const handleManageSubscription = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        throw new Error('Please log in to manage your subscription');
-      }
-
-      const response = await fetch('/functions/v1/create-portal-session', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const { url, error } = await response.json();
-
-      if (error) throw new Error(error);
-      if (url) window.location.href = url;
-
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background/80 py-20">
-      <div className="space-y-8 container px-4 mx-auto">
-        <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <h1 className="text-5xl font-bold tracking-tight">
-            Security. Privacy. Freedom.
-          </h1>
-          <p className="text-xl text-muted-foreground">
-            Select a plan to access your favorite content with lightning speed and unlimited data.
-          </p>
-          <div className="flex items-center justify-center gap-8 mt-8 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-primary" />
-              </div>
-              Open source
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-primary" />
-              </div>
-              No-logs policy
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-primary" />
-              </div>
-              24/7 Live support
-            </div>
-          </div>
-        </div>
-
+      <div className="container px-4 mx-auto">
+        <PricingHeader />
+        
         <CurrentSubscription 
           subscription={currentSubscription}
-          onManageSubscription={handleManageSubscription}
+          onManageSubscription={async () => {
+            try {
+              const { data: { session } } = await supabase.auth.getSession();
+              
+              if (!session?.access_token) {
+                throw new Error('Please log in to manage your subscription');
+              }
+
+              const response = await fetch('/functions/v1/create-portal-session', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${session.access_token}`,
+                },
+              });
+
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+
+              const { url, error } = await response.json();
+
+              if (error) throw new Error(error);
+              if (url) window.location.href = url;
+
+            } catch (error: any) {
+              toast({
+                title: "Error",
+                description: error.message,
+                variant: "destructive",
+              });
+            }
+          }}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">

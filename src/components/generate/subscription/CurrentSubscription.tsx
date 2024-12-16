@@ -10,7 +10,7 @@ export function CurrentSubscription({ subscription, onManageSubscription }: Curr
   if (!subscription) return null;
 
   return (
-    <div className="text-center space-y-3 mb-12 p-4 max-w-xl mx-auto rounded-lg bg-card/50 backdrop-blur-sm border border-border/50">
+    <div className="text-center space-y-3 mb-12 p-6 max-w-xl mx-auto rounded-lg bg-card/50 backdrop-blur-sm border border-border/50">
       <h2 className="text-xl font-semibold">Your Current Subscription</h2>
       <p className="text-muted-foreground">
         Status: {subscription.status}

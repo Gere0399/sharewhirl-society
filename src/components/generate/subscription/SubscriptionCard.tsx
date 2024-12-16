@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SubscriptionCardProps {
   name: string;
@@ -26,12 +27,14 @@ export function SubscriptionCard({
   onSubscribe,
   id
 }: SubscriptionCardProps) {
-  const isBestDeal = price === 22.70;
+  const isBestDeal = creditsAmount === 300;
 
   return (
-    <Card className={`relative flex flex-col bg-card/50 backdrop-blur-sm border-border/50
-      ${isCurrentPlan ? 'border-primary' : ''} 
-      ${isBestDeal ? 'ring-2 ring-primary shadow-lg scale-105' : ''}`}>
+    <Card className={cn(
+      "relative flex flex-col bg-card/50 backdrop-blur-sm border-border/50 h-full",
+      isCurrentPlan && "border-primary",
+      isBestDeal && "ring-2 ring-primary shadow-lg scale-[1.02]"
+    )}>
       {isCurrentPlan && (
         <Badge className="absolute top-4 right-4">
           Current Plan
@@ -44,10 +47,10 @@ export function SubscriptionCard({
           </Badge>
         </div>
       )}
-      <CardHeader className="space-y-2">
-        <h3 className="text-lg font-medium">{name}</h3>
+      <CardHeader className="space-y-2 text-center">
+        <h3 className="text-xl font-semibold">{name}</h3>
         <div className="space-y-1">
-          <div className="text-3xl font-bold">
+          <div className="text-4xl font-bold">
             ${price}
             <span className="text-sm font-normal text-muted-foreground">/month</span>
           </div>
@@ -55,18 +58,21 @@ export function SubscriptionCard({
         </div>
       </CardHeader>
       <CardContent className="flex-grow">
-        <ul className="space-y-2 text-sm">
+        <ul className="space-y-3 text-sm">
           <li className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
-              <div className="w-2 h-2 rounded-full bg-primary" />
-            </div>
-            {creditsAmount} Credits per month
+            <Badge variant="outline" className="bg-primary/10">
+              {creditsAmount} Credits per month
+            </Badge>
           </li>
           <li className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
-              <div className="w-2 h-2 rounded-full bg-primary" />
-            </div>
-            24/7 Support
+            <Badge variant="outline" className="bg-primary/10">
+              24/7 Support
+            </Badge>
+          </li>
+          <li className="flex items-center gap-2">
+            <Badge variant="outline" className="bg-primary/10">
+              Cancel anytime
+            </Badge>
           </li>
         </ul>
       </CardContent>

@@ -49,6 +49,7 @@ serve(async (req) => {
     console.log('Creating checkout session with price ID:', priceId);
     const session = await stripe.checkout.sessions.create({
       customer_email: email,
+      payment_method_types: ['card'],
       line_items: [
         {
           price: priceId,

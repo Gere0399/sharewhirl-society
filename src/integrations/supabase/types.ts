@@ -298,6 +298,7 @@ export type Database = {
           reposted_from_id: string | null
           reposted_from_user_id: string | null
           tags: string[] | null
+          thumbnail_url: string | null
           title: string
           updated_at: string | null
           user_id: string
@@ -316,6 +317,7 @@ export type Database = {
           reposted_from_id?: string | null
           reposted_from_user_id?: string | null
           tags?: string[] | null
+          thumbnail_url?: string | null
           title?: string
           updated_at?: string | null
           user_id: string
@@ -334,6 +336,7 @@ export type Database = {
           reposted_from_id?: string | null
           reposted_from_user_id?: string | null
           tags?: string[] | null
+          thumbnail_url?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string

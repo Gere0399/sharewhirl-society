@@ -29,7 +29,6 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
   const postRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const viewTimeoutRef = useRef<NodeJS.Timeout>();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -55,8 +54,46 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
       )
       .subscribe();
 
+    // Also subscribe to likes for this post
+    const likesChannel = supabase
+      .channel(`likes-${post.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'likes',
+          filter: `post_id=eq.${post.id}`
+        },
+        async () => {
+          // Fetch updated post data including likes
+          const { data } = await supabase
+            .from('posts')
+            .select(`
+              *,
+              profiles!posts_user_id_fkey (
+                username,
+                avatar_url,
+                created_at,
+                bio
+              ),
+              likes (
+                user_id
+              )
+            `)
+            .eq('id', post.id)
+            .single();
+
+          if (data) {
+            setPost(data);
+          }
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(likesChannel);
     };
   }, [post.id]);
 

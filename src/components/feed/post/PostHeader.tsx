@@ -1,8 +1,11 @@
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { formatTimeAgo } from "@/utils/dateUtils";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface PostHeaderProps {
   profile: {
@@ -11,12 +14,96 @@ interface PostHeaderProps {
     created_at: string;
     bio?: string;
     followers_count?: number;
+    user_id: string;
   };
   isAiGenerated?: boolean;
   repostedFromUsername?: string;
 }
 
 export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: PostHeaderProps) {
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(profile.followers_count || 0);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const checkFollowStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('follows')
+        .select()
+        .eq('follower_id', user.id)
+        .eq('following_id', profile.user_id)
+        .single();
+
+      setIsFollowing(!!data);
+    };
+
+    checkFollowStatus();
+
+    // Subscribe to follows changes
+    const channel = supabase
+      .channel(`public:profiles:user_id=eq.${profile.user_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles',
+          filter: `user_id=eq.${profile.user_id}`
+        },
+        (payload: any) => {
+          if (payload.new) {
+            setFollowersCount(payload.new.followers_count);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile.user_id]);
+
+  const handleFollow = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to follow users",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (isFollowing) {
+        await supabase
+          .from('follows')
+          .delete()
+          .eq('follower_id', user.id)
+          .eq('following_id', profile.user_id);
+        setIsFollowing(false);
+      } else {
+        await supabase
+          .from('follows')
+          .insert({
+            follower_id: user.id,
+            following_id: profile.user_id
+          });
+        setIsFollowing(true);
+      }
+    } catch (error: any) {
+      console.error('Follow error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update follow status",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getInitials = (username: string) => {
     return username.slice(0, 2).toUpperCase();
   };
@@ -38,8 +125,15 @@ export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: Pos
               <AvatarImage src={profile.avatar_url} />
               <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
             </Avatar>
-            <Button variant="outline" size="sm">
-              Follow
+            <Button 
+              variant={isFollowing ? "secondary" : "default"}
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                handleFollow();
+              }}
+            >
+              {isFollowing ? "Unfollow" : "Follow"}
             </Button>
           </div>
           <div className="space-y-1 mt-3">
@@ -50,7 +144,7 @@ export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: Pos
               </p>
             )}
             <p className="text-sm text-muted-foreground">
-              {profile.followers_count || 0} followers
+              {followersCount} followers
             </p>
           </div>
         </HoverCardContent>

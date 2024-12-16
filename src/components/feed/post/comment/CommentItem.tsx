@@ -48,15 +48,7 @@ export function CommentItem({
 
   const handleDelete = async () => {
     try {
-      // First delete all likes for this comment
-      const { error: likesError } = await supabase
-        .from('comments_likes')
-        .delete()
-        .eq('comment_id', comment.id);
-
-      if (likesError) throw likesError;
-
-      // Then delete the comment
+      // The comment_likes will be deleted automatically via CASCADE
       await onDelete(comment.id);
     } catch (error: any) {
       console.error('Error deleting comment:', error);

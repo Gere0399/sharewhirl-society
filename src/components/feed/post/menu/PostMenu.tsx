@@ -7,7 +7,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface PostMenuProps {
@@ -30,7 +29,7 @@ export function PostMenu({
     e.stopPropagation();
     
     try {
-      // First, delete all reposts that reference this post
+      // First, delete any reposts that reference this post
       const { error: repostsError } = await supabase
         .from('posts')
         .delete()
@@ -38,47 +37,7 @@ export function PostMenu({
 
       if (repostsError) throw repostsError;
 
-      // Delete all comments likes
-      const { data: comments } = await supabase
-        .from('comments')
-        .select('id')
-        .eq('post_id', postId);
-
-      if (comments && comments.length > 0) {
-        const commentIds = comments.map(comment => comment.id);
-        const { error: commentLikesError } = await supabase
-          .from('comments_likes')
-          .delete()
-          .in('comment_id', commentIds);
-
-        if (commentLikesError) throw commentLikesError;
-      }
-
-      // Delete comments
-      const { error: commentsError } = await supabase
-        .from('comments')
-        .delete()
-        .eq('post_id', postId);
-
-      if (commentsError) throw commentsError;
-
-      // Delete post likes
-      const { error: likesError } = await supabase
-        .from('likes')
-        .delete()
-        .eq('post_id', postId);
-
-      if (likesError) throw likesError;
-
-      // Delete post views
-      const { error: viewsError } = await supabase
-        .from('post_views')
-        .delete()
-        .eq('post_id', postId);
-
-      if (viewsError) throw viewsError;
-
-      // Finally delete the post itself
+      // Then delete the post itself - all other related records will be deleted via CASCADE
       const { error: postError } = await supabase
         .from('posts')
         .delete()

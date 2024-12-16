@@ -57,23 +57,31 @@ serve(async (req) => {
         },
       ],
       mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/subscriptions`,
-      cancel_url: `${req.headers.get('origin')}/subscriptions`,
+      success_url: `${req.headers.get('origin')}/subscriptions?success=true`,
+      cancel_url: `${req.headers.get('origin')}/subscriptions?canceled=true`,
       metadata: {
         user_id: user.id,
         tier_id: tier_id,
       },
     });
 
+    console.log('Checkout session created successfully:', session.id);
+
     return new Response(
       JSON.stringify({ url: session.url }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in create-checkout:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      JSON.stringify({ 
+        error: error.message,
+        details: error.raw || error
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400
+      }
     );
   }
 });

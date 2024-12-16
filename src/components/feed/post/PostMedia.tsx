@@ -56,7 +56,14 @@ export function PostMedia({ mediaUrl, mediaType, title, thumbnailUrl }: PostMedi
           {!isPlaying && fullThumbnailUrl && (
             <div 
               className="absolute inset-0 cursor-pointer group"
-              onClick={() => setIsPlaying(true)}
+              onClick={() => {
+                setIsPlaying(true);
+                // Find the video element and play it
+                const videoElement = document.querySelector(`video[src="${fullUrl}"]`) as HTMLVideoElement;
+                if (videoElement) {
+                  videoElement.play();
+                }
+              }}
             >
               <img
                 src={fullThumbnailUrl}

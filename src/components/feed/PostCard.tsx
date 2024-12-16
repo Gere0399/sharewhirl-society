@@ -111,7 +111,7 @@ export function PostCard({ post, currentUserId, onLike, isFullView = false }: Po
   };
 
   return (
-    <Card className="overflow-hidden border-0 bg-black/80 hover:bg-black/90 transition-colors w-full">
+    <Card className="overflow-hidden border-0 bg-card transition-colors w-full">
       <div onClick={handleNavigateToPost} ref={postRef}>
         <CardHeader className="px-4 pt-4 pb-2">
           <PostHeader 

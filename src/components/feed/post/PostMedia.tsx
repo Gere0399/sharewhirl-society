@@ -31,7 +31,7 @@ export function PostMedia({ mediaUrl, mediaType, title, thumbnailUrl }: PostMedi
       return (
         <>
           <div 
-            className="relative w-full rounded-lg overflow-hidden bg-muted aspect-[16/9] cursor-pointer"
+            className="relative w-full rounded-lg overflow-hidden bg-card aspect-[16/9] cursor-pointer"
             onClick={() => setIsFullScreen(true)}
           >
             <img
@@ -52,7 +52,7 @@ export function PostMedia({ mediaUrl, mediaType, title, thumbnailUrl }: PostMedi
       );
     case "video":
       return (
-        <div className="relative w-full rounded-lg overflow-hidden bg-muted aspect-[16/9]">
+        <div className="relative w-full rounded-lg overflow-hidden bg-card aspect-[16/9]">
           {!isPlaying && fullThumbnailUrl && (
             <div 
               className="absolute inset-0 cursor-pointer group"
@@ -87,7 +87,7 @@ export function PostMedia({ mediaUrl, mediaType, title, thumbnailUrl }: PostMedi
       );
     case "audio":
       return (
-        <div className="rounded-lg overflow-hidden bg-muted p-4">
+        <div className="rounded-lg overflow-hidden bg-card p-4">
           <audio
             src={fullUrl}
             controls

@@ -1,6 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
-import { Sparkles } from "lucide-react";
 import { formatTimeAgo } from "@/utils/dateUtils";
 
 interface PostHeaderProps {
@@ -35,7 +34,9 @@ export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: Pos
             {profile.username}
           </Link>
           {isAiGenerated && (
-            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-xs bg-primary px-1.5 py-0.5 rounded text-primary-foreground">
+              AI generated
+            </span>
           )}
           <span className="text-muted-foreground text-sm">
             {formatTimeAgo(profile.created_at)}

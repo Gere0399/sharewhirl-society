@@ -46,15 +46,22 @@ export function CommentItem({
   const isExpanded = expandedComments.includes(comment.id);
   const isOwnComment = currentUserId === comment.user_id;
 
-  const handleDelete = async () => {
+  const handleLike = async () => {
     try {
-      // The comment_likes will be deleted automatically via CASCADE
-      await onDelete(comment.id);
+      if (!currentUserId) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to like comments",
+          variant: "destructive",
+        });
+        return;
+      }
+      await onLike(comment.id);
     } catch (error: any) {
-      console.error('Error deleting comment:', error);
+      console.error('Error liking comment:', error);
       toast({
         title: "Error",
-        description: "Failed to delete comment",
+        description: "Failed to like comment",
         variant: "destructive",
       });
     }
@@ -114,7 +121,7 @@ export function CommentItem({
               variant="ghost"
               size="sm"
               className={`h-8 px-2 ${comment.is_liked ? 'text-red-500' : ''}`}
-              onClick={() => onLike(comment.id)}
+              onClick={handleLike}
             >
               <Heart className={`h-4 w-4 mr-1 ${comment.is_liked ? 'fill-current' : ''}`} />
               {comment.likes_count || 0}
@@ -180,7 +187,7 @@ export function CommentItem({
       {replyingTo === comment.id && (
         <div className="ml-11 mt-2">
           <CommentInput 
-            onSubmit={handleReplySubmit}
+            onSubmit={(content, file) => onCommentSubmit(content, file, comment.id)}
             placeholder="Write a reply..."
           />
         </div>
@@ -197,7 +204,7 @@ export function CommentItem({
               onDelete={onDelete}
               onLike={onLike}
               isReply={true}
-              replies={[]} // Nested replies not supported
+              replies={[]}
               expandedComments={expandedComments}
               onToggleReplies={onToggleReplies}
             />

@@ -23,7 +23,7 @@ export default function Subscriptions() {
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <h1 className="text-2xl font-bold">Get More Credits</h1>
+              <h1 className="text-2xl font-bold">Buy a subscription</h1>
             </div>
             <SubscriptionTiers />
           </div>

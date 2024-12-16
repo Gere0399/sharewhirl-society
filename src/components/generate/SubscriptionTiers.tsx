@@ -15,7 +15,8 @@ const SUBSCRIPTION_TIERS = [
     features: [
       "100 credits",
       "Unlock more films from the community",
-      "Supportive Discord community"
+      "Supportive Discord community",
+      "Receive our 'Verified Gold Badge'"
     ]
   },
   {
@@ -140,7 +141,7 @@ export function SubscriptionTiers() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1A1F2C] to-background/80">
+    <div className="min-h-screen subscription-background">
       <div className="container px-4 mx-auto py-20">
         <PricingHeader />
         

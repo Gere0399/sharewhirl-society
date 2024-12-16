@@ -54,3 +54,27 @@
     @apply bg-background text-foreground antialiased;
   }
 }
+
+/* Add starry background and grid */
+.subscription-background {
+  background-image: 
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, #1A1F2C, rgba(10, 10, 10, 0.8));
+  background-size: 50px 50px, 100% 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.subscription-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(white, rgba(255, 255, 255, 0) 2px);
+  background-size: 100px 100px;
+  opacity: 0.1;
+  pointer-events: none;
+}

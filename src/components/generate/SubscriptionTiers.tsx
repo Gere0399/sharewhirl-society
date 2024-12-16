@@ -60,12 +60,21 @@ export function SubscriptionTiers() {
         },
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
       if (data.subscription) {
         setCurrentSubscription(data.subscription);
       }
     } catch (error) {
       console.error('Error fetching subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch subscription status",
+        variant: "destructive",
+      });
     }
   };
 
@@ -88,6 +97,10 @@ export function SubscriptionTiers() {
         },
         body: JSON.stringify({ tier_id: tierId }),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       const { url, error } = await response.json();
 
@@ -121,6 +134,10 @@ export function SubscriptionTiers() {
         },
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const { url, error } = await response.json();
 
       if (error) throw new Error(error);
@@ -136,38 +153,62 @@ export function SubscriptionTiers() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="text-center space-y-4 max-w-3xl mx-auto mb-12">
-        <h1 className="text-4xl font-bold">Unlock Your Creative Potential</h1>
-        <p className="text-xl text-muted-foreground">
-          Choose a plan that fits your needs and start creating amazing content today
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-background to-background/80 py-20">
+      <div className="space-y-8 container px-4 mx-auto">
+        <div className="text-center space-y-4 max-w-3xl mx-auto">
+          <h1 className="text-5xl font-bold tracking-tight">
+            Security. Privacy. Freedom.
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            Select a plan to access your favorite content with lightning speed and unlimited data.
+          </p>
+          <div className="flex items-center justify-center gap-8 mt-8 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-primary" />
+              </div>
+              Open source
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-primary" />
+              </div>
+              No-logs policy
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-primary" />
+              </div>
+              24/7 Live support
+            </div>
+          </div>
+        </div>
 
-      <CurrentSubscription 
-        subscription={currentSubscription}
-        onManageSubscription={handleManageSubscription}
-      />
+        <CurrentSubscription 
+          subscription={currentSubscription}
+          onManageSubscription={handleManageSubscription}
+        />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-        {tiers.map((tier) => {
-          const isCurrentTier = currentSubscription?.price?.product?.id === tier.id;
-          
-          return (
-            <SubscriptionCard
-              key={tier.id}
-              id={tier.id}
-              name={tier.name}
-              description={tier.description}
-              price={tier.credits_amount === 50 ? 3.99 : tier.credits_amount === 300 ? 22.70 : 100}
-              creditsAmount={tier.credits_amount}
-              isCurrentPlan={isCurrentTier}
-              isLoading={loading}
-              selectedTier={selectedTier}
-              onSubscribe={() => handleSubscribe(tier.id)}
-            />
-          );
-        })}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {tiers.map((tier) => {
+            const isCurrentTier = currentSubscription?.price?.product?.id === tier.id;
+            
+            return (
+              <SubscriptionCard
+                key={tier.id}
+                id={tier.id}
+                name={tier.name}
+                description={tier.description}
+                price={tier.credits_amount === 50 ? 3.99 : tier.credits_amount === 300 ? 22.70 : 100}
+                creditsAmount={tier.credits_amount}
+                isCurrentPlan={isCurrentTier}
+                isLoading={loading}
+                selectedTier={selectedTier}
+                onSubscribe={() => handleSubscribe(tier.id)}
+              />
+            );
+          })}
+        </div>
       </div>
     </div>
   );

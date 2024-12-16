@@ -5,7 +5,6 @@ import {
   Bell,
   User,
   Paintbrush,
-  CreditCard,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -131,13 +130,6 @@ export function Sidebar() {
           icon={User}
           label="Profile"
           isActive={location.pathname.startsWith("/profile")}
-        />
-
-        <SidebarNavItem
-          to="/subscriptions"
-          icon={CreditCard}
-          label="Subscriptions"
-          isActive={location.pathname === "/subscriptions"}
         />
       </nav>
 

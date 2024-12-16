@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader } from "lucide-react";
+import { Loader, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SubscriptionCardProps {
@@ -9,11 +9,13 @@ interface SubscriptionCardProps {
   description: string;
   price: number;
   creditsAmount: number;
+  features: string[];
   isCurrentPlan: boolean;
   isLoading: boolean;
   selectedTier: string | null;
   onSubscribe: () => void;
   id: string;
+  isBestDeal?: boolean;
 }
 
 export function SubscriptionCard({
@@ -21,59 +23,47 @@ export function SubscriptionCard({
   description,
   price,
   creditsAmount,
+  features,
   isCurrentPlan,
   isLoading,
   selectedTier,
   onSubscribe,
-  id
+  id,
+  isBestDeal
 }: SubscriptionCardProps) {
-  const isBestDeal = creditsAmount === 300;
-
   return (
     <Card className={cn(
       "relative flex flex-col bg-card/50 backdrop-blur-sm border-border/50 h-full",
       isCurrentPlan && "border-primary",
       isBestDeal && "ring-2 ring-primary shadow-lg scale-[1.02]"
     )}>
-      {isCurrentPlan && (
-        <Badge className="absolute top-4 right-4">
-          Current Plan
-        </Badge>
-      )}
       {isBestDeal && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-          <Badge variant="secondary" className="bg-primary text-primary-foreground">
+        <div className="absolute -top-3 left-0 w-full flex justify-center">
+          <Badge className="bg-primary text-primary-foreground">
             Best Deal
           </Badge>
         </div>
       )}
-      <CardHeader className="space-y-2 text-center">
-        <h3 className="text-xl font-semibold">{name}</h3>
+      <CardHeader className="space-y-2">
         <div className="space-y-1">
+          <h3 className="text-2xl font-semibold">{name}</h3>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+        <div className="pt-4">
           <div className="text-4xl font-bold">
             ${price}
             <span className="text-sm font-normal text-muted-foreground">/month</span>
           </div>
-          <p className="text-sm text-muted-foreground">{description}</p>
         </div>
       </CardHeader>
       <CardContent className="flex-grow">
-        <ul className="space-y-3 text-sm">
-          <li className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-primary/10">
-              {creditsAmount} Credits per month
-            </Badge>
-          </li>
-          <li className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-primary/10">
-              24/7 Support
-            </Badge>
-          </li>
-          <li className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-primary/10">
-              Cancel anytime
-            </Badge>
-          </li>
+        <ul className="space-y-3">
+          {features.map((feature, i) => (
+            <li key={i} className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-primary" />
+              <span className="text-sm">{feature}</span>
+            </li>
+          ))}
         </ul>
       </CardContent>
       <CardFooter className="pt-4">

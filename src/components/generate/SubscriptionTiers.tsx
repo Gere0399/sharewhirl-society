@@ -5,6 +5,46 @@ import { SubscriptionCard } from "./subscription/SubscriptionCard";
 import { CurrentSubscription } from "./subscription/CurrentSubscription";
 import { PricingHeader } from "./subscription/PricingHeader";
 
+const SUBSCRIPTION_TIERS = [
+  {
+    id: "prod_R7RzG9YcXrBRhx",
+    name: "Basic",
+    description: "Perfect for getting started with AI generation",
+    price: 3.99,
+    creditsAmount: 100,
+    features: [
+      "100 credits",
+      "Unlock more films from the community",
+      "Supportive Discord community"
+    ]
+  },
+  {
+    id: "prod_R7S1FahwYOaUbG",
+    name: "Pro",
+    description: "For power users who need more generation capacity",
+    price: 22.70,
+    creditsAmount: 550,
+    features: [
+      "500 credits",
+      "Everything else in Basic plan",
+      "Remove Ads"
+    ],
+    isBestDeal: true
+  },
+  {
+    id: "prod_R7S1Sdv96HwC69",
+    name: "Enterprise",
+    description: "The perfect plan for enterprises that want to start working with us",
+    price: 100,
+    creditsAmount: 2400,
+    features: [
+      "2500 credits",
+      "Everything else in Pro plan",
+      "Can join our private partners Discord group"
+    ]
+  }
+];
+
 export interface CustomerSubscription {
   id: string;
   status: string;
@@ -17,36 +57,15 @@ export interface CustomerSubscription {
   }
 }
 
-interface SubscriptionTier {
-  id: string;
-  name: string;
-  description: string;
-  credits_amount: number;
-  price_id: string;
-}
-
 export function SubscriptionTiers() {
-  const [tiers, setTiers] = useState<SubscriptionTier[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [currentSubscription, setCurrentSubscription] = useState<CustomerSubscription | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchTiers();
     fetchCurrentSubscription();
   }, []);
-
-  const fetchTiers = async () => {
-    const { data } = await supabase
-      .from('subscription_tiers')
-      .select('*')
-      .order('credits_amount', { ascending: true });
-    
-    if (data) {
-      setTiers(data);
-    }
-  };
 
   const fetchCurrentSubscription = async () => {
     try {
@@ -162,17 +181,13 @@ export function SubscriptionTiers() {
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {tiers.map((tier) => {
+          {SUBSCRIPTION_TIERS.map((tier) => {
             const isCurrentTier = currentSubscription?.price?.product?.id === tier.id;
             
             return (
               <SubscriptionCard
                 key={tier.id}
-                id={tier.id}
-                name={tier.name}
-                description={tier.description}
-                price={tier.credits_amount === 50 ? 3.99 : tier.credits_amount === 300 ? 22.70 : 100}
-                creditsAmount={tier.credits_amount}
+                {...tier}
                 isCurrentPlan={isCurrentTier}
                 isLoading={loading}
                 selectedTier={selectedTier}

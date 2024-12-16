@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader, Check } from "lucide-react";
+import { Loader, Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SubscriptionCardProps {
@@ -35,14 +35,23 @@ export function SubscriptionCard({
     <Card className={cn(
       "relative flex flex-col bg-card/50 backdrop-blur-sm border-border/50 h-full",
       isCurrentPlan && "border-primary",
-      isBestDeal && "ring-2 ring-primary shadow-lg scale-[1.02]"
+      isBestDeal && "ring-2 ring-[#9b87f5] shadow-lg scale-[1.02]"
     )}>
       {isBestDeal && (
-        <div className="absolute -top-3 left-0 w-full flex justify-center">
-          <Badge className="bg-primary text-primary-foreground">
-            Best Deal
-          </Badge>
-        </div>
+        <>
+          <div className="absolute -top-3 left-0 w-full flex justify-center">
+            <div className="relative">
+              <Badge className="bg-[#9b87f5] text-white px-4 py-1">
+                Best Deal
+              </Badge>
+              <ChevronDown className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 text-[#9b87f5] h-4 w-4" />
+            </div>
+          </div>
+          <div className="absolute inset-x-0 -top-px h-[2px] bg-gradient-to-r from-transparent via-[#9b87f5] to-transparent" />
+          <div className="absolute inset-x-0 -bottom-px h-[2px] bg-gradient-to-r from-transparent via-[#9b87f5] to-transparent" />
+          <div className="absolute inset-y-0 -left-px w-[2px] bg-gradient-to-b from-transparent via-[#9b87f5] to-transparent" />
+          <div className="absolute inset-y-0 -right-px w-[2px] bg-gradient-to-b from-transparent via-[#9b87f5] to-transparent" />
+        </>
       )}
       <CardHeader className="space-y-2">
         <div className="space-y-1">
@@ -60,7 +69,7 @@ export function SubscriptionCard({
         <ul className="space-y-3">
           {features.map((feature, i) => (
             <li key={i} className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-primary" />
+              <Check className="h-4 w-4 text-[#9b87f5]" />
               <span className="text-sm">{feature}</span>
             </li>
           ))}
@@ -70,8 +79,10 @@ export function SubscriptionCard({
         <Button 
           onClick={onSubscribe}
           disabled={isLoading && selectedTier === id || isCurrentPlan}
-          className="w-full"
-          variant={isBestDeal ? "default" : "outline"}
+          className={cn(
+            "w-full",
+            isBestDeal ? "bg-[#9b87f5] hover:bg-[#9b87f5]/90" : "bg-background hover:bg-accent"
+          )}
           size="lg"
         >
           {isLoading && selectedTier === id ? (

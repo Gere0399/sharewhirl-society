@@ -7,8 +7,14 @@ export default function Index() {
 
   return (
     <>
-      <Feed isCreatePostOpen={isCreatePostOpen} setIsCreatePostOpen={setIsCreatePostOpen} />
-      <CreatePostDialog isOpen={isCreatePostOpen} onOpenChange={setIsCreatePostOpen} />
+      <Feed 
+        isCreatePostOpen={isCreatePostOpen} 
+        setIsCreatePostOpen={setIsCreatePostOpen} 
+      />
+      <CreatePostDialog 
+        isOpen={isCreatePostOpen} 
+        onOpenChange={setIsCreatePostOpen} 
+      />
     </>
   );
 }

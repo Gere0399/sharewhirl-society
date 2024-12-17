@@ -26,6 +26,11 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
   useEffect(() => {
     if (!currentUserId || !profile.user_id) return;
 
+    console.log('Checking follow status for:', {
+      currentUserId,
+      profileUserId: profile.user_id
+    });
+
     const checkFollowStatus = async () => {
       try {
         const { data, error } = await supabase
@@ -40,6 +45,7 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
           return;
         }
 
+        console.log('Follow status check result:', data);
         setIsFollowing(!!data);
       } catch (error) {
         console.error('Error in checkFollowStatus:', error);
@@ -60,6 +66,7 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
           filter: `user_id=eq.${profile.user_id}`
         },
         (payload: any) => {
+          console.log('Profile update received:', payload);
           if (payload.new) {
             setFollowersCount(payload.new.followers_count || 0);
           }
@@ -76,6 +83,12 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
     e.preventDefault();
     e.stopPropagation();
     
+    console.log('Handle follow clicked:', {
+      currentUserId,
+      profileUserId: profile.user_id,
+      isFollowing
+    });
+
     if (!currentUserId) {
       toast({
         title: "Authentication required",
@@ -86,7 +99,12 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
     }
 
     if (!profile.user_id) {
-      console.error('No profile user_id provided');
+      console.error('No profile user_id provided:', profile);
+      toast({
+        title: "Error",
+        description: "Unable to follow user at this time",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -127,22 +145,14 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
     return username.slice(0, 2).toUpperCase();
   };
 
-  const ProfileTrigger = ({ children }: { children: React.ReactNode }) => (
-    <HoverCardTrigger asChild>
-      <Link 
-        to={`/profile/${profile.username}`}
-        className="inline-flex items-center hover:opacity-80 transition-opacity"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {children}
-      </Link>
-    </HoverCardTrigger>
-  );
-
   return (
     <HoverCard>
-      <ProfileTrigger>
-        <div className="flex items-center gap-2">
+      <HoverCardTrigger asChild>
+        <Link 
+          to={`/profile/${profile.username}`}
+          className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
+          onClick={(e) => e.stopPropagation()}
+        >
           <Avatar className="h-8 w-8">
             <AvatarImage src={profile.avatar_url} alt={profile.username} />
             <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
@@ -150,8 +160,8 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
           <span className="text-sm font-medium hover:underline">
             @{profile.username}
           </span>
-        </div>
-      </ProfileTrigger>
+        </Link>
+      </HoverCardTrigger>
       
       <HoverCardContent className="w-80" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between space-x-4">

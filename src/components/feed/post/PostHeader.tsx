@@ -25,10 +25,18 @@ export function PostHeader({
 }: PostHeaderProps) {
   return (
     <div className="flex items-start gap-2">
-      <ProfileHoverCard profile={profile} currentUserId={currentUserId} showAvatar={true} />
+      <ProfileHoverCard 
+        profile={profile} 
+        currentUserId={currentUserId} 
+        showAvatar={true} 
+      />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <ProfileHoverCard profile={profile} currentUserId={currentUserId} showAvatar={false} />
+          <ProfileHoverCard 
+            profile={profile} 
+            currentUserId={currentUserId} 
+            showAvatar={false} 
+          />
           <span className="text-muted-foreground text-sm">·</span>
           <span className="text-muted-foreground text-sm">
             {formatTimeAgo(createdAt)}

@@ -35,7 +35,9 @@ export function ProfileHoverCard({ profile, currentUserId, showAvatar = true }: 
         <Link 
           to={`/profile/${profile.username}`}
           className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
         >
           {content}
         </Link>
@@ -46,6 +48,7 @@ export function ProfileHoverCard({ profile, currentUserId, showAvatar = true }: 
         onClick={(e) => e.stopPropagation()}
         align="start"
         side="bottom"
+        sideOffset={5}
       >
         <ProfileHoverCardContent 
           profile={profile}

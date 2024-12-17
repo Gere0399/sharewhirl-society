@@ -31,7 +31,7 @@ export function SidebarNavItem({
       asChild={!asButton}
       onClick={onClick}
       className={cn(
-        "relative hover:bg-secondary/70",
+        "relative h-12 w-12 hover:bg-secondary/70",
         // Default unselected state - lighter gray color except for post/logo
         label !== "Create Post" && !isActive && "text-[#aaadb0]",
         // Hover and active states

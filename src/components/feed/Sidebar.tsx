@@ -48,7 +48,6 @@ export function Sidebar({
 
   const handleCreatePost = async () => {
     if (location.pathname !== '/') {
-      // Store the intent to open dialog
       sessionStorage.setItem('openCreatePost', 'true');
       await navigate('/');
     } else {
@@ -56,7 +55,6 @@ export function Sidebar({
     }
   };
 
-  // Check for stored intent on mount and when pathname changes
   useEffect(() => {
     if (location.pathname === '/' && sessionStorage.getItem('openCreatePost')) {
       sessionStorage.removeItem('openCreatePost');
@@ -100,13 +98,12 @@ export function Sidebar({
 
   if (isMobile) {
     return (
-      <nav className="fixed bottom-0 left-0 right-0 h-20 bg-background/95 backdrop-blur-sm border-t border-border/10 z-50">
+      <nav className="fixed bottom-0 left-0 right-0 h-14 bg-background/95 backdrop-blur-sm border-t border-border/10 z-50">
         <div className="flex items-center justify-around h-full px-2">
           {mobileNavItems.map((item) => (
             <SidebarNavItem
               key={item.label}
               {...item}
-              className="!w-20 !h-20"
             />
           ))}
         </div>
@@ -115,12 +112,12 @@ export function Sidebar({
   }
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-20 flex flex-col bg-background border-r border-border/10">
+    <aside className="fixed left-0 top-0 h-screen w-14 flex flex-col bg-background border-r border-border/10">
       <div className="flex-none">
         <SidebarLogo />
       </div>
 
-      <nav className="flex-1 flex flex-col items-center justify-center gap-2">
+      <nav className="flex-1 flex flex-col items-center justify-center gap-1">
         <SidebarNavItem
           to="/generate"
           icon={Paintbrush}
@@ -158,7 +155,7 @@ export function Sidebar({
         />
       </nav>
 
-      <div className="flex-none p-2">
+      <div className="flex-none p-1">
         <SidebarOptionsMenu />
       </div>
     </aside>

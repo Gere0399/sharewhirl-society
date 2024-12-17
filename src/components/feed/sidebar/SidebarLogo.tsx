@@ -7,7 +7,8 @@ export function SidebarLogo() {
         <img 
           src="/neo-ai-logo.png" 
           alt="Neo AI Studios"
-          className="w-12 h-12 mx-auto object-contain"
+          className="w-8 h-8 mx-auto object-contain"
+          style={{ transform: 'scale(1.5)' }}
         />
       </Link>
     </div>

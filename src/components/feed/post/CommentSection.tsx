@@ -13,6 +13,7 @@ interface CommentSectionProps {
 export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [expandedComments, setExpandedComments] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -102,12 +103,16 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
 
   const handleLike = async (commentId: string) => {
     try {
-      const { data: existingLike } = await supabase
+      const { data: existingLike, error: likeError } = await supabase
         .from('comments_likes')
         .select()
         .eq('comment_id', commentId)
         .eq('user_id', currentUserId)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to handle no results case
+
+      if (likeError && likeError.code !== 'PGRST116') {
+        throw likeError;
+      }
 
       if (existingLike) {
         await supabase
@@ -218,6 +223,14 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
     }
   };
 
+  const toggleReplies = (commentId: string) => {
+    setExpandedComments(prev => 
+      prev.includes(commentId) 
+        ? prev.filter(id => id !== commentId)
+        : [...prev, commentId]
+    );
+  };
+
   return (
     <div className="space-y-4">
       <div className="mb-6">
@@ -230,6 +243,8 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
           onCommentSubmit={handleSubmit}
           onDelete={handleDelete}
           onLike={handleLike}
+          expandedComments={expandedComments}
+          onToggleReplies={toggleReplies}
         />
       </ScrollArea>
     </div>

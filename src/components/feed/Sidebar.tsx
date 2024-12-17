@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   PlayCircle,
   PlusCircle,
@@ -23,6 +23,7 @@ export function Sidebar({
   setIsCreatePostOpen = () => {} 
 }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [username, setUsername] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
@@ -45,6 +46,13 @@ export function Sidebar({
     fetchUserProfile();
   }, []);
 
+  const handleCreatePost = () => {
+    if (location.pathname !== '/') {
+      navigate('/');
+    }
+    setIsCreatePostOpen(true);
+  };
+
   const mobileNavItems = [
     {
       to: "/generate",
@@ -63,7 +71,7 @@ export function Sidebar({
       icon: PlusCircle,
       label: "Create Post",
       asButton: true,
-      onClick: () => setIsCreatePostOpen(true)
+      onClick: handleCreatePost
     },
     {
       to: "/notifications",
@@ -87,7 +95,7 @@ export function Sidebar({
             <SidebarNavItem
               key={item.label}
               {...item}
-              className="!w-12 !h-12"
+              className="!w-14 !h-14"
             />
           ))}
         </div>
@@ -121,7 +129,7 @@ export function Sidebar({
           icon={PlusCircle}
           label="Create Post"
           asButton
-          onClick={() => setIsCreatePostOpen(true)}
+          onClick={handleCreatePost}
         />
 
         <SidebarNavItem

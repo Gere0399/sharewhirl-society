@@ -49,7 +49,7 @@ export function SidebarNavItem({
         <Icon 
           className="w-8 h-8 md:w-10 md:h-10" 
           strokeWidth={1.5}
-          style={{ transform: 'scale(1.5)' }} // This will make the icons 50% bigger while maintaining the button size
+          style={{ transform: 'scale(1.5)' }} // Keep icons 50% bigger
         />
         <span className="sr-only">{label}</span>
       </ButtonOrLink>

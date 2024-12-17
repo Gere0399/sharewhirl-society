@@ -33,7 +33,7 @@ export const NotificationItem = ({ notification }: NotificationItemProps) => {
   };
 
   return (
-    <div className={`p-4 rounded-lg border ${notification.read ? 'bg-[#131313]' : 'bg-[#1A1A1A]'}`}>
+    <div className={`p-4 rounded-lg border bg-card ${!notification.read && 'bg-[#1A1A1A]'}`}>
       <div className="flex items-start gap-3">
         <Link to={`/profile/${notification.actor.username}`}>
           <Avatar>

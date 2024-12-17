@@ -1,10 +1,9 @@
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Link } from "react-router-dom";
+import { ProfileHoverCardContent } from "./ProfileHoverCardContent";
 import { getInitials } from "@/utils/stringUtils";
 import { useFollowUser } from "@/hooks/useFollowUser";
-import { ProfileHoverCardContent } from "./ProfileHoverCardContent";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ProfileHoverCardProps {
   profile: {
@@ -20,7 +19,6 @@ interface ProfileHoverCardProps {
 
 export function ProfileHoverCard({ profile, currentUserId, showAvatar = true }: ProfileHoverCardProps) {
   const { isFollowing, followersCount, handleFollow } = useFollowUser(profile.user_id, currentUserId);
-  const isMobile = useIsMobile();
 
   const content = showAvatar ? (
     <Avatar className="h-8 w-8">
@@ -28,13 +26,13 @@ export function ProfileHoverCard({ profile, currentUserId, showAvatar = true }: 
       <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
     </Avatar>
   ) : (
-    <span className="font-medium hover:underline truncate">@{profile.username}</span>
+    <span className="hover:underline">@{profile.username}</span>
   );
 
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
-        <Link
+        <Link 
           to={`/profile/${profile.username}`}
           className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
           onClick={(e) => e.stopPropagation()}
@@ -43,12 +41,7 @@ export function ProfileHoverCard({ profile, currentUserId, showAvatar = true }: 
         </Link>
       </HoverCardTrigger>
       
-      <HoverCardContent 
-        side={isMobile ? "bottom" : "right"} 
-        align={isMobile ? "center" : "start"}
-        className="w-80 z-50"
-        sideOffset={5}
-      >
+      <HoverCardContent className="w-80" onClick={(e) => e.stopPropagation()}>
         <ProfileHoverCardContent 
           profile={profile}
           currentUserId={currentUserId}

@@ -33,7 +33,6 @@ const Notifications = () => {
   const { data: notifications, isLoading } = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      console.log("Fetching notifications...");
       const { data, error } = await supabase
         .from("notifications")
         .select(`
@@ -62,7 +61,6 @@ const Notifications = () => {
         return [];
       }
 
-      console.log("Fetched notifications:", data);
       return data;
     },
     enabled: !!session,
@@ -75,30 +73,28 @@ const Notifications = () => {
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar />
-      <main className="flex-1 ml-16">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-2xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6">Notifications</h1>
-            {isLoading ? (
-              <div className="flex justify-center items-center min-h-[200px]">
-                <Loader className="h-6 w-6 animate-spin" />
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {notifications?.map((notification) => (
-                  <NotificationItem
-                    key={notification.id}
-                    notification={notification}
-                  />
-                ))}
-                {notifications?.length === 0 && (
-                  <p className="text-center text-muted-foreground">
-                    No notifications yet
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+      <main className="flex-1 ml-14 px-4 md:px-0">
+        <div className="container mx-auto max-w-2xl py-8">
+          <h1 className="text-2xl font-bold mb-6">Notifications</h1>
+          {isLoading ? (
+            <div className="flex justify-center items-center min-h-[200px]">
+              <Loader className="h-6 w-6 animate-spin" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {notifications?.map((notification) => (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                />
+              ))}
+              {notifications?.length === 0 && (
+                <p className="text-center text-muted-foreground">
+                  No notifications yet
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </main>
     </div>

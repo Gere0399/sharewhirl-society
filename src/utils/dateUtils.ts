@@ -48,7 +48,7 @@ export const formatTimeAgo = (date?: string) => {
       return `${diffDays}d ago`;
     }
     
-    // More than a week - use local timezone formatting
+    // More than a week - use local timezone formatting with time
     return postDate.toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',

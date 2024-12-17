@@ -2,6 +2,7 @@ export const formatTimeAgo = (date?: string) => {
   if (!date) return "";
   
   try {
+    // Parse the UTC date string and convert to local timezone
     const postDate = new Date(date);
     const now = new Date();
     
@@ -47,11 +48,13 @@ export const formatTimeAgo = (date?: string) => {
       return `${diffDays}d ago`;
     }
     
-    // More than a week
-    return postDate.toLocaleDateString('en-US', {
+    // More than a week - use local timezone formatting
+    return postDate.toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
     
   } catch (error) {

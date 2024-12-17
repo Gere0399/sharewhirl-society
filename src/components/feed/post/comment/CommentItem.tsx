@@ -1,21 +1,13 @@
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { MessageCircle, ChevronDown, ChevronUp, Heart, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { CommentInput } from "./CommentInput";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { CommentInput } from "./CommentInput";
+import { CommentLikeButton } from "./CommentLikeButton";
+import { CommentReplyButton } from "./CommentReplyButton";
+import { CommentRepliesButton } from "./CommentRepliesButton";
+import { CommentDeleteButton } from "./CommentDeleteButton";
+import { CommentContent } from "./CommentContent";
 
 interface CommentItemProps {
   comment: any;
@@ -49,7 +41,6 @@ export function CommentItem({
   const isOwnComment = currentUserId === comment.user_id;
 
   useEffect(() => {
-    // Subscribe to real-time updates for comment likes
     const channel = supabase
       .channel(`comment-${comment.id}`)
       .on(
@@ -84,13 +75,11 @@ export function CommentItem({
         return;
       }
       
-      // Optimistic update
       setIsLiked(!isLiked);
       setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
       
       await onLike(comment.id);
     } catch (error: any) {
-      // Revert optimistic update on error
       setIsLiked(!isLiked);
       setLikesCount(prev => isLiked ? prev + 1 : prev - 1);
       
@@ -128,93 +117,33 @@ export function CommentItem({
               {new Date(comment.created_at).toLocaleDateString()}
             </span>
           </div>
-          <p className="text-sm text-foreground/90">
-            {comment.content}
-          </p>
-          {comment.media_url && (
-            <div className="mt-2">
-              {comment.media_type === "image" ? (
-                <img
-                  src={supabase.storage
-                    .from("media")
-                    .getPublicUrl(comment.media_url).data.publicUrl}
-                  alt="Comment attachment"
-                  className="rounded-lg max-w-sm"
-                />
-              ) : comment.media_type === "audio" ? (
-                <audio
-                  src={supabase.storage
-                    .from("media")
-                    .getPublicUrl(comment.media_url).data.publicUrl}
-                  controls
-                  className="w-full"
-                />
-              ) : null}
-            </div>
-          )}
+          
+          <CommentContent 
+            content={comment.content}
+            mediaUrl={comment.media_url}
+            mediaType={comment.media_type}
+          />
+
           <div className="flex gap-2 mt-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`h-8 px-2 ${isLiked ? 'text-red-500' : ''}`}
-              onClick={handleLike}
-            >
-              <Heart className={`h-4 w-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
-              {likesCount}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2"
+            <CommentLikeButton
+              isLiked={isLiked}
+              likesCount={likesCount}
+              onLike={handleLike}
+            />
+            <CommentReplyButton
               onClick={() => setReplyingTo(comment.id)}
-            >
-              <MessageCircle className="h-4 w-4 mr-1" />
-              Reply
-            </Button>
+            />
             {hasReplies && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2"
+              <CommentRepliesButton
+                repliesCount={replies.length}
+                isExpanded={isExpanded}
                 onClick={() => onToggleReplies(comment.id)}
-              >
-                {isExpanded ? (
-                  <ChevronUp className="h-4 w-4 mr-1" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 mr-1" />
-                )}
-                {replies.length} {replies.length === 1 ? 'reply' : 'replies'}
-              </Button>
+              />
             )}
             {isOwnComment && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 px-2 text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Comment</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this comment? This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => onDelete(comment.id)}
-                      className="bg-destructive hover:bg-destructive/90"
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <CommentDeleteButton
+                onDelete={() => onDelete(comment.id)}
+              />
             )}
           </div>
         </div>

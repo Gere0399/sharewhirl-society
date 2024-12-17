@@ -187,7 +187,7 @@ export function CommentItem({
       {replyingTo === comment.id && (
         <div className="ml-11 mt-2">
           <CommentInput 
-            onSubmit={(content, file) => onCommentSubmit(content, file, comment.id)}
+            onSubmit={handleReplySubmit}
             placeholder="Write a reply..."
           />
         </div>

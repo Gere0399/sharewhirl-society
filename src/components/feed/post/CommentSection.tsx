@@ -18,8 +18,8 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
   useEffect(() => {
     fetchComments();
 
-    // Subscribe to realtime updates
-    const channel = supabase
+    // Subscribe to realtime updates for comments and likes
+    const commentsChannel = supabase
       .channel('comments-channel')
       .on(
         'postgres_changes',
@@ -35,8 +35,24 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
       )
       .subscribe();
 
+    const likesChannel = supabase
+      .channel('comments-likes-channel')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments_likes'
+        },
+        () => {
+          fetchComments();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(commentsChannel);
+      supabase.removeChannel(likesChannel);
     };
   }, [postId]);
 
@@ -78,6 +94,41 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
       console.error("Error fetching comments:", error);
       toast({
         title: "Error fetching comments",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleLike = async (commentId: string) => {
+    try {
+      const { data: existingLike } = await supabase
+        .from('comments_likes')
+        .select()
+        .eq('comment_id', commentId)
+        .eq('user_id', currentUserId)
+        .single();
+
+      if (existingLike) {
+        await supabase
+          .from('comments_likes')
+          .delete()
+          .eq('comment_id', commentId)
+          .eq('user_id', currentUserId);
+      } else {
+        await supabase
+          .from('comments_likes')
+          .insert({
+            comment_id: commentId,
+            user_id: currentUserId
+          });
+      }
+
+      // No need to manually update state as we're subscribed to changes
+    } catch (error: any) {
+      console.error("Error liking comment:", error);
+      toast({
+        title: "Error",
         description: error.message,
         variant: "destructive",
       });
@@ -144,6 +195,29 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
     }
   };
 
+  const handleDelete = async (commentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('comments')
+        .delete()
+        .eq('id', commentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Comment deleted successfully",
+      });
+    } catch (error: any) {
+      console.error("Error deleting comment:", error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="mb-6">
@@ -154,7 +228,8 @@ export function CommentSection({ postId, currentUserId }: CommentSectionProps) {
           comments={comments} 
           currentUserId={currentUserId}
           onCommentSubmit={handleSubmit}
-          onCommentsUpdate={setComments}
+          onDelete={handleDelete}
+          onLike={handleLike}
         />
       </ScrollArea>
     </div>

@@ -6,16 +6,16 @@ interface PostHeaderProps {
   profile: {
     username: string;
     avatar_url?: string;
-    created_at: string;
     bio?: string;
     user_id: string;
     followers_count?: number;
   };
   isAiGenerated?: boolean;
   repostedFromUsername?: string;
+  createdAt: string;
 }
 
-export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: PostHeaderProps) {
+export function PostHeader({ profile, isAiGenerated, repostedFromUsername, createdAt }: PostHeaderProps) {
   return (
     <div className="flex items-start gap-2">
       <ProfileHoverCard profile={profile} />
@@ -27,15 +27,16 @@ export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: Pos
           >
             {profile.username}
           </Link>
+          <span className="text-muted-foreground text-sm">·</span>
+          <span className="text-muted-foreground text-sm">
+            {formatTimeAgo(createdAt)}
+          </span>
           <div className="flex items-center gap-2 ml-auto">
             {isAiGenerated && (
               <span className="text-xs bg-primary px-1.5 py-0.5 rounded text-primary-foreground">
                 AI generated
               </span>
             )}
-            <span className="text-muted-foreground text-sm">
-              {formatTimeAgo(profile.created_at)}
-            </span>
           </div>
         </div>
         {repostedFromUsername && (

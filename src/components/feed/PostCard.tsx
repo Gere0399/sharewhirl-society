@@ -75,6 +75,7 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
             profile={post.profiles}
             isAiGenerated={post.is_ai_generated}
             repostedFromUsername={post.reposted_from_username}
+            createdAt={post.created_at}
           />
         </CardHeader>
 
@@ -101,6 +102,10 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
           <PostActions 
             postId={post.id}
             postTitle={post.title}
+            content={post.content}
+            tags={post.tags}
+            isAiGenerated={post.is_ai_generated}
+            createdAt={post.created_at}
             likesCount={post.likes_count}
             commentsCount={post.comments_count}
             viewsCount={post.views_count}

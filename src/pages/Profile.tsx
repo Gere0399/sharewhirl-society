@@ -15,6 +15,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -136,7 +137,10 @@ const Profile = () => {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar />
+      <Sidebar 
+        isCreatePostOpen={isCreatePostOpen}
+        setIsCreatePostOpen={setIsCreatePostOpen}
+      />
       <main className="flex-1 flex justify-center">
         <div className="w-full max-w-2xl px-4 py-8 pb-20 md:pb-8 md:px-0">
           {loading ? (

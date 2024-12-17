@@ -15,6 +15,7 @@ type NotificationWithProfiles = Tables<"notifications"> & {
 const Notifications = () => {
   const { toast } = useToast();
   const [session, setSession] = useState(null);
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -74,7 +75,10 @@ const Notifications = () => {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar />
+      <Sidebar 
+        isCreatePostOpen={isCreatePostOpen}
+        setIsCreatePostOpen={setIsCreatePostOpen}
+      />
       <main className="flex-1 ml-16">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">

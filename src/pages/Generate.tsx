@@ -22,6 +22,7 @@ export default function Generate() {
   const [credits, setCredits] = useState<number | null>(null);
   const [dailyGenerations, setDailyGenerations] = useState<number>(0);
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const isMobile = useIsMobile();
   const modelInfo = getModelInfo(selectedModel);
 
@@ -72,7 +73,10 @@ export default function Generate() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar />
+      <Sidebar 
+        isCreatePostOpen={isCreatePostOpen}
+        setIsCreatePostOpen={setIsCreatePostOpen}
+      />
       <main className={`flex-1 ${isMobile ? 'mb-16' : 'ml-16'}`}>
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col space-y-4 max-w-6xl mx-auto">

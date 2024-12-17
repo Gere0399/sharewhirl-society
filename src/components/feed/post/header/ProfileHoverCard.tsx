@@ -5,6 +5,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { UserPlus, UserMinus } from "lucide-react";
 
 interface ProfileHoverCardProps {
   profile: {
@@ -71,7 +72,10 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
     };
   }, [profile.user_id, currentUserId]);
 
-  const handleFollow = async () => {
+  const handleFollow = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (!currentUserId) {
       toast({
         title: "Authentication required",
@@ -123,17 +127,30 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
     return username.slice(0, 2).toUpperCase();
   };
 
+  const ProfileTrigger = ({ children }: { children: React.ReactNode }) => (
+    <HoverCardTrigger asChild>
+      <Link 
+        to={`/profile/${profile.username}`}
+        className="inline-flex items-center hover:opacity-80 transition-opacity"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {children}
+      </Link>
+    </HoverCardTrigger>
+  );
+
   return (
     <HoverCard>
-      <HoverCardTrigger asChild>
-        <Link to={`/profile/${profile.username}`}>
+      <div className="flex items-center gap-2">
+        <ProfileTrigger>
           <Avatar className="h-8 w-8">
             <AvatarImage src={profile.avatar_url} alt={profile.username} />
             <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
           </Avatar>
-        </Link>
-      </HoverCardTrigger>
-      <HoverCardContent className="w-80">
+        </ProfileTrigger>
+      </div>
+      
+      <HoverCardContent className="w-80" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between space-x-4">
           <Avatar className="h-12 w-12">
             <AvatarImage src={profile.avatar_url} />
@@ -143,12 +160,20 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
             <Button 
               variant={isFollowing ? "secondary" : "default"}
               size="sm"
-              onClick={(e) => {
-                e.preventDefault();
-                handleFollow();
-              }}
+              onClick={handleFollow}
+              className="gap-2"
             >
-              {isFollowing ? "Unfollow" : "Follow"}
+              {isFollowing ? (
+                <>
+                  <UserMinus className="h-4 w-4" />
+                  Unfollow
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4" />
+                  Follow
+                </>
+              )}
             </Button>
           )}
         </div>

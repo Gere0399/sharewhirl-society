@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Sidebar } from "@/components/feed/Sidebar";
 import { GenerationForm } from "@/components/generate/GenerationForm";
 import { GenerationHistory } from "@/components/generate/GenerationHistory";
@@ -13,11 +14,11 @@ interface GenerateProps {
 
 const Generate = ({ isCreatePostOpen, setIsCreatePostOpen }: GenerateProps) => {
   const isMobile = useIsMobile();
-  const { data: credits, refetch: refetchCredits } = useCredits();
+  const { credits, fetchCredits } = useCredits();
   const [refreshHistory, setRefreshHistory] = useState(0);
 
   const handleGenerationSuccess = () => {
-    refetchCredits();
+    fetchCredits();
     setRefreshHistory(prev => prev + 1);
   };
 

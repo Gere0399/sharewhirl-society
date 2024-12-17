@@ -6,14 +6,14 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { PostHeader } from "./post/header/PostHeader";
-import { PostContent } from "./post/PostContent";
-import { PostMedia } from "./post/PostMedia";
-import { PostActions } from "./post/PostActions";
+import { PostHeader } from "@/components/feed/post/header/PostHeader";
+import { PostContent } from "@/components/feed/post/PostContent";
+import { PostMedia } from "@/components/feed/post/PostMedia";
+import { PostActions } from "@/components/feed/post/PostActions";
 import { trackPostView } from "@/utils/viewTracking";
-import { RepostDialog } from "./post/RepostDialog";
-import { usePostSubscription } from "./post/hooks/usePostSubscription";
-import { usePostActions } from "./post/hooks/usePostActions";
+import { RepostDialog } from "@/components/feed/post/RepostDialog";
+import { usePostSubscription } from "@/components/feed/post/hooks/usePostSubscription";
+import { usePostActions } from "@/components/feed/post/hooks/usePostActions";
 
 interface PostCardProps {
   post: any;

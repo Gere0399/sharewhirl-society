@@ -132,50 +132,6 @@ const Profile = () => {
     }
   };
 
-  const handleLike = async (postId: string) => {
-    try {
-      if (!session?.user?.id) {
-        throw new Error("User not authenticated");
-      }
-
-      const { data: existingLike, error: likeCheckError } = await supabase
-        .from("likes")
-        .select("*")
-        .eq("post_id", postId)
-        .eq("user_id", session.user.id)
-        .single();
-
-      if (likeCheckError && likeCheckError.code !== "PGRST116") {
-        throw likeCheckError;
-      }
-
-      if (existingLike) {
-        const { error: deleteError } = await supabase
-          .from("likes")
-          .delete()
-          .eq("post_id", postId)
-          .eq("user_id", session.user.id);
-
-        if (deleteError) throw deleteError;
-      } else {
-        const { error: insertError } = await supabase
-          .from("likes")
-          .insert([{ post_id: postId, user_id: session.user.id }]);
-
-        if (insertError) throw insertError;
-      }
-
-      await fetchProfile();
-    } catch (error: any) {
-      console.error("Error handling like:", error);
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   const isOwnProfile = session?.user?.id === profile?.user_id;
 
   return (
@@ -195,14 +151,13 @@ const Profile = () => {
             <>
               <ProfileHeader
                 profile={profile}
-                isOwnProfile={session?.user?.id === profile?.user_id}
+                isOwnProfile={isOwnProfile}
                 isFollowing={isFollowing}
                 onFollowToggle={handleFollowToggle}
               />
               <PostList
                 posts={posts}
                 currentUserId={session?.user?.id}
-                onLike={handleLike}
               />
             </>
           )}

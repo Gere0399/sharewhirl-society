@@ -66,10 +66,11 @@ export function usePostSubscription(initialPost: any) {
           table: 'likes',
           filter: `post_id=eq.${post.id}`
         },
-        async () => {
-          console.log('Likes changed, fetching updated post data');
+        async (payload: any) => {
+          console.log('Likes changed:', payload);
           const updatedPost = await fetchLatestPostData(post.id);
           if (updatedPost) {
+            console.log('Updated post after likes change:', updatedPost);
             setPost(updatedPost);
           }
         }

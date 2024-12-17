@@ -8,7 +8,7 @@ export default function Index() {
   return (
     <>
       <Feed isCreatePostOpen={isCreatePostOpen} setIsCreatePostOpen={setIsCreatePostOpen} />
-      <CreatePostDialog open={isCreatePostOpen} onOpenChange={setIsCreatePostOpen} />
+      <CreatePostDialog isOpen={isCreatePostOpen} onOpenChange={setIsCreatePostOpen} />
     </>
   );
 }

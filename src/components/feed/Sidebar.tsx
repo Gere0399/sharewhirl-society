@@ -46,11 +46,16 @@ export function Sidebar({
     fetchUserProfile();
   }, []);
 
-  const handleCreatePost = () => {
+  const handleCreatePost = async () => {
     if (location.pathname !== '/') {
-      navigate('/');
+      await navigate('/');
+      // Small delay to ensure navigation is complete before opening dialog
+      setTimeout(() => {
+        setIsCreatePostOpen(true);
+      }, 100);
+    } else {
+      setIsCreatePostOpen(true);
     }
-    setIsCreatePostOpen(true);
   };
 
   const mobileNavItems = [
@@ -95,7 +100,7 @@ export function Sidebar({
             <SidebarNavItem
               key={item.label}
               {...item}
-              className="!w-14 !h-14"
+              className="!w-16 !h-16"
             />
           ))}
         </div>

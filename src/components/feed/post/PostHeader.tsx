@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { formatTimeAgo } from "@/utils/dateUtils";
-import { ProfileHoverCard } from "./ProfileHoverCard";
+import { ProfileHoverCard } from "@/components/feed/post/header/ProfileHoverCard";
 
 interface PostHeaderProps {
   profile: {

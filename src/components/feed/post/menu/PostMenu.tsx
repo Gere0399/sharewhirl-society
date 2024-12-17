@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { MoreVertical, Trash2, Flag } from "lucide-react";
+import { MoreVertical, Trash2, Flag, Edit } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,23 +10,57 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ReportPostDialog } from "../ReportPostDialog";
-import { useState } from "react";
+import { EditPostDialog } from "./EditPostDialog";
 
 interface PostMenuProps {
   postId: string;
   postTitle: string;
+  content: string;
+  tags: string[];
+  isAiGenerated: boolean;
+  createdAt: string;
   isOwnPost?: boolean;
-  onDeleteClick?: () => void;
 }
 
 export function PostMenu({
   postId,
   postTitle,
+  content,
+  tags,
+  isAiGenerated,
+  createdAt,
   isOwnPost,
-  onDeleteClick,
 }: PostMenuProps) {
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  const canEdit = isOwnPost && (
+    new Date().getTime() - new Date(createdAt).getTime() <= 20 * 60 * 1000 // 20 minutes in milliseconds
+  );
+
+  const handleDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Post deleted successfully",
+      });
+    } catch (error: any) {
+      console.error('Error deleting post:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete post",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <>
@@ -44,17 +80,31 @@ export function PostMenu({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
           {isOwnPost ? (
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onDeleteClick?.();
-              }}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete post
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDelete();
+                }}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete post
+              </DropdownMenuItem>
+              {canEdit && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsEditDialogOpen(true);
+                  }}
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit post
+                </DropdownMenuItem>
+              )}
+            </>
           ) : (
             <DropdownMenuItem
               onClick={(e) => {
@@ -76,6 +126,18 @@ export function PostMenu({
         postId={postId}
         postTitle={postTitle}
       />
+
+      {isOwnPost && (
+        <EditPostDialog
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+          postId={postId}
+          initialTitle={postTitle}
+          initialContent={content}
+          initialTags={tags}
+          initialIsAiGenerated={isAiGenerated}
+        />
+      )}
     </>
   );
 }

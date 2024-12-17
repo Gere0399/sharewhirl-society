@@ -6,6 +6,10 @@ import { PostMenu } from "./menu/PostMenu";
 interface PostActionsProps {
   postId: string;
   postTitle: string;
+  content: string;
+  tags: string[];
+  isAiGenerated: boolean;
+  createdAt: string;
   likesCount: number;
   commentsCount: number;
   viewsCount?: number;
@@ -22,6 +26,10 @@ interface PostActionsProps {
 export function PostActions({
   postId,
   postTitle,
+  content,
+  tags,
+  isAiGenerated,
+  createdAt,
   likesCount,
   commentsCount,
   viewsCount = 0,
@@ -65,8 +73,11 @@ export function PostActions({
         <PostMenu
           postId={postId}
           postTitle={postTitle}
+          content={content}
+          tags={tags}
+          isAiGenerated={isAiGenerated}
+          createdAt={createdAt}
           isOwnPost={isOwnPost}
-          onDeleteClick={onDeleteClick}
         />
       </div>
     </div>

@@ -6,14 +6,14 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { PostHeader } from "./PostHeader";
-import { PostContent } from "./PostContent";
-import { PostMedia } from "./PostMedia";
-import { PostActions } from "./PostActions";
+import { PostHeader } from "./post/header/PostHeader";
+import { PostContent } from "./post/PostContent";
+import { PostMedia } from "./post/PostMedia";
+import { PostActions } from "./post/PostActions";
 import { trackPostView } from "@/utils/viewTracking";
-import { RepostDialog } from "./RepostDialog";
-import { usePostSubscription } from "./hooks/usePostSubscription";
-import { usePostActions } from "./hooks/usePostActions";
+import { RepostDialog } from "./post/RepostDialog";
+import { usePostSubscription } from "./post/hooks/usePostSubscription";
+import { usePostActions } from "./post/hooks/usePostActions";
 
 interface PostCardProps {
   post: any;
@@ -75,6 +75,7 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
             profile={post.profiles}
             isAiGenerated={post.is_ai_generated}
             repostedFromUsername={post.reposted_from_username}
+            createdAt={post.created_at}
           />
         </CardHeader>
 
@@ -101,6 +102,10 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
           <PostActions 
             postId={post.id}
             postTitle={post.title}
+            content={post.content}
+            tags={post.tags}
+            isAiGenerated={post.is_ai_generated}
+            createdAt={post.created_at}
             likesCount={post.likes_count}
             commentsCount={post.comments_count}
             viewsCount={post.views_count}

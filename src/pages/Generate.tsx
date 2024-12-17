@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Sidebar } from "@/components/feed/Sidebar";
 import { GenerationForm } from "@/components/generate/GenerationForm";
 import { GenerationHistory } from "@/components/generate/GenerationHistory";
@@ -13,11 +12,12 @@ interface GenerateProps {
 }
 
 const Generate = ({ isCreatePostOpen, setIsCreatePostOpen }: GenerateProps) => {
-  const [refreshHistory, setRefreshHistory] = useState(0);
   const isMobile = useIsMobile();
-  const { credits } = useCredits();
+  const { data: credits, refetch: refetchCredits } = useCredits();
+  const [refreshHistory, setRefreshHistory] = useState(0);
 
   const handleGenerationSuccess = () => {
+    refetchCredits();
     setRefreshHistory(prev => prev + 1);
   };
 
@@ -26,13 +26,10 @@ const Generate = ({ isCreatePostOpen, setIsCreatePostOpen }: GenerateProps) => {
       <Sidebar isCreatePostOpen={isCreatePostOpen} setIsCreatePostOpen={setIsCreatePostOpen} />
       <main className={`flex-1 ${isMobile ? 'mb-16' : 'ml-16'}`}>
         <div className="container mx-auto px-4 py-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col gap-8">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-2xl font-bold">Generate</h1>
-                <CreditDisplay credits={credits} />
-              </div>
-              
+          <div className="max-w-2xl mx-auto">
+            <h1 className="text-2xl font-bold mb-6">Generate</h1>
+            <CreditDisplay credits={credits || 0} />
+            <div className="mt-8">
               <GenerationForm 
                 onSubmit={async () => {}}
                 loading={false}
@@ -41,15 +38,14 @@ const Generate = ({ isCreatePostOpen, setIsCreatePostOpen }: GenerateProps) => {
                 modelCost={1}
                 onSuccess={handleGenerationSuccess}
               />
-              
-              <div className="mt-8">
-                <h2 className="text-xl font-semibold mb-4">Generation History</h2>
-                <GenerationHistory 
-                  type="text-to-image"
-                  modelId="default"
-                  refreshTrigger={refreshHistory}
-                />
-              </div>
+            </div>
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold mb-4">Generation History</h2>
+              <GenerationHistory 
+                type="text-to-image"
+                modelId="default"
+                refreshTrigger={refreshHistory}
+              />
             </div>
           </div>
         </div>

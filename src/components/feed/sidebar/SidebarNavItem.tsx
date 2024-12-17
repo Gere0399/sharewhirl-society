@@ -31,7 +31,7 @@ export function SidebarNavItem({
       asChild={!asButton}
       onClick={onClick}
       className={cn(
-        "relative hover:bg-secondary/70",
+        "relative hover:bg-secondary/70 w-24 h-24 md:w-28 md:h-28",
         // Default unselected state - lighter gray color except for post/logo
         label !== "Create Post" && !isActive && "text-[#aaadb0]",
         // Hover and active states
@@ -45,8 +45,8 @@ export function SidebarNavItem({
         className
       )}
     >
-      <ButtonOrLink to={to}>
-        <Icon className="h-16 w-16 md:h-20 md:w-20" />
+      <ButtonOrLink to={to} className="flex items-center justify-center w-full h-full">
+        <Icon className="w-16 h-16 md:w-20 md:h-20" />
         <span className="sr-only">{label}</span>
       </ButtonOrLink>
     </Button>

@@ -10,10 +10,12 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function SidebarOptionsMenu() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleSignOut = async () => {
     try {
@@ -32,8 +34,15 @@ export function SidebarOptionsMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-14 w-14">
-          <Settings className="h-5 w-5" style={{ transform: 'scale(1.5)' }} />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className={isMobile ? "relative h-8 w-8" : "relative h-14 w-14"}
+        >
+          <Settings 
+            className="h-5 w-5" 
+            style={{ transform: isMobile ? 'scale(1)' : 'scale(1.5)' }} 
+          />
           <span className="sr-only">Open options menu</span>
         </Button>
       </DropdownMenuTrigger>

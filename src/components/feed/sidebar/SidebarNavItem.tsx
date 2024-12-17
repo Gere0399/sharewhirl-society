@@ -45,7 +45,7 @@ export function SidebarNavItem({
         className
       )}
     >
-      <ButtonOrLink to={to}>
+      <ButtonOrLink to={to} className="flex items-center justify-center w-full h-full">
         <Icon 
           className="h-5 w-5" 
           style={{ transform: 'scale(1.2)' }}

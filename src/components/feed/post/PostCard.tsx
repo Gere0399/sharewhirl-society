@@ -6,12 +6,12 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { PostHeader } from "./post/PostHeader";
-import { PostContent } from "./post/PostContent";
-import { PostMedia } from "./post/PostMedia";
-import { PostActions } from "./post/PostActions";
+import { PostHeader } from "./PostHeader";
+import { PostContent } from "./PostContent";
+import { PostMedia } from "./PostMedia";
+import { PostActions } from "./PostActions";
 import { trackPostView } from "@/utils/viewTracking";
-import { RepostDialog } from "./post/RepostDialog";
+import { RepostDialog } from "./RepostDialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 

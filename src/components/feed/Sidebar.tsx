@@ -10,14 +10,18 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarLogo } from "./sidebar/SidebarLogo";
 import { SidebarNavItem } from "./sidebar/SidebarNavItem";
+import { SidebarOptionsMenu } from "./sidebar/SidebarOptionsMenu";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SidebarProps {
-  isCreatePostOpen: boolean;
-  setIsCreatePostOpen: (open: boolean) => void;
+  isCreatePostOpen?: boolean;
+  setIsCreatePostOpen?: (open: boolean) => void;
 }
 
-export function Sidebar({ isCreatePostOpen, setIsCreatePostOpen }: SidebarProps) {
+export function Sidebar({ 
+  isCreatePostOpen = false, 
+  setIsCreatePostOpen = () => {} 
+}: SidebarProps) {
   const location = useLocation();
   const [username, setUsername] = useState<string | null>(null);
   const isMobile = useIsMobile();

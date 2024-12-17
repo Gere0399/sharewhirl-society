@@ -1,9 +1,7 @@
-import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export function usePostActions(currentUserId?: string) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handleLike = async (postId: string, setPost: (post: any) => void) => {
@@ -16,20 +14,16 @@ export function usePostActions(currentUserId?: string) {
       return;
     }
 
-    if (isSubmitting) return;
-
     try {
-      setIsSubmitting(true);
-
       // Check if the user has already liked the post
       const { data: existingLike, error: likeCheckError } = await supabase
         .from('likes')
-        .select()
+        .select('*')
         .eq('post_id', postId)
         .eq('user_id', currentUserId)
         .maybeSingle();
 
-      if (likeCheckError && likeCheckError.code !== 'PGRST116') {
+      if (likeCheckError) {
         throw likeCheckError;
       }
 
@@ -42,12 +36,15 @@ export function usePostActions(currentUserId?: string) {
           .eq('user_id', currentUserId);
 
         if (deleteError) throw deleteError;
-
       } else {
-        // Like the post
+        // Like the post with timestamp
         const { error: insertError } = await supabase
           .from('likes')
-          .insert([{ post_id: postId, user_id: currentUserId }]);
+          .insert([{ 
+            post_id: postId, 
+            user_id: currentUserId,
+            created_at: new Date().toISOString()
+          }]);
 
         if (insertError) throw insertError;
       }
@@ -59,10 +56,13 @@ export function usePostActions(currentUserId?: string) {
           *,
           profiles!posts_user_id_fkey (
             username,
-            avatar_url
+            avatar_url,
+            created_at,
+            bio
           ),
           likes (
-            user_id
+            user_id,
+            created_at
           )
         `)
         .eq('id', postId)
@@ -71,6 +71,7 @@ export function usePostActions(currentUserId?: string) {
       if (fetchError) throw fetchError;
 
       if (updatedPost) {
+        console.log('Post updated after like/unlike:', updatedPost);
         setPost(updatedPost);
       }
 
@@ -78,13 +79,11 @@ export function usePostActions(currentUserId?: string) {
       console.error('Error handling like:', error);
       toast({
         title: "Error",
-        description: "Failed to update like status",
+        description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  return { handleLike, isSubmitting };
+  return { handleLike };
 }

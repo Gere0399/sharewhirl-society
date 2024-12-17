@@ -4,6 +4,33 @@ import { supabase } from "@/integrations/supabase/client";
 export function usePostSubscription(initialPost: any) {
   const [post, setPost] = useState(initialPost);
 
+  const fetchLatestPostData = async (postId: string) => {
+    const { data: updatedPost, error } = await supabase
+      .from('posts')
+      .select(`
+        *,
+        profiles!posts_user_id_fkey (
+          username,
+          avatar_url,
+          created_at,
+          bio
+        ),
+        likes (
+          user_id,
+          created_at
+        )
+      `)
+      .eq('id', postId)
+      .single();
+
+    if (error) {
+      console.error('Error fetching updated post:', error);
+      return null;
+    }
+
+    return updatedPost;
+  };
+
   useEffect(() => {
     if (!post?.id) return;
 
@@ -20,23 +47,9 @@ export function usePostSubscription(initialPost: any) {
         },
         async (payload: any) => {
           if (payload.new) {
-            // Fetch complete post data to ensure we have all related data
-            const { data: updatedPost } = await supabase
-              .from('posts')
-              .select(`
-                *,
-                profiles!posts_user_id_fkey (
-                  username,
-                  avatar_url
-                ),
-                likes (
-                  user_id
-                )
-              `)
-              .eq('id', post.id)
-              .single();
-
+            const updatedPost = await fetchLatestPostData(post.id);
             if (updatedPost) {
+              console.log('Post updated:', updatedPost);
               setPost(updatedPost);
             }
           }
@@ -56,23 +69,9 @@ export function usePostSubscription(initialPost: any) {
           filter: `post_id=eq.${post.id}`
         },
         async () => {
-          // Fetch the latest post data including likes
-          const { data: updatedPost } = await supabase
-            .from('posts')
-            .select(`
-              *,
-              profiles!posts_user_id_fkey (
-                username,
-                avatar_url
-              ),
-              likes (
-                user_id
-              )
-            `)
-            .eq('id', post.id)
-            .single();
-
+          const updatedPost = await fetchLatestPostData(post.id);
           if (updatedPost) {
+            console.log('Likes updated:', updatedPost);
             setPost(updatedPost);
           }
         }

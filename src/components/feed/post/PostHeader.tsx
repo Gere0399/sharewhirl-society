@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { formatTimeAgo } from "@/utils/dateUtils";
-import { ProfileHoverCard } from "@/components/feed/post/header/ProfileHoverCard";
+import { ProfileHoverCard } from "./header/ProfileHoverCard";
 
 interface PostHeaderProps {
   profile: {
@@ -9,7 +9,6 @@ interface PostHeaderProps {
     bio?: string;
     user_id: string;
     followers_count?: number;
-    created_at: string;
   };
   isAiGenerated?: boolean;
   repostedFromUsername?: string;
@@ -20,15 +19,10 @@ interface PostHeaderProps {
 export function PostHeader({ profile, isAiGenerated, repostedFromUsername, createdAt, currentUserId }: PostHeaderProps) {
   return (
     <div className="flex items-start gap-2">
-      <ProfileHoverCard profile={profile} currentUserId={currentUserId} />
+      <ProfileHoverCard profile={profile} currentUserId={currentUserId} showAvatar={true} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <Link
-            to={`/profile/${profile.username}`}
-            className="font-medium hover:underline truncate"
-          >
-            @{profile.username}
-          </Link>
+          <ProfileHoverCard profile={profile} currentUserId={currentUserId} showAvatar={false} />
           <span className="text-muted-foreground text-sm">·</span>
           <span className="text-muted-foreground text-sm">
             {formatTimeAgo(createdAt)}

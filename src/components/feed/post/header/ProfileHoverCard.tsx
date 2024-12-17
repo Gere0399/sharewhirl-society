@@ -12,13 +12,22 @@ interface ProfileHoverCardProps {
     bio?: string;
     user_id: string;
     followers_count?: number;
-    created_at: string;
   };
   currentUserId?: string;
+  showAvatar?: boolean;
 }
 
-export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardProps) {
+export function ProfileHoverCard({ profile, currentUserId, showAvatar = true }: ProfileHoverCardProps) {
   const { isFollowing, followersCount, handleFollow } = useFollowUser(profile.user_id, currentUserId);
+
+  const content = showAvatar ? (
+    <Avatar className="h-8 w-8">
+      <AvatarImage src={profile.avatar_url} alt={profile.username} />
+      <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
+    </Avatar>
+  ) : (
+    <span className="hover:underline">@{profile.username}</span>
+  );
 
   return (
     <HoverCard>
@@ -28,10 +37,7 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
           className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
           onClick={(e) => e.stopPropagation()}
         >
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={profile.avatar_url} alt={profile.username} />
-            <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
-          </Avatar>
+          {content}
         </Link>
       </HoverCardTrigger>
       

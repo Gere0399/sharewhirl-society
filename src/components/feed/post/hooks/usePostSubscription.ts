@@ -44,11 +44,15 @@ export function usePostSubscription(initialPost: any) {
           filter: `post_id=eq.${post.id}`
         },
         async () => {
-          // Fetch updated likes data
-          const { data } = await supabase
+          // Fetch the latest post data including likes count
+          const { data: updatedPost } = await supabase
             .from('posts')
             .select(`
-              likes_count,
+              *,
+              profiles!posts_user_id_fkey (
+                username,
+                avatar_url
+              ),
               likes (
                 user_id
               )
@@ -56,12 +60,8 @@ export function usePostSubscription(initialPost: any) {
             .eq('id', post.id)
             .single();
 
-          if (data) {
-            setPost((prevPost: any) => ({
-              ...prevPost,
-              likes_count: data.likes_count,
-              likes: data.likes
-            }));
+          if (updatedPost) {
+            setPost(updatedPost);
           }
         }
       )

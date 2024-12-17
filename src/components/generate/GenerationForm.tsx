@@ -13,6 +13,7 @@ interface GenerationFormProps {
   hasFreeDaily?: boolean;
   freeDailyLimit?: number;
   dailyGenerations?: number;
+  onSuccess?: () => void;
 }
 
 export function GenerationForm({ 
@@ -23,7 +24,8 @@ export function GenerationForm({
   modelCost,
   hasFreeDaily,
   freeDailyLimit = 0,
-  dailyGenerations = 0
+  dailyGenerations = 0,
+  onSuccess
 }: GenerationFormProps) {
   const commonProps = {
     onSubmit,
@@ -32,7 +34,8 @@ export function GenerationForm({
     modelCost,
     hasFreeDaily,
     freeDailyLimit,
-    dailyGenerations
+    dailyGenerations,
+    onSuccess
   };
 
   switch (modelType) {

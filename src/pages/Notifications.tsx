@@ -12,7 +12,12 @@ type NotificationWithProfiles = Tables<"notifications"> & {
   post?: Tables<"posts">;
 };
 
-const Notifications = () => {
+interface NotificationsProps {
+  isCreatePostOpen: boolean;
+  setIsCreatePostOpen: (open: boolean) => void;
+}
+
+const Notifications = ({ isCreatePostOpen, setIsCreatePostOpen }: NotificationsProps) => {
   const { toast } = useToast();
   const [session, setSession] = useState(null);
 
@@ -74,7 +79,10 @@ const Notifications = () => {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar />
+      <Sidebar 
+        isCreatePostOpen={isCreatePostOpen} 
+        setIsCreatePostOpen={setIsCreatePostOpen} 
+      />
       <main className="flex-1 ml-16">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">
@@ -86,10 +94,11 @@ const Notifications = () => {
             ) : (
               <div className="space-y-4">
                 {notifications?.map((notification) => (
-                  <NotificationItem
-                    key={notification.id}
-                    notification={notification}
-                  />
+                  <div key={notification.id} className="bg-muted rounded-lg">
+                    <NotificationItem
+                      notification={notification}
+                    />
+                  </div>
                 ))}
                 {notifications?.length === 0 && (
                   <p className="text-center text-muted-foreground">

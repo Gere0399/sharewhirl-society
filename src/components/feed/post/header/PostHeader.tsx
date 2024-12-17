@@ -15,6 +15,11 @@ interface PostHeaderProps {
   isAiGenerated?: boolean;
   repostedFromUsername?: string;
   createdAt: string;
+  // Add these props to match what PostMenu needs
+  postId: string;
+  postTitle: string;
+  content: string;
+  tags: string[];
 }
 
 export function PostHeader({ 
@@ -22,7 +27,11 @@ export function PostHeader({
   currentUserId,
   isAiGenerated,
   repostedFromUsername,
-  createdAt
+  createdAt,
+  postId,
+  postTitle,
+  content,
+  tags
 }: PostHeaderProps) {
   if (!profile) return null;
 
@@ -44,7 +53,15 @@ export function PostHeader({
         </div>
       </div>
       {currentUserId === profile.user_id && (
-        <PostMenu postId={profile.user_id} />
+        <PostMenu 
+          postId={postId}
+          postTitle={postTitle}
+          content={content}
+          tags={tags}
+          isAiGenerated={isAiGenerated || false}
+          createdAt={createdAt}
+          isOwnPost={true}
+        />
       )}
     </div>
   );

@@ -10,16 +10,12 @@ import { Loader } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
 
-interface IndexProps {
-  isCreatePostOpen: boolean;
-  setIsCreatePostOpen: (open: boolean) => void;
-}
-
-const Index = ({ isCreatePostOpen, setIsCreatePostOpen }: IndexProps) => {
+const Index = () => {
   const [session, setSession] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState("for you");
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [userTags, setUserTags] = useState<string[]>(() => {
     const savedTags = localStorage.getItem('userTags');
     return savedTags ? JSON.parse(savedTags) : [];

@@ -1,58 +1,102 @@
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Loader } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { Sidebar } from "@/components/feed/Sidebar";
 import { NotificationItem } from "@/components/notifications/NotificationItem";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
 
-interface NotificationsProps {
-  isCreatePostOpen: boolean;
-  setIsCreatePostOpen: (open: boolean) => void;
-}
+type NotificationWithProfiles = Tables<"notifications"> & {
+  actor: Tables<"profiles">;
+  post?: Tables<"posts">;
+};
 
-const Notifications = ({ isCreatePostOpen, setIsCreatePostOpen }: NotificationsProps) => {
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+const Notifications = () => {
+  const { toast } = useToast();
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data, error } = await supabase
-            .from('notifications')
-            .select('*, actor:profiles(*), post:posts(*)')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
 
-          if (error) throw error;
-          setNotifications(data || []);
-        }
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
 
-    fetchNotifications();
+    return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) {
-    return <div>Loading notifications...</div>;
+  const { data: notifications, isLoading } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => {
+      console.log("Fetching notifications...");
+      const { data, error } = await supabase
+        .from("notifications")
+        .select(`
+          *,
+          actor:actor_id (
+            user_id,
+            username,
+            avatar_url
+          ),
+          post:posts (
+            id,
+            title,
+            content
+          )
+        `)
+        .order("created_at", { ascending: false })
+        .returns<NotificationWithProfiles[]>();
+
+      if (error) {
+        console.error("Error fetching notifications:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch notifications",
+          variant: "destructive",
+        });
+        return [];
+      }
+
+      console.log("Fetched notifications:", data);
+      return data;
+    },
+    enabled: !!session,
+  });
+
+  if (!session) {
+    return null;
   }
 
   return (
-    <div>
-      <Sidebar isCreatePostOpen={isCreatePostOpen} setIsCreatePostOpen={setIsCreatePostOpen} />
+    <div className="flex min-h-screen bg-background text-foreground">
+      <Sidebar />
       <main className="flex-1 ml-16">
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold mb-6">Notifications</h1>
-          <div className="space-y-4">
-            {notifications.length === 0 ? (
-              <p className="text-muted-foreground">No notifications yet</p>
+          <div className="max-w-2xl mx-auto">
+            <h1 className="text-2xl font-bold mb-6">Notifications</h1>
+            {isLoading ? (
+              <div className="flex justify-center items-center min-h-[200px]">
+                <Loader className="h-6 w-6 animate-spin" />
+              </div>
             ) : (
-              notifications.map((notification) => (
-                <NotificationItem key={notification.id} notification={notification} />
-              ))
+              <div className="space-y-4">
+                {notifications?.map((notification) => (
+                  <NotificationItem
+                    key={notification.id}
+                    notification={notification}
+                  />
+                ))}
+                {notifications?.length === 0 && (
+                  <p className="text-center text-muted-foreground">
+                    No notifications yet
+                  </p>
+                )}
+              </div>
             )}
           </div>
         </div>

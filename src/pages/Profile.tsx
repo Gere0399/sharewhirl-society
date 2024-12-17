@@ -16,7 +16,7 @@ export default function Profile() {
   const { data: profile, isLoading: isProfileLoading } = useProfileData(username);
   const { data: posts = [], isLoading: isPostsLoading } = useProfilePosts(profile?.user_id);
   
-  const { isFollowing, toggleFollow } = useFollowUser(profile?.user_id);
+  const { isFollowing, handleFollow } = useFollowUser(profile?.user_id, currentUser?.id);
   
   if (isProfileLoading || !profile) {
     return (
@@ -42,7 +42,7 @@ export default function Profile() {
             profile={profile}
             isOwnProfile={isOwnProfile}
             isFollowing={isFollowing}
-            onFollowToggle={toggleFollow}
+            onFollowToggle={handleFollow}
           />
           <PostList
             posts={posts}

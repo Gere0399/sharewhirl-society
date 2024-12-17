@@ -41,7 +41,7 @@ export function SidebarOptionsMenu() {
         >
           <Settings 
             className="h-5 w-5" 
-            style={{ transform: isMobile ? 'scale(1)' : 'scale(1.5)' }} 
+            style={{ transform: isMobile ? 'scale(1)' : 'scale(1.2)' }}
           />
           <span className="sr-only">Open options menu</span>
         </Button>

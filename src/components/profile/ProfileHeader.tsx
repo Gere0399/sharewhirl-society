@@ -45,7 +45,9 @@ export function ProfileHeader({ profile, isOwnProfile, isFollowing, onFollowTogg
     };
   }, [profile.user_id]);
 
-  const handleFollowToggle = async () => {
+  const handleFollowToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setLoading(true);
     await onFollowToggle();
     setLoading(false);

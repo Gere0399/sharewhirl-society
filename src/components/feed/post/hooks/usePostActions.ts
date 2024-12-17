@@ -33,21 +33,8 @@ export function usePostActions(currentUserId?: string) {
         throw likeCheckError;
       }
 
-      // Optimistic update
-      setPost((prevPost: any) => {
-        const isLiked = existingLike !== null;
-        const currentLikes = prevPost.likes || [];
-        
-        return {
-          ...prevPost,
-          likes_count: Math.max(0, prevPost.likes_count + (isLiked ? -1 : 1)),
-          likes: isLiked
-            ? currentLikes.filter((like: any) => like.user_id !== currentUserId)
-            : [...currentLikes, { user_id: currentUserId }]
-        };
-      });
-
       if (existingLike) {
+        // Unlike the post
         const { error: deleteError } = await supabase
           .from('likes')
           .delete()
@@ -55,13 +42,38 @@ export function usePostActions(currentUserId?: string) {
           .eq('user_id', currentUserId);
 
         if (deleteError) throw deleteError;
+
       } else {
+        // Like the post
         const { error: insertError } = await supabase
           .from('likes')
           .insert([{ post_id: postId, user_id: currentUserId }]);
 
         if (insertError) throw insertError;
       }
+
+      // Fetch the latest post data after like/unlike
+      const { data: updatedPost, error: fetchError } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          profiles!posts_user_id_fkey (
+            username,
+            avatar_url
+          ),
+          likes (
+            user_id
+          )
+        `)
+        .eq('id', postId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      if (updatedPost) {
+        setPost(updatedPost);
+      }
+
     } catch (error: any) {
       console.error('Error handling like:', error);
       toast({

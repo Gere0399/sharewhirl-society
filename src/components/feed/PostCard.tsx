@@ -38,12 +38,11 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && !hasBeenViewed) {
-            // Debounce the view tracking to prevent multiple refreshes
             clearTimeout(timeoutId);
             timeoutId = setTimeout(() => {
               trackPostView(post.id, currentUserId);
               setHasBeenViewed(true);
-            }, 1000); // Wait 1 second before tracking the view
+            }, 1000);
           }
         });
       },
@@ -85,10 +84,6 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
             repostedFromUsername={post.reposted_from_username}
             createdAt={post.created_at}
             currentUserId={currentUserId}
-            postId={post.id}
-            postTitle={post.title}
-            content={post.content}
-            tags={post.tags || []}
           />
         </CardHeader>
 

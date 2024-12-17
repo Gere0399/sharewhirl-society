@@ -76,10 +76,7 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
             isAiGenerated={post.is_ai_generated}
             repostedFromUsername={post.reposted_from_username}
             createdAt={post.created_at}
-            postId={post.id}
-            postTitle={post.title}
-            content={post.content}
-            tags={post.tags || []}
+            currentUserId={currentUserId}
           />
         </CardHeader>
 

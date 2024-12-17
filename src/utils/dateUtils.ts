@@ -3,6 +3,7 @@ export const formatTimeAgo = (date?: string) => {
   
   try {
     const postDate = new Date(date);
+    const now = new Date();
     
     // Validate the date
     if (isNaN(postDate.getTime())) {
@@ -10,14 +11,12 @@ export const formatTimeAgo = (date?: string) => {
       return "";
     }
 
-    // Debug logging
-    console.log('Raw date string:', date);
-    console.log('Post date:', postDate);
-    console.log('Post date timestamp:', postDate.getTime());
-    console.log('Current timestamp:', new Date().getTime());
-    console.log('Post date ISO:', postDate.toISOString());
+    // If the date is in the future, return "just now"
+    if (postDate > now) {
+      console.warn("Future date detected, defaulting to 'just now':", date);
+      return "just now";
+    }
 
-    const now = new Date();
     const diffMs = now.getTime() - postDate.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
@@ -45,7 +44,7 @@ export const formatTimeAgo = (date?: string) => {
     
     // Less than a week
     if (diffDays < 7) {
-      return `${diffDays} days ago`;
+      return `${diffDays}d ago`;
     }
     
     // More than a week

@@ -18,10 +18,14 @@ export const formatTimeAgo = (date?: string) => {
       return "just now";
     }
     
-    return formatDistanceToNowStrict(postDate, {
-      addSuffix: true,
+    // Get the formatted distance
+    const timeAgo = formatDistanceToNowStrict(postDate, {
+      addSuffix: false,
       roundingMethod: 'floor'
     });
+    
+    // Add "ago" suffix
+    return `${timeAgo} ago`;
   } catch (error) {
     console.error("Error formatting date:", error);
     return "";

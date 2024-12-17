@@ -5,6 +5,7 @@ import { GenerationHistory } from "@/components/generate/GenerationHistory";
 import { CreditDisplay } from "@/components/generate/CreditDisplay";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCredits } from "@/components/generate/hooks/useCredits";
+import { ModelType } from "@/types/generation";
 
 interface GenerateProps {
   isCreatePostOpen: boolean;
@@ -36,7 +37,7 @@ const Generate = ({ isCreatePostOpen, setIsCreatePostOpen }: GenerateProps) => {
                 onSubmit={async () => {}}
                 loading={false}
                 disabled={false}
-                modelType="image"
+                modelType="text-to-image"
                 modelCost={1}
                 onSuccess={handleGenerationSuccess}
               />
@@ -44,7 +45,7 @@ const Generate = ({ isCreatePostOpen, setIsCreatePostOpen }: GenerateProps) => {
               <div className="mt-8">
                 <h2 className="text-xl font-semibold mb-4">Generation History</h2>
                 <GenerationHistory 
-                  type="image"
+                  type="text-to-image"
                   modelId="default"
                   refreshTrigger={refreshHistory}
                 />

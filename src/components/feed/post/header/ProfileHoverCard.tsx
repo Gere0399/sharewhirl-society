@@ -41,7 +41,12 @@ export function ProfileHoverCard({ profile, currentUserId, showAvatar = true }: 
         </Link>
       </HoverCardTrigger>
       
-      <HoverCardContent className="w-80" onClick={(e) => e.stopPropagation()}>
+      <HoverCardContent 
+        className="w-80" 
+        onClick={(e) => e.stopPropagation()}
+        align="start"
+        side="bottom"
+      >
         <ProfileHoverCardContent 
           profile={profile}
           currentUserId={currentUserId}

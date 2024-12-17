@@ -14,9 +14,23 @@ interface PostHeaderProps {
   repostedFromUsername?: string;
   createdAt: string;
   currentUserId?: string;
+  postId: string;
+  postTitle: string;
+  content: string;
+  tags: string[];
 }
 
-export function PostHeader({ profile, isAiGenerated, repostedFromUsername, createdAt, currentUserId }: PostHeaderProps) {
+export function PostHeader({ 
+  profile, 
+  isAiGenerated, 
+  repostedFromUsername, 
+  createdAt, 
+  currentUserId,
+  postId,
+  postTitle,
+  content,
+  tags
+}: PostHeaderProps) {
   return (
     <div className="flex items-start gap-2">
       <ProfileHoverCard profile={profile} currentUserId={currentUserId} showAvatar={true} />

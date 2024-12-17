@@ -36,6 +36,7 @@ export function ProfileHoverCard({ profile, currentUserId, showAvatar = true }: 
           to={`/profile/${profile.username}`}
           className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity"
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
           }}
         >

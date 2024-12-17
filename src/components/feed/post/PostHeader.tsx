@@ -23,6 +23,8 @@ export function PostHeader({
   createdAt, 
   currentUserId
 }: PostHeaderProps) {
+  if (!profile) return null;
+
   return (
     <div className="flex items-start gap-2">
       <ProfileHoverCard 

@@ -4,12 +4,14 @@ import { Sidebar } from "@/components/feed/Sidebar";
 import { PostCard } from "@/components/feed/PostCard";
 import { CommentSection } from "@/components/feed/post/CommentSection";
 import { Loader } from "lucide-react";
+import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
 
 const PostView = () => {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [session, setSession] = useState(null);
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -53,7 +55,10 @@ const PostView = () => {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar />
+      <Sidebar 
+        isCreatePostOpen={isCreatePostOpen} 
+        setIsCreatePostOpen={setIsCreatePostOpen} 
+      />
       <main className="flex-1 flex justify-center">
         <div className="w-full max-w-2xl px-4 py-8 pb-20 md:pb-8 md:px-0">
           {loading ? (
@@ -79,6 +84,7 @@ const PostView = () => {
           ) : null}
         </div>
       </main>
+      <CreatePostDialog open={isCreatePostOpen} onOpenChange={setIsCreatePostOpen} />
     </div>
   );
 };

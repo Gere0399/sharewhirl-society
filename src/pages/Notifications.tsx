@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Sidebar } from "@/components/feed/Sidebar";
 import { NotificationItem } from "@/components/notifications/NotificationItem";
 import { Tables } from "@/integrations/supabase/types";
+import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
 
 type NotificationWithProfiles = Tables<"notifications"> & {
   actor: Tables<"profiles">;
@@ -15,6 +16,7 @@ type NotificationWithProfiles = Tables<"notifications"> & {
 const Notifications = () => {
   const { toast } = useToast();
   const [session, setSession] = useState(null);
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -74,7 +76,10 @@ const Notifications = () => {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar />
+      <Sidebar 
+        isCreatePostOpen={isCreatePostOpen} 
+        setIsCreatePostOpen={setIsCreatePostOpen} 
+      />
       <main className="flex-1 ml-16">
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">
@@ -101,6 +106,7 @@ const Notifications = () => {
           </div>
         </div>
       </main>
+      <CreatePostDialog open={isCreatePostOpen} onOpenChange={setIsCreatePostOpen} />
     </div>
   );
 };

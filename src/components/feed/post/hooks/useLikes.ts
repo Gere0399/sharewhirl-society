@@ -21,24 +21,27 @@ export function useLikes(currentUserId?: string) {
     try {
       setIsSubmitting(true);
 
+      // First check if the user has already liked the post
+      const { data: existingLike } = await supabase
+        .from('likes')
+        .select()
+        .eq('post_id', postId)
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+
       // Optimistic update
       setPost((prevPost: any) => {
-        const isLiked = prevPost.likes?.some((like: any) => like.user_id === currentUserId);
+        const isLiked = existingLike !== null;
+        const currentLikes = prevPost.likes || [];
+        
         return {
           ...prevPost,
           likes_count: prevPost.likes_count + (isLiked ? -1 : 1),
           likes: isLiked
-            ? prevPost.likes.filter((like: any) => like.user_id !== currentUserId)
-            : [...(prevPost.likes || []), { user_id: currentUserId }]
+            ? currentLikes.filter((like: any) => like.user_id !== currentUserId)
+            : [...currentLikes, { user_id: currentUserId }]
         };
       });
-
-      const { data: existingLike } = await supabase
-        .from('likes')
-        .select('*')
-        .eq('post_id', postId)
-        .eq('user_id', currentUserId)
-        .single();
 
       if (existingLike) {
         await supabase

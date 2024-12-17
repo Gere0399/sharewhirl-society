@@ -44,6 +44,7 @@ export function usePostSubscription(initialPost: any) {
           filter: `post_id=eq.${post.id}`
         },
         async () => {
+          // Fetch updated likes data
           const { data } = await supabase
             .from('posts')
             .select(`

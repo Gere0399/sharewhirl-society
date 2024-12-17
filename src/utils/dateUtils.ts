@@ -10,15 +10,18 @@ export const formatTimeAgo = (date?: string) => {
       return "";
     }
 
+    // Debug logging
+    console.log('Raw date string:', date);
+    console.log('Post date:', postDate);
+    console.log('Post date timestamp:', postDate.getTime());
+    console.log('Current timestamp:', new Date().getTime());
+    console.log('Post date ISO:', postDate.toISOString());
+
     const now = new Date();
     const diffMs = now.getTime() - postDate.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    // Debug logging to help us understand what's happening
-    console.log('Post date:', postDate);
-    console.log('Difference in days:', diffDays);
     
     // Less than a minute
     if (diffMins < 1) {

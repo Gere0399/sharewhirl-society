@@ -35,7 +35,7 @@ export function SidebarNavItem({
         // Default unselected state - lighter gray color except for post/logo
         label !== "Create Post" && !isActive && "text-[#aaadb0]",
         // Hover and active states
-        label === "Create Post" && "hover:bg-[hsl(262,83%,74%)] hover:text-white after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[1px] after:bg-[hsl(262,83%,74%)] after:opacity-0 hover:after:opacity-100",
+        label === "Create Post" && "hover:bg-[hsl(262,83%,74%)] hover:text-white after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[0.5px] after:bg-[hsl(262,83%,74%)] after:opacity-0 hover:after:opacity-100",
         // Selected state - white for regular icons, purple for post
         isActive && (
           label === "Create Post" 

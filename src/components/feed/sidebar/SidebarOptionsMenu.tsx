@@ -37,7 +37,7 @@ export function SidebarOptionsMenu() {
         <Button 
           variant="ghost" 
           size="icon" 
-          className={isMobile ? "relative h-8 w-8" : "relative flex items-center justify-center h-14 w-14"}
+          className={isMobile ? "relative h-8 w-8" : "relative flex justify-center h-14 w-14"}
         >
           <Settings 
             className="h-5 w-5" 

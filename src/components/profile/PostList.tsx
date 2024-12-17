@@ -3,10 +3,9 @@ import { PostCard } from "@/components/feed/PostCard";
 interface PostListProps {
   posts: any[];
   currentUserId?: string;
-  onLike: (postId: string) => Promise<void>;
 }
 
-export function PostList({ posts, currentUserId, onLike }: PostListProps) {
+export function PostList({ posts, currentUserId }: PostListProps) {
   if (posts.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -22,7 +21,6 @@ export function PostList({ posts, currentUserId, onLike }: PostListProps) {
           key={post.id}
           post={post}
           currentUserId={currentUserId}
-          onLike={onLike}
         />
       ))}
     </div>

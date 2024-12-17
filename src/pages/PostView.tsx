@@ -4,14 +4,12 @@ import { Sidebar } from "@/components/feed/Sidebar";
 import { PostCard } from "@/components/feed/PostCard";
 import { CommentSection } from "@/components/feed/post/CommentSection";
 import { Loader } from "lucide-react";
-import { usePostActions } from "@/hooks/usePostActions";
 
 const PostView = () => {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [session, setSession] = useState(null);
-  const { handleLike } = usePostActions();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -71,7 +69,6 @@ const PostView = () => {
               <PostCard
                 post={post}
                 currentUserId={session?.user?.id}
-                onLike={handleLike}
                 isFullView
               />
               <CommentSection

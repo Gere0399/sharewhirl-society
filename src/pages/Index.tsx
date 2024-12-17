@@ -121,52 +121,6 @@ const Index = () => {
     }
   };
 
-  const handleLike = async (postId: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
-
-      const { data: existingLike, error: likeCheckError } = await supabase
-        .from("likes")
-        .select("*")
-        .eq("post_id", postId)
-        .eq("user_id", user.id)
-        .single();
-
-      if (likeCheckError && likeCheckError.code !== 'PGRST116') {
-        throw likeCheckError;
-      }
-
-      if (existingLike) {
-        const { error: deleteError } = await supabase
-          .from("likes")
-          .delete()
-          .eq("post_id", postId)
-          .eq("user_id", user.id);
-
-        if (deleteError) throw deleteError;
-      } else {
-        const { error: insertError } = await supabase
-          .from("likes")
-          .insert([{ post_id: postId, user_id: user.id }]);
-
-        if (insertError) throw insertError;
-      }
-
-      // No need to fetch posts here as the real-time subscription will handle the update
-    } catch (error: any) {
-      console.error("Error handling like:", error);
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  };
-
   if (!session) {
     return <AuthForm />;
   }
@@ -202,7 +156,6 @@ const Index = () => {
                     key={post.id}
                     post={post}
                     currentUserId={session?.user?.id}
-                    onLike={handleLike}
                   />
                 ))}
               </div>

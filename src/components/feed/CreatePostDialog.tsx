@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { CreatePostForm } from "./post/create/CreatePostForm";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CreatePostDialogProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ interface CreatePostDialogProps {
 export function CreatePostDialog({ isOpen, onOpenChange }: CreatePostDialogProps) {
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleSubmit = async ({
     title,
@@ -130,7 +132,7 @@ export function CreatePostDialog({ isOpen, onOpenChange }: CreatePostDialogProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className={`${isMobile ? 'w-[95%] p-4' : 'max-w-2xl'} mx-auto`}>
         <DialogHeader>
           <DialogTitle>Create New Post</DialogTitle>
           <DialogDescription>

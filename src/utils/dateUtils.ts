@@ -1,5 +1,3 @@
-import { formatDistanceToNowStrict, format, differenceInDays } from "date-fns";
-
 export const formatTimeAgo = (date?: string) => {
   if (!date) return "";
   
@@ -13,28 +11,47 @@ export const formatTimeAgo = (date?: string) => {
     }
 
     const now = new Date();
-    const diffInDays = differenceInDays(now, postDate);
+    const diffMs = now.getTime() - postDate.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    // Debug logging to help us understand what's happening
+    console.log('Post date:', postDate);
+    console.log('Difference in days:', diffDays);
     
-    // For posts from today (0 days difference), show hours/minutes ago
-    if (diffInDays === 0) {
-      return formatDistanceToNowStrict(postDate, {
-        addSuffix: true,
-        roundingMethod: 'floor'
-      });
+    // Less than a minute
+    if (diffMins < 1) {
+      return "just now";
     }
     
-    // For yesterday
-    if (diffInDays === 1) {
+    // Less than an hour
+    if (diffMins < 60) {
+      return `${diffMins}m ago`;
+    }
+    
+    // Less than a day
+    if (diffHours < 24) {
+      return `${diffHours}h ago`;
+    }
+    
+    // Yesterday
+    if (diffDays === 1) {
       return "yesterday";
     }
     
-    // For recent days (up to 7 days)
-    if (diffInDays < 7) {
-      return `${diffInDays} days ago`;
+    // Less than a week
+    if (diffDays < 7) {
+      return `${diffDays} days ago`;
     }
     
-    // For older posts, show the date
-    return format(postDate, 'MMM d, yyyy');
+    // More than a week
+    return postDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    
   } catch (error) {
     console.error("Error formatting date:", error);
     return "";

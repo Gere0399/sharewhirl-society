@@ -23,17 +23,26 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!currentUserId) return;
+    if (!currentUserId || !profile.user_id) return;
 
     const checkFollowStatus = async () => {
-      const { data } = await supabase
-        .from('follows')
-        .select()
-        .eq('follower_id', currentUserId)
-        .eq('following_id', profile.user_id)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('follows')
+          .select()
+          .eq('follower_id', currentUserId)
+          .eq('following_id', profile.user_id)
+          .maybeSingle();
 
-      setIsFollowing(!!data);
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error checking follow status:', error);
+          return;
+        }
+
+        setIsFollowing(!!data);
+      } catch (error) {
+        console.error('Error in checkFollowStatus:', error);
+      }
     };
 
     checkFollowStatus();
@@ -51,7 +60,7 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
         },
         (payload: any) => {
           if (payload.new) {
-            setFollowersCount(payload.new.followers_count);
+            setFollowersCount(payload.new.followers_count || 0);
           }
         }
       )
@@ -72,22 +81,33 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
       return;
     }
 
+    if (!profile.user_id) {
+      console.error('No profile user_id provided');
+      return;
+    }
+
     try {
       if (isFollowing) {
-        await supabase
+        const { error } = await supabase
           .from("follows")
           .delete()
           .eq('follower_id', currentUserId)
           .eq('following_id', profile.user_id);
+
+        if (error) throw error;
         setIsFollowing(false);
+        setFollowersCount(prev => Math.max(0, prev - 1));
       } else {
-        await supabase
+        const { error } = await supabase
           .from("follows")
           .insert({
             follower_id: currentUserId,
             following_id: profile.user_id
           });
+
+        if (error) throw error;
         setIsFollowing(true);
+        setFollowersCount(prev => prev + 1);
       }
     } catch (error: any) {
       console.error('Follow error:', error);

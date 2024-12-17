@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
+import { formatTimeAgo } from "@/utils/dateUtils";
 import { ProfileHoverCard } from "./ProfileHoverCard";
-import { PostMenu } from "../menu/PostMenu";
 
 interface PostHeaderProps {
   profile: {
@@ -11,58 +10,43 @@ interface PostHeaderProps {
     user_id: string;
     followers_count?: number;
   };
-  currentUserId?: string;
   isAiGenerated?: boolean;
   repostedFromUsername?: string;
   createdAt: string;
-  // Add these props to match what PostMenu needs
-  postId: string;
-  postTitle: string;
-  content: string;
-  tags: string[];
+  currentUserId?: string;
 }
 
-export function PostHeader({ 
-  profile,
-  currentUserId,
-  isAiGenerated,
-  repostedFromUsername,
-  createdAt,
-  postId,
-  postTitle,
-  content,
-  tags
-}: PostHeaderProps) {
-  if (!profile) return null;
-
+export function PostHeader({ profile, isAiGenerated, repostedFromUsername, createdAt, currentUserId }: PostHeaderProps) {
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <ProfileHoverCard profile={profile} currentUserId={currentUserId} />
-        <div className="flex flex-col">
-          <Link
-            to={`/profile/${profile.username}`}
-            className="font-medium hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {profile.username}
-          </Link>
-          <span className="text-sm text-muted-foreground">
-            {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
+    <div className="flex items-start gap-2">
+      <ProfileHoverCard profile={profile} currentUserId={currentUserId} showAvatar={true} />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <ProfileHoverCard profile={profile} currentUserId={currentUserId} showAvatar={false} />
+          <span className="text-muted-foreground text-sm">·</span>
+          <span className="text-muted-foreground text-sm">
+            {formatTimeAgo(createdAt)}
           </span>
+          <div className="flex items-center gap-2 ml-auto">
+            {isAiGenerated && (
+              <span className="text-xs bg-primary px-1.5 py-0.5 rounded text-primary-foreground">
+                AI generated
+              </span>
+            )}
+          </div>
         </div>
+        {repostedFromUsername && (
+          <div className="text-sm text-muted-foreground">
+            Reposted from{" "}
+            <Link
+              to={`/profile/${repostedFromUsername}`}
+              className="hover:underline"
+            >
+              @{repostedFromUsername}
+            </Link>
+          </div>
+        )}
       </div>
-      {currentUserId === profile.user_id && (
-        <PostMenu 
-          postId={postId}
-          postTitle={postTitle}
-          content={content}
-          tags={tags}
-          isAiGenerated={isAiGenerated || false}
-          createdAt={createdAt}
-          isOwnPost={true}
-        />
-      )}
     </div>
   );
 }

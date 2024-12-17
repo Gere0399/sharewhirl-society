@@ -42,7 +42,18 @@ export function TagsBar({ tags, activeTag, onTagSelect, onTagRemove }: TagsBarPr
           For You
         </span>
         
-        <div className="h-4 w-px bg-border/40 mx-2" /> {/* Added separator line */}
+        <div className="h-4 w-px bg-border/40 mx-2" />
+        
+        <span 
+          className={`text-sm cursor-pointer whitespace-nowrap ${
+            activeTag === "following" ? "text-[hsl(262,83%,74%)]" : "text-muted-foreground hover:text-foreground"
+          }`}
+          onClick={() => onTagSelect("following")}
+        >
+          Following
+        </span>
+        
+        <div className="h-4 w-px bg-border/40 mx-2" />
         
         <Button
           variant="ghost"

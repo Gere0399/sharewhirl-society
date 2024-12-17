@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { UserPlus, UserMinus } from "lucide-react";
 import { getInitials } from "@/utils/stringUtils";
+import { formatTimeAgo } from "@/utils/dateUtils";
 
 interface ProfileHoverCardContentProps {
   profile: {
@@ -10,6 +11,7 @@ interface ProfileHoverCardContentProps {
     bio?: string;
     user_id: string;
     followers_count?: number;
+    created_at: string;
   };
   currentUserId?: string;
   isFollowing: boolean;
@@ -25,8 +27,8 @@ export function ProfileHoverCardContent({
   onFollow 
 }: ProfileHoverCardContentProps) {
   return (
-    <div>
-      <div className="flex justify-between space-x-4">
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-between items-start">
         <Avatar className="h-12 w-12">
           <AvatarImage src={profile.avatar_url} />
           <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
@@ -52,16 +54,18 @@ export function ProfileHoverCardContent({
           </Button>
         )}
       </div>
-      <div className="space-y-1 mt-3">
+      <div className="space-y-2">
         <h4 className="text-sm font-semibold">@{profile.username}</h4>
         {profile.bio && (
           <p className="text-sm text-muted-foreground">
             {profile.bio}
           </p>
         )}
-        <p className="text-sm text-white">
-          {followersCount} followers
-        </p>
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <span>{followersCount} followers</span>
+          <span>·</span>
+          <span>Joined {formatTimeAgo(profile.created_at)}</span>
+        </div>
       </div>
     </div>
   );

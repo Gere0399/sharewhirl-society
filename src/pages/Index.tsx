@@ -39,7 +39,6 @@ const Index = () => {
     if (session) {
       fetchPosts();
 
-      // Subscribe to real-time updates for posts
       const channel = supabase
         .channel('public:posts')
         .on(
@@ -63,7 +62,7 @@ const Index = () => {
 
   const handleTagSelect = (tag: string) => {
     setActiveTag(tag);
-    if (!userTags.includes(tag) && tag !== "for you") {
+    if (!userTags.includes(tag) && tag !== "for you" && tag !== "following") {
       const newTags = [...userTags, tag];
       setUserTags(newTags);
       localStorage.setItem('userTags', JSON.stringify(newTags));
@@ -90,7 +89,9 @@ const Index = () => {
             username,
             avatar_url,
             bio,
-            created_at
+            created_at,
+            user_id,
+            followers_count
           ),
           likes (
             user_id
@@ -101,7 +102,22 @@ const Index = () => {
         `)
         .order("created_at", { ascending: false });
 
-      if (activeTag !== "for you") {
+      if (activeTag === "following" && session?.user?.id) {
+        const { data: followingUsers } = await supabase
+          .from("follows")
+          .select("following_id")
+          .eq("follower_id", session.user.id);
+
+        const followingIds = followingUsers?.map(follow => follow.following_id) || [];
+        
+        if (followingIds.length > 0) {
+          query = query.in("user_id", followingIds);
+        } else {
+          setPosts([]);
+          setLoading(false);
+          return;
+        }
+      } else if (activeTag !== "for you") {
         query = query.or(`tags.cs.{${activeTag}},title.ilike.%${activeTag}%`);
       }
 
@@ -148,6 +164,10 @@ const Index = () => {
             {loading ? (
               <div className="flex justify-center items-center min-h-[200px]">
                 <Loader className="h-6 w-6 animate-spin" />
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {activeTag === "following" ? "No posts from people you follow" : "No posts found"}
               </div>
             ) : (
               <div className="space-y-4">

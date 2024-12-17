@@ -12,14 +12,13 @@ interface ProfileHoverCardProps {
     bio?: string;
     user_id: string;
     followers_count?: number;
+    created_at: string;
   };
   currentUserId?: string;
 }
 
 export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardProps) {
   const { isFollowing, followersCount, handleFollow } = useFollowUser(profile.user_id, currentUserId);
-
-  console.log("ProfileHoverCard props:", { profile, currentUserId, isFollowing, followersCount });
 
   return (
     <HoverCard>

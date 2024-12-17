@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, ChevronDown, ChevronUp, Heart, Trash2 } from "lucide-react";
@@ -41,10 +41,37 @@ export function CommentItem({
   onToggleReplies,
 }: CommentItemProps) {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [likesCount, setLikesCount] = useState(comment.likes_count || 0);
+  const [isLiked, setIsLiked] = useState(comment.is_liked || false);
   const { toast } = useToast();
   const hasReplies = replies.length > 0;
   const isExpanded = expandedComments.includes(comment.id);
   const isOwnComment = currentUserId === comment.user_id;
+
+  useEffect(() => {
+    // Subscribe to real-time updates for comment likes
+    const channel = supabase
+      .channel(`comment-${comment.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments',
+          filter: `id=eq.${comment.id}`
+        },
+        (payload: any) => {
+          if (payload.new) {
+            setLikesCount(payload.new.likes_count || 0);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [comment.id]);
 
   const handleLike = async () => {
     try {
@@ -56,8 +83,17 @@ export function CommentItem({
         });
         return;
       }
+      
+      // Optimistic update
+      setIsLiked(!isLiked);
+      setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
+      
       await onLike(comment.id);
     } catch (error: any) {
+      // Revert optimistic update on error
+      setIsLiked(!isLiked);
+      setLikesCount(prev => isLiked ? prev + 1 : prev - 1);
+      
       console.error('Error liking comment:', error);
       toast({
         title: "Error",
@@ -120,11 +156,11 @@ export function CommentItem({
             <Button
               variant="ghost"
               size="sm"
-              className={`h-8 px-2 ${comment.is_liked ? 'text-red-500' : ''}`}
+              className={`h-8 px-2 ${isLiked ? 'text-red-500' : ''}`}
               onClick={handleLike}
             >
-              <Heart className={`h-4 w-4 mr-1 ${comment.is_liked ? 'fill-current' : ''}`} />
-              {comment.likes_count || 0}
+              <Heart className={`h-4 w-4 mr-1 ${isLiked ? 'fill-current' : ''}`} />
+              {likesCount}
             </Button>
             <Button
               variant="ghost"

@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { EditProfileDialog } from "./EditProfileDialog";
 import { SidebarOptionsMenu } from "../feed/sidebar/SidebarOptionsMenu";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProfileHeaderProps {
   profile: any;
@@ -16,7 +17,33 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ profile, isOwnProfile, isFollowing, onFollowToggle }: ProfileHeaderProps) {
   const [loading, setLoading] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [followersCount, setFollowersCount] = useState(profile.followers_count || 0);
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    // Subscribe to real-time updates for followers count
+    const channel = supabase
+      .channel(`profile-${profile.user_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles',
+          filter: `user_id=eq.${profile.user_id}`
+        },
+        (payload: any) => {
+          if (payload.new) {
+            setFollowersCount(payload.new.followers_count || 0);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile.user_id]);
 
   const handleFollowToggle = async () => {
     setLoading(true);
@@ -73,7 +100,7 @@ export function ProfileHeader({ profile, isOwnProfile, isFollowing, onFollowTogg
               <p className="text-sm text-muted-foreground max-w-md">{profile.bio}</p>
             )}
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span>{profile.followers_count || 0} followers</span>
+              <span>{followersCount} followers</span>
             </div>
           </div>
         </div>

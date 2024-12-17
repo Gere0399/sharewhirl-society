@@ -473,7 +473,7 @@ export type Database = {
       }
     }
     Enums: {
-      notification_type: "follow" | "like" | "comment" | "comment_reply"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never

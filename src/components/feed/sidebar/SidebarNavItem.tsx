@@ -48,7 +48,7 @@ export function SidebarNavItem({
       <ButtonOrLink to={to}>
         <Icon 
           className="h-5 w-5" 
-          style={{ transform: 'scale(1.5)' }}
+          style={{ transform: 'scale(1.2)' }}  // Reduced from 1.5 to 1.2 for mobile menu icons
         />
         <span className="sr-only">{label}</span>
       </ButtonOrLink>

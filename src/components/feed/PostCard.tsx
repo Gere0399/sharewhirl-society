@@ -6,14 +6,14 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { PostHeader } from "./post/PostHeader";
+import { PostHeader } from "./post/header/PostHeader";
 import { PostContent } from "./post/PostContent";
 import { PostMedia } from "./post/PostMedia";
 import { PostActions } from "./post/PostActions";
 import { trackPostView } from "@/utils/viewTracking";
 import { RepostDialog } from "./post/RepostDialog";
 import { usePostSubscription } from "./post/hooks/usePostSubscription";
-import { useLikes } from "./post/hooks/useLikes";
+import { usePostInteractions } from "./post/hooks/usePostInteractions";
 
 interface PostCardProps {
   post: any;
@@ -23,7 +23,7 @@ interface PostCardProps {
 
 export function PostCard({ post: initialPost, currentUserId, isFullView = false }: PostCardProps) {
   const { post, setPost } = usePostSubscription(initialPost);
-  const { handleLike } = useLikes(currentUserId);
+  const { handleLike } = usePostInteractions(currentUserId);
   const [isRepostOpen, setIsRepostOpen] = useState(false);
   const [hasBeenViewed, setHasBeenViewed] = useState(false);
   const postRef = useRef<HTMLDivElement>(null);

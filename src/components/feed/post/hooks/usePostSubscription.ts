@@ -46,12 +46,10 @@ export function usePostSubscription(initialPost: any) {
           filter: `id=eq.${post.id}`
         },
         async (payload: any) => {
-          if (payload.new) {
-            const updatedPost = await fetchLatestPostData(post.id);
-            if (updatedPost) {
-              console.log('Post updated:', updatedPost);
-              setPost(updatedPost);
-            }
+          console.log('Post updated:', payload);
+          const updatedPost = await fetchLatestPostData(post.id);
+          if (updatedPost) {
+            setPost(updatedPost);
           }
         }
       )
@@ -69,9 +67,9 @@ export function usePostSubscription(initialPost: any) {
           filter: `post_id=eq.${post.id}`
         },
         async () => {
+          console.log('Likes changed, fetching updated post data');
           const updatedPost = await fetchLatestPostData(post.id);
           if (updatedPost) {
-            console.log('Likes updated:', updatedPost);
             setPost(updatedPost);
           }
         }

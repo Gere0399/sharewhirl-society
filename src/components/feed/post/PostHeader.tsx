@@ -23,6 +23,12 @@ export function PostHeader({ profile, isAiGenerated, repostedFromUsername, creat
       <ProfileHoverCard profile={profile} currentUserId={currentUserId} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
+          <Link
+            to={`/profile/${profile.username}`}
+            className="font-medium hover:underline truncate"
+          >
+            @{profile.username}
+          </Link>
           <span className="text-muted-foreground text-sm">·</span>
           <span className="text-muted-foreground text-sm">
             {formatTimeAgo(createdAt)}

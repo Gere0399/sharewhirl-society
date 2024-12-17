@@ -24,15 +24,15 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!currentUserId || !profile.user_id) {
-      console.log('Missing required IDs:', { currentUserId, profileUserId: profile.user_id });
-      return;
-    }
+    if (!currentUserId || !profile.user_id) return;
 
     const checkFollowStatus = async () => {
       try {
-        console.log('Checking follow status:', { currentUserId, profileUserId: profile.user_id });
-        
+        console.log('Checking follow status for:', {
+          follower: currentUserId,
+          following: profile.user_id
+        });
+
         const { data, error } = await supabase
           .from('follows')
           .select()
@@ -40,15 +40,10 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
           .eq('following_id', profile.user_id)
           .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error checking follow status:', error);
-          return;
-        }
-
-        console.log('Follow status result:', data);
+        if (error) throw error;
         setIsFollowing(!!data);
       } catch (error) {
-        console.error('Error in checkFollowStatus:', error);
+        console.error('Error checking follow status:', error);
       }
     };
 
@@ -65,9 +60,8 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
           filter: `user_id=eq.${profile.user_id}`
         },
         (payload: any) => {
-          console.log('Profile update received:', payload);
-          if (payload.new) {
-            setFollowersCount(payload.new.followers_count || 0);
+          if (payload.new?.followers_count !== undefined) {
+            setFollowersCount(payload.new.followers_count);
           }
         }
       )
@@ -82,13 +76,6 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('Handle follow clicked:', {
-      currentUserId,
-      profileUserId: profile.user_id,
-      isFollowing,
-      profile
-    });
-
     if (!currentUserId) {
       toast({
         title: "Authentication required",
@@ -99,7 +86,7 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
     }
 
     if (!profile.user_id) {
-      console.error('No profile user_id provided:', profile);
+      console.error('Missing profile user_id:', profile);
       toast({
         title: "Error",
         description: "Unable to follow user at this time",
@@ -108,9 +95,14 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
       return;
     }
 
+    console.log('Follow action initiated:', {
+      follower: currentUserId,
+      following: profile.user_id,
+      action: isFollowing ? 'unfollow' : 'follow'
+    });
+
     try {
       if (isFollowing) {
-        console.log('Attempting to unfollow:', { currentUserId, profileUserId: profile.user_id });
         const { error } = await supabase
           .from("follows")
           .delete()
@@ -121,7 +113,6 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
         setIsFollowing(false);
         setFollowersCount(prev => Math.max(0, prev - 1));
       } else {
-        console.log('Attempting to follow:', { currentUserId, profileUserId: profile.user_id });
         const { error } = await supabase
           .from("follows")
           .insert({
@@ -134,7 +125,7 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
         setFollowersCount(prev => prev + 1);
       }
     } catch (error: any) {
-      console.error('Follow error:', error);
+      console.error('Follow action error:', error);
       toast({
         title: "Error",
         description: "Failed to update follow status",
@@ -155,9 +146,6 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
             <AvatarImage src={profile.avatar_url} alt={profile.username} />
             <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium hover:underline">
-            @{profile.username}
-          </span>
         </Link>
       </HoverCardTrigger>
       

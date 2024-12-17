@@ -32,8 +32,8 @@ export function SidebarNavItem({
       onClick={onClick}
       className={cn(
         "relative hover:bg-secondary/70",
-        // Default unselected state - darker color except for post/logo
-        label !== "Create Post" && !isActive && "text-[#333333]",
+        // Default unselected state - lighter gray color except for post/logo
+        label !== "Create Post" && !isActive && "text-[#aaadb0]",
         // Hover and active states
         label === "Create Post" && "hover:bg-[hsl(262,83%,74%)] hover:text-white",
         // Selected state - white for regular icons, purple for post
@@ -46,7 +46,7 @@ export function SidebarNavItem({
       )}
     >
       <ButtonOrLink to={to}>
-        <Icon className="h-12 w-12 md:h-14 md:w-14" />
+        <Icon className="h-16 w-16 md:h-20 md:w-20" />
         <span className="sr-only">{label}</span>
       </ButtonOrLink>
     </Button>

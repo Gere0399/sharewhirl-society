@@ -132,7 +132,7 @@ export function CreatePostDialog({ isOpen, onOpenChange }: CreatePostDialogProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className={`${isMobile ? 'w-[95%] p-4' : 'max-w-2xl'} mx-auto`}>
+      <DialogContent className={`${isMobile ? 'w-[95vw] p-4 h-[95vh] overflow-y-auto' : 'max-w-2xl'} mx-auto`}>
         <DialogHeader>
           <DialogTitle>Create New Post</DialogTitle>
           <DialogDescription>

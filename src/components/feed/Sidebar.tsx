@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   PlayCircle,
   PlusCircle,
@@ -10,13 +10,15 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarLogo } from "./sidebar/SidebarLogo";
 import { SidebarNavItem } from "./sidebar/SidebarNavItem";
-import { CreatePostDialog } from "./CreatePostDialog";
-import { SidebarOptionsMenu } from "./sidebar/SidebarOptionsMenu";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-export function Sidebar() {
+interface SidebarProps {
+  isCreatePostOpen: boolean;
+  setIsCreatePostOpen: (open: boolean) => void;
+}
+
+export function Sidebar({ isCreatePostOpen, setIsCreatePostOpen }: SidebarProps) {
   const location = useLocation();
-  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
@@ -136,11 +138,6 @@ export function Sidebar() {
       <div className="flex-none p-2">
         <SidebarOptionsMenu />
       </div>
-
-      <CreatePostDialog
-        isOpen={isCreatePostOpen}
-        onOpenChange={setIsCreatePostOpen}
-      />
     </aside>
   );
 }

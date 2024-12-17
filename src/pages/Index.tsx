@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
-import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [session, setSession] = useState(null);
@@ -146,20 +145,12 @@ const Index = () => {
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar />
+      <Sidebar isCreatePostOpen={isCreatePostOpen} setIsCreatePostOpen={setIsCreatePostOpen} />
       <main className={`flex-1 ${isMobile ? 'mb-16' : 'ml-16'}`}>
         <header className={`fixed top-0 z-10 border-b border-border/40 bg-background/95 backdrop-blur-sm ${isMobile ? 'right-0 left-0' : 'right-0 left-16'}`}>
           <div className="container mx-auto px-4 py-2">
             <div className="flex flex-col gap-4 max-w-2xl mx-auto">
-              <div className="flex justify-between items-center">
-                <SearchBar />
-                <Button 
-                  onClick={() => setIsCreatePostOpen(true)}
-                  className="ml-2"
-                >
-                  Create Post
-                </Button>
-              </div>
+              <SearchBar />
               <TagsBar
                 tags={userTags}
                 activeTag={activeTag}

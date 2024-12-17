@@ -141,19 +141,17 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
 
   return (
     <HoverCard>
-      <div className="flex items-center gap-2">
-        <ProfileTrigger>
-          <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={profile.avatar_url} alt={profile.username} />
-              <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
-            </Avatar>
-            <span className="text-sm font-medium hover:underline">
-              @{profile.username}
-            </span>
-          </div>
-        </ProfileTrigger>
-      </div>
+      <ProfileTrigger>
+        <div className="flex items-center gap-2">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={profile.avatar_url} alt={profile.username} />
+            <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
+          </Avatar>
+          <span className="text-sm font-medium hover:underline">
+            @{profile.username}
+          </span>
+        </div>
+      </ProfileTrigger>
       
       <HoverCardContent className="w-80" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-between space-x-4">

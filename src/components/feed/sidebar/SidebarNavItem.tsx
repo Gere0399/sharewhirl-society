@@ -35,7 +35,7 @@ export function SidebarNavItem({
         // Default unselected state - lighter gray color except for post/logo
         label !== "Create Post" && !isActive && "text-[#aaadb0]",
         // Hover and active states for Create Post button
-        label === "Create Post" && "hover:bg-[hsl(262,83%,74%)] hover:text-white after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[hsl(262,83%,74%)] after:opacity-0 hover:after:opacity-100 after:transition-opacity",
+        label === "Create Post" && "hover:bg-[hsl(262,83%,74%)] hover:text-white after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[hsl(262,83%,74%)] after:opacity-0 hover:after:opacity-100 after:transition-opacity",
         // Selected state - white for regular icons, purple for post
         isActive && (
           label === "Create Post" 
@@ -46,10 +46,9 @@ export function SidebarNavItem({
       )}
     >
       <ButtonOrLink to={to}>
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center w-full h-full">
           <Icon 
-            className="h-5 w-5" 
-            style={{ transform: 'scale(1.2)' }}
+            className="h-[18px] w-[18px]" 
           />
           <span className="sr-only">{label}</span>
         </div>

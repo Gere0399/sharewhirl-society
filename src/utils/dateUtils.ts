@@ -1,62 +1,27 @@
+import { formatDistanceToNowStrict } from "date-fns";
+
 export const formatTimeAgo = (date?: string) => {
   if (!date) return "";
   
   try {
-    // Parse the UTC date string and convert to local timezone
     const postDate = new Date(date);
-    const now = new Date();
     
     // Validate the date
     if (isNaN(postDate.getTime())) {
       console.error("Invalid date:", date);
       return "";
     }
-
-    // If the date is in the future, return "just now"
-    if (postDate > now) {
-      console.warn("Future date detected, defaulting to 'just now':", date);
-      return "just now";
-    }
-
-    const diffMs = now.getTime() - postDate.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     
-    // Less than a minute
-    if (diffMins < 1) {
+    // For very recent posts (less than a minute ago)
+    const diffInSeconds = Math.floor((Date.now() - postDate.getTime()) / 1000);
+    if (diffInSeconds < 60) {
       return "just now";
     }
     
-    // Less than an hour
-    if (diffMins < 60) {
-      return `${diffMins}m ago`;
-    }
-    
-    // Less than a day
-    if (diffHours < 24) {
-      return `${diffHours}h ago`;
-    }
-    
-    // Yesterday
-    if (diffDays === 1) {
-      return "yesterday";
-    }
-    
-    // Less than a week
-    if (diffDays < 7) {
-      return `${diffDays}d ago`;
-    }
-    
-    // More than a week - use local timezone formatting with time
-    return postDate.toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return formatDistanceToNowStrict(postDate, {
+      addSuffix: true,
+      roundingMethod: 'floor'
     });
-    
   } catch (error) {
     console.error("Error formatting date:", error);
     return "";

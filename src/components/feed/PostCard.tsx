@@ -32,10 +32,10 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!post?.id) return;
+    if (!post?.id) return; // Guard against undefined post id
 
     // Subscribe to real-time updates for this post
-    const postChannel = supabase
+    const channel = supabase
       .channel(`post-${post.id}`)
       .on(
         'postgres_changes',
@@ -46,19 +46,17 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
           filter: `id=eq.${post.id}`
         },
         (payload: any) => {
-          console.log('Post update received:', payload);
           if (payload.new) {
             setPost((prevPost: any) => ({
               ...prevPost,
-              ...payload.new,
-              profiles: prevPost.profiles // Preserve profiles data
+              ...payload.new
             }));
           }
         }
       )
       .subscribe();
 
-    // Subscribe to likes for this post
+    // Also subscribe to likes for this post
     const likesChannel = supabase
       .channel(`likes-${post.id}`)
       .on(
@@ -70,7 +68,9 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
           filter: `post_id=eq.${post.id}`
         },
         async () => {
-          console.log('Likes update received for post:', post.id);
+          if (!post.id) return; // Guard against undefined post id
+
+          // Fetch updated post data including likes
           const { data } = await supabase
             .from('posts')
             .select(`
@@ -98,10 +98,10 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
       .subscribe();
 
     return () => {
-      supabase.removeChannel(postChannel);
+      supabase.removeChannel(channel);
       supabase.removeChannel(likesChannel);
     };
-  }, [post?.id]);
+  }, [post?.id]); // Only depend on post.id
 
   useEffect(() => {
     if (!postRef.current || hasBeenViewed || !currentUserId || !post?.id) return;
@@ -170,7 +170,7 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
     }
   };
 
-  if (!post?.id) return null;
+  if (!post?.id) return null; // Don't render if post id is undefined
 
   return (
     <Card className="overflow-hidden border-0 bg-card transition-colors w-full">

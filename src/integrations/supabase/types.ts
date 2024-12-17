@@ -373,6 +373,7 @@ export type Database = {
           created_at: string | null
           followers_count: number | null
           full_name: string | null
+          has_subscription: boolean | null
           id: string
           updated_at: string | null
           user_id: string
@@ -384,6 +385,7 @@ export type Database = {
           created_at?: string | null
           followers_count?: number | null
           full_name?: string | null
+          has_subscription?: boolean | null
           id?: string
           updated_at?: string | null
           user_id: string
@@ -395,6 +397,7 @@ export type Database = {
           created_at?: string | null
           followers_count?: number | null
           full_name?: string | null
+          has_subscription?: boolean | null
           id?: string
           updated_at?: string | null
           user_id?: string

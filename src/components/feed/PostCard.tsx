@@ -13,7 +13,7 @@ import { PostActions } from "./post/PostActions";
 import { trackPostView } from "@/utils/viewTracking";
 import { RepostDialog } from "./post/RepostDialog";
 import { usePostSubscription } from "./post/hooks/usePostSubscription";
-import { usePostInteractions } from "./post/hooks/usePostInteractions";
+import { usePostActions } from "./post/hooks/usePostActions";
 
 interface PostCardProps {
   post: any;
@@ -23,7 +23,7 @@ interface PostCardProps {
 
 export function PostCard({ post: initialPost, currentUserId, isFullView = false }: PostCardProps) {
   const { post, setPost } = usePostSubscription(initialPost);
-  const { handleLike } = usePostInteractions(currentUserId);
+  const { handleLike } = usePostActions(currentUserId);
   const [isRepostOpen, setIsRepostOpen] = useState(false);
   const [hasBeenViewed, setHasBeenViewed] = useState(false);
   const postRef = useRef<HTMLDivElement>(null);

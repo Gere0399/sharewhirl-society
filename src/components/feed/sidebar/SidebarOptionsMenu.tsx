@@ -37,10 +37,11 @@ export function SidebarOptionsMenu() {
         <Button 
           variant="ghost" 
           size="icon" 
-          className={isMobile ? "relative h-8 w-8" : "relative flex items-center justify-center h-14 w-14"}
+          className={isMobile ? "relative h-8 w-8" : "relative h-14 w-14"}
         >
           <Settings 
-            className="h-[18px] w-[18px]" 
+            className="h-5 w-5" 
+            style={{ transform: isMobile ? 'scale(1)' : 'scale(1.2)' }}
           />
           <span className="sr-only">Open options menu</span>
         </Button>

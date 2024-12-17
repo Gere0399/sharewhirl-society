@@ -21,6 +21,8 @@ export const NotificationItem = ({ notification }: NotificationItemProps) => {
         return "liked your post";
       case "comment":
         return "commented on your post";
+      case "comment_reply":
+        return "replied to your comment";
       case "mention":
         return "mentioned you in a post";
       case "repost":
@@ -31,7 +33,7 @@ export const NotificationItem = ({ notification }: NotificationItemProps) => {
   };
 
   return (
-    <div className={`p-4 rounded-lg border ${notification.read ? 'bg-background' : 'bg-muted'}`}>
+    <div className={`p-4 rounded-lg border ${notification.read ? 'bg-[#1A1F2C]' : 'bg-[#222222]'}`}>
       <div className="flex items-start gap-3">
         <Link to={`/profile/${notification.actor.username}`}>
           <Avatar>

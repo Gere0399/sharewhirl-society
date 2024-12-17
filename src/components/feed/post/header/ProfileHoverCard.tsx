@@ -28,7 +28,7 @@ export function ProfileHoverCard({ profile, currentUserId, showAvatar = true }: 
       <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
     </Avatar>
   ) : (
-    <span className="hover:underline">@{profile.username}</span>
+    <span className="font-medium hover:underline truncate">@{profile.username}</span>
   );
 
   return (
@@ -46,7 +46,8 @@ export function ProfileHoverCard({ profile, currentUserId, showAvatar = true }: 
       <HoverCardContent 
         side={isMobile ? "bottom" : "right"} 
         align={isMobile ? "center" : "start"}
-        className="w-80"
+        className="w-80 z-50"
+        sideOffset={5}
       >
         <ProfileHoverCardContent 
           profile={profile}

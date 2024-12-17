@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { UserPlus, UserMinus } from "lucide-react";
+import { ProfileHoverCardContent } from "./ProfileHoverCardContent";
+import { getInitials } from "@/utils/stringUtils";
 
 interface ProfileHoverCardProps {
   profile: {
@@ -24,15 +24,15 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!currentUserId || !profile.user_id) return;
-
-    console.log('Checking follow status for:', {
-      currentUserId,
-      profileUserId: profile.user_id
-    });
+    if (!currentUserId || !profile.user_id) {
+      console.log('Missing required IDs:', { currentUserId, profileUserId: profile.user_id });
+      return;
+    }
 
     const checkFollowStatus = async () => {
       try {
+        console.log('Checking follow status:', { currentUserId, profileUserId: profile.user_id });
+        
         const { data, error } = await supabase
           .from('follows')
           .select()
@@ -45,7 +45,7 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
           return;
         }
 
-        console.log('Follow status check result:', data);
+        console.log('Follow status result:', data);
         setIsFollowing(!!data);
       } catch (error) {
         console.error('Error in checkFollowStatus:', error);
@@ -54,7 +54,6 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
 
     checkFollowStatus();
 
-    // Subscribe to follows changes
     const channel = supabase
       .channel(`profile-${profile.user_id}`)
       .on(
@@ -86,7 +85,8 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
     console.log('Handle follow clicked:', {
       currentUserId,
       profileUserId: profile.user_id,
-      isFollowing
+      isFollowing,
+      profile
     });
 
     if (!currentUserId) {
@@ -110,6 +110,7 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
 
     try {
       if (isFollowing) {
+        console.log('Attempting to unfollow:', { currentUserId, profileUserId: profile.user_id });
         const { error } = await supabase
           .from("follows")
           .delete()
@@ -120,6 +121,7 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
         setIsFollowing(false);
         setFollowersCount(prev => Math.max(0, prev - 1));
       } else {
+        console.log('Attempting to follow:', { currentUserId, profileUserId: profile.user_id });
         const { error } = await supabase
           .from("follows")
           .insert({
@@ -141,10 +143,6 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
     }
   };
 
-  const getInitials = (username: string) => {
-    return username.slice(0, 2).toUpperCase();
-  };
-
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
@@ -164,43 +162,13 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
       </HoverCardTrigger>
       
       <HoverCardContent className="w-80" onClick={(e) => e.stopPropagation()}>
-        <div className="flex justify-between space-x-4">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={profile.avatar_url} />
-            <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
-          </Avatar>
-          {currentUserId && currentUserId !== profile.user_id && (
-            <Button 
-              variant={isFollowing ? "secondary" : "default"}
-              size="sm"
-              onClick={handleFollow}
-              className="gap-2"
-            >
-              {isFollowing ? (
-                <>
-                  <UserMinus className="h-4 w-4" />
-                  Unfollow
-                </>
-              ) : (
-                <>
-                  <UserPlus className="h-4 w-4" />
-                  Follow
-                </>
-              )}
-            </Button>
-          )}
-        </div>
-        <div className="space-y-1 mt-3">
-          <h4 className="text-sm font-semibold">@{profile.username}</h4>
-          {profile.bio && (
-            <p className="text-sm text-muted-foreground">
-              {profile.bio}
-            </p>
-          )}
-          <p className="text-sm text-white">
-            {followersCount} followers
-          </p>
-        </div>
+        <ProfileHoverCardContent 
+          profile={profile}
+          currentUserId={currentUserId}
+          isFollowing={isFollowing}
+          followersCount={followersCount}
+          onFollow={handleFollow}
+        />
       </HoverCardContent>
     </HoverCard>
   );

@@ -14,10 +14,6 @@ interface PostHeaderProps {
   repostedFromUsername?: string;
   createdAt: string;
   currentUserId?: string;
-  postId: string;
-  postTitle: string;
-  content: string;
-  tags: string[];
 }
 
 export function PostHeader({ 
@@ -25,11 +21,7 @@ export function PostHeader({
   isAiGenerated, 
   repostedFromUsername, 
   createdAt, 
-  currentUserId,
-  postId,
-  postTitle,
-  content,
-  tags
+  currentUserId
 }: PostHeaderProps) {
   return (
     <div className="flex items-start gap-2">
@@ -55,6 +47,7 @@ export function PostHeader({
             <Link
               to={`/profile/${repostedFromUsername}`}
               className="hover:underline"
+              onClick={(e) => e.stopPropagation()}
             >
               @{repostedFromUsername}
             </Link>

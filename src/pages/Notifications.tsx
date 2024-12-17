@@ -14,7 +14,7 @@ interface Notification {
   created_at: string;
   type: string;
   content: string;
-  is_read: boolean;
+  read: boolean; // Changed from is_read to match database schema
   user_id: string;
   actor_id: string;
   post_id?: string;
@@ -78,15 +78,15 @@ export default function Notifications() {
 
       const { error } = await supabase
         .from('notifications')
-        .update({ is_read: true })
+        .update({ read: true })
         .eq('user_id', user.id)
-        .eq('is_read', false);
+        .eq('read', false);
 
       if (error) throw error;
 
       setNotifications(notifications.map(notification => ({
         ...notification,
-        is_read: true
+        read: true
       })));
 
       toast({
@@ -114,7 +114,7 @@ export default function Notifications() {
               variant="outline"
               size="sm"
               onClick={markAllAsRead}
-              disabled={loading || notifications.every(n => n.is_read)}
+              disabled={loading || notifications.every(n => n.read)}
             >
               <BellOff className="mr-2 h-4 w-4" />
               Mark all as read
@@ -145,7 +145,7 @@ export default function Notifications() {
                 <div
                   key={notification.id}
                   className={`flex items-start space-x-4 rounded-lg border p-4 ${
-                    !notification.is_read ? "bg-muted/50" : ""
+                    !notification.read ? "bg-muted/50" : ""
                   }`}
                 >
                   <Link

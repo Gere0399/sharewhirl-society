@@ -31,7 +31,7 @@ export function SidebarNavItem({
       asChild={!asButton}
       onClick={onClick}
       className={cn(
-        "relative hover:bg-secondary/70 p-0",
+        "relative hover:bg-secondary/70",
         // Default unselected state - lighter gray color except for post/logo
         label !== "Create Post" && !isActive && "text-[#aaadb0]",
         // Hover and active states
@@ -46,7 +46,11 @@ export function SidebarNavItem({
       )}
     >
       <ButtonOrLink to={to} className="flex items-center justify-center w-full h-full">
-        <Icon className="h-8 w-8 md:h-10 md:w-10" strokeWidth={1.5} />
+        <Icon 
+          className="w-8 h-8 md:w-10 md:h-10" 
+          strokeWidth={1.5}
+          style={{ transform: 'scale(1.5)' }} // This will make the icons 50% bigger while maintaining the button size
+        />
         <span className="sr-only">{label}</span>
       </ButtonOrLink>
     </Button>

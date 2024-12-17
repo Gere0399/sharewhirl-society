@@ -1,4 +1,4 @@
-import { formatDistanceToNowStrict, format } from "date-fns";
+import { formatDistanceToNowStrict, format, isToday, isYesterday, differenceInSeconds } from "date-fns";
 
 export const formatTimeAgo = (date?: string) => {
   if (!date) return "";
@@ -11,28 +11,29 @@ export const formatTimeAgo = (date?: string) => {
       console.error("Invalid date:", date);
       return "";
     }
+
+    const secondsAgo = differenceInSeconds(new Date(), postDate);
     
-    // Calculate time difference in days
-    const diffInDays = Math.floor((Date.now() - postDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // For posts older than 7 days, show the actual date
-    if (diffInDays > 7) {
-      return format(postDate, 'MMM d, yyyy');
-    }
-    
-    // For very recent posts (less than a minute ago)
-    const diffInSeconds = Math.floor((Date.now() - postDate.getTime()) / 1000);
-    if (diffInSeconds < 60) {
+    // Less than a minute ago
+    if (secondsAgo < 60) {
       return "just now";
     }
     
-    // Get the formatted distance for recent posts
-    const timeAgo = formatDistanceToNowStrict(postDate, {
-      addSuffix: false,
-      roundingMethod: 'floor'
-    });
+    // Today - show relative time
+    if (isToday(postDate)) {
+      return formatDistanceToNowStrict(postDate, {
+        addSuffix: true,
+        roundingMethod: 'floor'
+      });
+    }
     
-    return `${timeAgo} ago`;
+    // Yesterday
+    if (isYesterday(postDate)) {
+      return "yesterday";
+    }
+    
+    // Default to formatted date
+    return format(postDate, 'MMM d, yyyy');
   } catch (error) {
     console.error("Error formatting date:", error);
     return "";

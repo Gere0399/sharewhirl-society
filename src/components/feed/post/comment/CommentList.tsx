@@ -7,6 +7,8 @@ interface CommentListProps {
   onCommentSubmit: (content: string, file: File | null, parentCommentId?: string) => Promise<void>;
   onDelete: (commentId: string) => Promise<void>;
   onLike: (commentId: string) => Promise<void>;
+  expandedComments?: string[];
+  onToggleReplies?: (commentId: string) => void;
 }
 
 export function CommentList({ 
@@ -14,22 +16,14 @@ export function CommentList({
   currentUserId, 
   onCommentSubmit,
   onDelete,
-  onLike
+  onLike,
+  expandedComments = [],
+  onToggleReplies = () => {}
 }: CommentListProps) {
-  const [expandedComments, setExpandedComments] = useState<string[]>([]);
-  
   const topLevelComments = comments.filter(comment => !comment.parent_comment_id);
   
   const getReplies = (commentId: string) => {
     return comments.filter(comment => comment.parent_comment_id === commentId);
-  };
-
-  const toggleReplies = (commentId: string) => {
-    setExpandedComments(prev => 
-      prev.includes(commentId) 
-        ? prev.filter(id => id !== commentId)
-        : [...prev, commentId]
-    );
   };
 
   return (
@@ -44,7 +38,7 @@ export function CommentList({
           onLike={onLike}
           replies={getReplies(comment.id)}
           expandedComments={expandedComments}
-          onToggleReplies={toggleReplies}
+          onToggleReplies={onToggleReplies}
         />
       ))}
     </div>

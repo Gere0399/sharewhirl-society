@@ -6,7 +6,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { PostHeader } from "@/components/feed/post/header/PostHeader";
+import { PostHeader } from "@/components/feed/post/PostHeader";
 import { PostContent } from "@/components/feed/post/PostContent";
 import { PostMedia } from "@/components/feed/post/PostMedia";
 import { PostActions } from "@/components/feed/post/PostActions";

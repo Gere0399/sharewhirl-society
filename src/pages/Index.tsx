@@ -8,12 +8,15 @@ import { SearchBar } from "@/components/feed/SearchBar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [session, setSession] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState("for you");
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [userTags, setUserTags] = useState<string[]>(() => {
     const savedTags = localStorage.getItem('userTags');
     return savedTags ? JSON.parse(savedTags) : [];
@@ -148,7 +151,15 @@ const Index = () => {
         <header className={`fixed top-0 z-10 border-b border-border/40 bg-background/95 backdrop-blur-sm ${isMobile ? 'right-0 left-0' : 'right-0 left-16'}`}>
           <div className="container mx-auto px-4 py-2">
             <div className="flex flex-col gap-4 max-w-2xl mx-auto">
-              <SearchBar />
+              <div className="flex justify-between items-center">
+                <SearchBar />
+                <Button 
+                  onClick={() => setIsCreatePostOpen(true)}
+                  className="ml-2"
+                >
+                  Create Post
+                </Button>
+              </div>
               <TagsBar
                 tags={userTags}
                 activeTag={activeTag}
@@ -158,6 +169,11 @@ const Index = () => {
             </div>
           </div>
         </header>
+
+        <CreatePostDialog 
+          isOpen={isCreatePostOpen} 
+          onOpenChange={setIsCreatePostOpen} 
+        />
 
         <div className="container mx-auto px-4 pt-36 pb-8">
           <div className="max-w-2xl mx-auto">

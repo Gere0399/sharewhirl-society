@@ -23,8 +23,9 @@ export function usePostSubscription(initialPost: any) {
             setPost((prevPost: any) => ({
               ...prevPost,
               ...payload.new,
-              // Preserve profile data as it's not included in the payload
-              profiles: prevPost.profiles
+              // Preserve nested data that isn't included in the payload
+              profiles: prevPost.profiles,
+              likes: prevPost.likes
             }));
           }
         }
@@ -43,6 +44,7 @@ export function usePostSubscription(initialPost: any) {
           filter: `post_id=eq.${post.id}`
         },
         async () => {
+          // Fetch updated likes data
           const { data } = await supabase
             .from('posts')
             .select(`

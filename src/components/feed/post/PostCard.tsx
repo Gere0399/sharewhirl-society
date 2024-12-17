@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Card,
@@ -14,7 +14,6 @@ import { trackPostView } from "@/utils/viewTracking";
 import { RepostDialog } from "./RepostDialog";
 import { usePostSubscription } from "./hooks/usePostSubscription";
 import { usePostActions } from "./hooks/usePostActions";
-import { useState } from "react";
 
 interface PostCardProps {
   post: any;
@@ -31,7 +30,6 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // View tracking
   useEffect(() => {
     if (!postRef.current || hasBeenViewed || !currentUserId || !post?.id) return;
 
@@ -77,7 +75,6 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
             profile={post.profiles}
             isAiGenerated={post.is_ai_generated}
             repostedFromUsername={post.reposted_from_username}
-            currentUserId={currentUserId}
           />
         </CardHeader>
 

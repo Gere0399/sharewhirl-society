@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Card,
@@ -12,117 +12,44 @@ import { PostMedia } from "./PostMedia";
 import { PostActions } from "./PostActions";
 import { trackPostView } from "@/utils/viewTracking";
 import { RepostDialog } from "./RepostDialog";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { usePostSubscription } from "./hooks/usePostSubscription";
+import { usePostActions } from "./hooks/usePostActions";
+import { useState } from "react";
 
 interface PostCardProps {
   post: any;
   currentUserId?: string;
-  onLike: (postId: string) => void;
   isFullView?: boolean;
 }
 
-export function PostCard({ post: initialPost, currentUserId, onLike, isFullView = false }: PostCardProps) {
-  const [post, setPost] = useState(initialPost);
+export function PostCard({ post: initialPost, currentUserId, isFullView = false }: PostCardProps) {
+  const { post, setPost } = usePostSubscription(initialPost);
+  const { handleLike } = usePostActions(currentUserId);
   const [isRepostOpen, setIsRepostOpen] = useState(false);
   const [hasBeenViewed, setHasBeenViewed] = useState(false);
   const postRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
 
+  // View tracking
   useEffect(() => {
-    // Subscribe to real-time updates for this post
-    const postChannel = supabase
-      .channel(`post-${post.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'posts',
-          filter: `id=eq.${post.id}`
-        },
-        (payload: any) => {
-          if (payload.new) {
-            setPost((prevPost: any) => ({
-              ...prevPost,
-              ...payload.new
-            }));
-          }
-        }
-      )
-      .subscribe();
-
-    // Subscribe to likes for this post
-    const likesChannel = supabase
-      .channel(`likes-${post.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'likes',
-          filter: `post_id=eq.${post.id}`
-        },
-        async () => {
-          // Fetch updated post data including likes
-          const { data } = await supabase
-            .from('posts')
-            .select(`
-              *,
-              profiles!posts_user_id_fkey (
-                username,
-                avatar_url,
-                created_at,
-                bio,
-                user_id,
-                followers_count
-              ),
-              likes (
-                user_id
-              )
-            `)
-            .eq('id', post.id)
-            .single();
-
-          if (data) {
-            setPost(data);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(postChannel);
-      supabase.removeChannel(likesChannel);
-    };
-  }, [post.id]);
-
-  useEffect(() => {
-    if (!postRef.current || hasBeenViewed || !currentUserId) return;
+    if (!postRef.current || hasBeenViewed || !currentUserId || !post?.id) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Track view as soon as any part of the post is visible
             trackPostView(post.id, currentUserId);
             setHasBeenViewed(true);
           }
         });
       },
-      {
-        threshold: 0.1, // Post is considered viewed when 10% is visible
-      }
+      { threshold: 0.1 }
     );
 
     observer.observe(postRef.current);
-    
-    return () => {
-      observer.disconnect();
-    };
-  }, [post.id, currentUserId, hasBeenViewed]);
+    return () => observer.disconnect();
+  }, [post?.id, currentUserId, hasBeenViewed]);
 
   const handleNavigateToPost = (e: React.MouseEvent) => {
     if (isFullView) return;
@@ -140,32 +67,7 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
     }
   };
 
-  const handleDelete = async () => {
-    try {
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', post.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Post deleted",
-        description: "Your post has been successfully deleted",
-      });
-
-      if (isFullView) {
-        navigate('/');
-      }
-    } catch (error: any) {
-      console.error('Delete error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete post",
-        variant: "destructive",
-      });
-    }
-  };
+  if (!post?.id) return null;
 
   return (
     <Card className="overflow-hidden border-0 bg-card transition-colors w-full">
@@ -175,6 +77,7 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
             profile={post.profiles}
             isAiGenerated={post.is_ai_generated}
             repostedFromUsername={post.reposted_from_username}
+            currentUserId={currentUserId}
           />
         </CardHeader>
 
@@ -207,14 +110,13 @@ export function PostCard({ post: initialPost, currentUserId, onLike, isFullView 
             repostCount={post.repost_count}
             isLiked={post.likes?.some((like: any) => like.user_id === currentUserId)}
             isOwnPost={post.user_id === currentUserId}
-            onLike={onLike}
+            onLike={() => handleLike(post.id, setPost)}
             onCommentClick={() => {
               if (!isFullView) {
                 navigate(`/post/${post.id}`);
               }
             }}
             onRepostClick={() => setIsRepostOpen(true)}
-            onDeleteClick={handleDelete}
             isFullView={isFullView}
           />
         </CardFooter>

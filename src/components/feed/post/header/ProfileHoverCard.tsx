@@ -14,22 +14,22 @@ interface ProfileHoverCardProps {
     user_id: string;
     followers_count?: number;
   };
+  currentUserId?: string;
 }
 
-export function ProfileHoverCard({ profile }: ProfileHoverCardProps) {
+export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardProps) {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(profile.followers_count || 0);
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkFollowStatus = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    if (!currentUserId) return;
 
+    const checkFollowStatus = async () => {
       const { data } = await supabase
         .from('follows')
         .select()
-        .eq('follower_id', user.id)
+        .eq('follower_id', currentUserId)
         .eq('following_id', profile.user_id)
         .single();
 
@@ -60,32 +60,31 @@ export function ProfileHoverCard({ profile }: ProfileHoverCardProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [profile.user_id]);
+  }, [profile.user_id, currentUserId]);
 
   const handleFollow = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to follow users",
-          variant: "destructive",
-        });
-        return;
-      }
+    if (!currentUserId) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to follow users",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    try {
       if (isFollowing) {
         await supabase
-          .from('follows')
+          .from("follows")
           .delete()
-          .eq('follower_id', user.id)
+          .eq('follower_id', currentUserId)
           .eq('following_id', profile.user_id);
         setIsFollowing(false);
       } else {
         await supabase
-          .from('follows')
+          .from("follows")
           .insert({
-            follower_id: user.id,
+            follower_id: currentUserId,
             following_id: profile.user_id
           });
         setIsFollowing(true);
@@ -120,16 +119,18 @@ export function ProfileHoverCard({ profile }: ProfileHoverCardProps) {
             <AvatarImage src={profile.avatar_url} />
             <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
           </Avatar>
-          <Button 
-            variant={isFollowing ? "secondary" : "default"}
-            size="sm"
-            onClick={(e) => {
-              e.preventDefault();
-              handleFollow();
-            }}
-          >
-            {isFollowing ? "Unfollow" : "Follow"}
-          </Button>
+          {currentUserId && currentUserId !== profile.user_id && (
+            <Button 
+              variant={isFollowing ? "secondary" : "default"}
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                handleFollow();
+              }}
+            >
+              {isFollowing ? "Unfollow" : "Follow"}
+            </Button>
+          )}
         </div>
         <div className="space-y-1 mt-3">
           <h4 className="text-sm font-semibold">@{profile.username}</h4>

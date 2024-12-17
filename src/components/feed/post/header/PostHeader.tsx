@@ -13,12 +13,13 @@ interface PostHeaderProps {
   };
   isAiGenerated?: boolean;
   repostedFromUsername?: string;
+  currentUserId?: string;
 }
 
-export function PostHeader({ profile, isAiGenerated, repostedFromUsername }: PostHeaderProps) {
+export function PostHeader({ profile, isAiGenerated, repostedFromUsername, currentUserId }: PostHeaderProps) {
   return (
     <div className="flex items-start gap-2">
-      <ProfileHoverCard profile={profile} />
+      <ProfileHoverCard profile={profile} currentUserId={currentUserId} />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <Link

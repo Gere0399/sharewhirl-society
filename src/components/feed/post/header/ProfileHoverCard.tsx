@@ -19,6 +19,8 @@ interface ProfileHoverCardProps {
 export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardProps) {
   const { isFollowing, followersCount, handleFollow } = useFollowUser(profile.user_id, currentUserId);
 
+  console.log("ProfileHoverCard props:", { profile, currentUserId, isFollowing, followersCount });
+
   return (
     <HoverCard>
       <HoverCardTrigger asChild>

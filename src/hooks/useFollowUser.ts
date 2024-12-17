@@ -10,6 +10,8 @@ export const useFollowUser = (profileUserId: string | undefined, currentUserId: 
   useEffect(() => {
     if (!currentUserId || !profileUserId) return;
 
+    console.log("Checking follow status for:", { profileUserId, currentUserId });
+
     const checkFollowStatus = async () => {
       try {
         const { data, error } = await supabase
@@ -21,35 +23,22 @@ export const useFollowUser = (profileUserId: string | undefined, currentUserId: 
 
         if (error) throw error;
         setIsFollowing(!!data);
+
+        // Get followers count
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('followers_count')
+          .eq('user_id', profileUserId)
+          .single();
+
+        if (profileError) throw profileError;
+        setFollowersCount(profileData.followers_count || 0);
       } catch (error) {
         console.error('Error checking follow status:', error);
       }
     };
 
     checkFollowStatus();
-
-    // Subscribe to profile updates
-    const channel = supabase
-      .channel(`profile-${profileUserId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles',
-          filter: `user_id=eq.${profileUserId}`
-        },
-        (payload: any) => {
-          if (payload.new?.followers_count !== undefined) {
-            setFollowersCount(payload.new.followers_count);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [profileUserId, currentUserId]);
 
   const handleFollow = async (e: React.MouseEvent) => {
@@ -73,6 +62,8 @@ export const useFollowUser = (profileUserId: string | undefined, currentUserId: 
       });
       return;
     }
+
+    console.log("Handling follow action:", { profileUserId, currentUserId, isFollowing });
 
     try {
       if (isFollowing) {

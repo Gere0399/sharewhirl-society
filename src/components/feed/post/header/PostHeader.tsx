@@ -4,29 +4,27 @@ import { ProfileHoverCard } from "./ProfileHoverCard";
 import { PostMenu } from "../menu/PostMenu";
 
 interface PostHeaderProps {
-  post: {
-    id: string;
-    created_at: string;
+  profile: {
+    username: string;
+    avatar_url?: string;
+    bio?: string;
     user_id: string;
-    profiles?: {
-      username: string;
-      avatar_url?: string;
-      bio?: string;
-      user_id: string;
-      followers_count?: number;
-    };
+    followers_count?: number;
   };
   currentUserId?: string;
-  onPostDeleted?: () => void;
+  isAiGenerated?: boolean;
+  repostedFromUsername?: string;
+  createdAt: string;
 }
 
-export function PostHeader({ post, currentUserId, onPostDeleted }: PostHeaderProps) {
-  if (!post.profiles) return null;
-
-  const profile = {
-    ...post.profiles,
-    user_id: post.user_id // Ensure user_id is always present
-  };
+export function PostHeader({ 
+  profile,
+  currentUserId,
+  isAiGenerated,
+  repostedFromUsername,
+  createdAt
+}: PostHeaderProps) {
+  if (!profile) return null;
 
   return (
     <div className="flex items-center justify-between">
@@ -41,12 +39,12 @@ export function PostHeader({ post, currentUserId, onPostDeleted }: PostHeaderPro
             {profile.username}
           </Link>
           <span className="text-sm text-muted-foreground">
-            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+            {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
           </span>
         </div>
       </div>
-      {currentUserId === post.user_id && (
-        <PostMenu postId={post.id} onPostDeleted={onPostDeleted} />
+      {currentUserId === profile.user_id && (
+        <PostMenu postId={profile.user_id} />
       )}
     </div>
   );

@@ -33,6 +33,11 @@ export default function Profile() {
 
   const isOwnProfile = currentUser?.id === profile.user_id;
 
+  // Wrapper function to match the expected signature
+  const handleFollowToggle = async () => {
+    await handleFollow();
+  };
+
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar isCreatePostOpen={isCreatePostOpen} setIsCreatePostOpen={setIsCreatePostOpen} />
@@ -42,7 +47,7 @@ export default function Profile() {
             profile={profile}
             isOwnProfile={isOwnProfile}
             isFollowing={isFollowing}
-            onFollowToggle={handleFollow}
+            onFollowToggle={handleFollowToggle}
           />
           <PostList
             posts={posts}

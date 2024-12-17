@@ -22,12 +22,16 @@ export function useLikes(currentUserId?: string) {
       setIsSubmitting(true);
 
       // First check if the user has already liked the post
-      const { data: existingLike } = await supabase
+      const { data: existingLike, error: likeCheckError } = await supabase
         .from('likes')
         .select()
         .eq('post_id', postId)
         .eq('user_id', currentUserId)
         .maybeSingle();
+
+      if (likeCheckError && likeCheckError.code !== 'PGRST116') {
+        throw likeCheckError;
+      }
 
       // Optimistic update
       setPost((prevPost: any) => {

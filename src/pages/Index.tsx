@@ -1,18 +1,21 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/auth/AuthForm";
+import { Sidebar } from "@/components/feed/Sidebar";
 import { TagsBar } from "@/components/feed/TagsBar";
 import { PostCard } from "@/components/feed/PostCard";
 import { SearchBar } from "@/components/feed/SearchBar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
 
 const Index = () => {
   const [session, setSession] = useState(null);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState("for you");
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [userTags, setUserTags] = useState<string[]>(() => {
     const savedTags = localStorage.getItem('userTags');
     return savedTags ? JSON.parse(savedTags) : [];
@@ -141,44 +144,52 @@ const Index = () => {
   }
 
   return (
-    <div className="flex-1">
-      <header className="fixed top-0 z-10 border-b border-border/40 bg-background/95 backdrop-blur-sm right-0 left-16">
-        <div className="container mx-auto px-4 py-2">
-          <div className="flex flex-col gap-4 max-w-2xl mx-auto">
-            <SearchBar />
-            <TagsBar
-              tags={userTags}
-              activeTag={activeTag}
-              onTagSelect={handleTagSelect}
-              onTagRemove={handleRemoveTag}
-            />
+    <div className="flex min-h-screen bg-background text-foreground">
+      <Sidebar isCreatePostOpen={isCreatePostOpen} setIsCreatePostOpen={setIsCreatePostOpen} />
+      <main className={`flex-1 ${isMobile ? 'mb-16' : 'ml-16'}`}>
+        <header className={`fixed top-0 z-10 border-b border-border/40 bg-background/95 backdrop-blur-sm ${isMobile ? 'right-0 left-0' : 'right-0 left-16'}`}>
+          <div className="container mx-auto px-4 py-2">
+            <div className="flex flex-col gap-4 max-w-2xl mx-auto">
+              <SearchBar />
+              <TagsBar
+                tags={userTags}
+                activeTag={activeTag}
+                onTagSelect={handleTagSelect}
+                onTagRemove={handleRemoveTag}
+              />
+            </div>
+          </div>
+        </header>
+
+        <CreatePostDialog 
+          isOpen={isCreatePostOpen} 
+          onOpenChange={setIsCreatePostOpen} 
+        />
+
+        <div className="container mx-auto px-4 pt-36 pb-8">
+          <div className="max-w-2xl mx-auto">
+            {loading ? (
+              <div className="flex justify-center items-center min-h-[200px]">
+                <Loader className="h-6 w-6 animate-spin" />
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                {activeTag === "following" ? "No posts from people you follow" : "No posts found"}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {posts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    currentUserId={session?.user?.id}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      </header>
-
-      <div className="container mx-auto px-4 pt-36 pb-8">
-        <div className="max-w-2xl mx-auto">
-          {loading ? (
-            <div className="flex justify-center items-center min-h-[200px]">
-              <Loader className="h-6 w-6 animate-spin" />
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {activeTag === "following" ? "No posts from people you follow" : "No posts found"}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {posts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  currentUserId={session?.user?.id}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      </main>
     </div>
   );
 };

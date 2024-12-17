@@ -4,19 +4,14 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 
 export default function Subscriptions() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar 
-        isCreatePostOpen={isCreatePostOpen}
-        setIsCreatePostOpen={setIsCreatePostOpen}
-      />
+      <Sidebar />
       <main className={`flex-1 ${isMobile ? 'mb-16' : 'ml-16'}`}>
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col space-y-4 max-w-6xl mx-auto">

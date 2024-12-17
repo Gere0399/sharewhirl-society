@@ -5,22 +5,12 @@ import { Sidebar } from "@/components/feed/Sidebar";
 interface PostViewErrorProps {
   onGoHome: () => void;
   isNotFound?: boolean;
-  isCreatePostOpen: boolean;
-  setIsCreatePostOpen: (open: boolean) => void;
 }
 
-export function PostViewError({ 
-  onGoHome, 
-  isNotFound = false,
-  isCreatePostOpen,
-  setIsCreatePostOpen 
-}: PostViewErrorProps) {
+export function PostViewError({ onGoHome, isNotFound = false }: PostViewErrorProps) {
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar 
-        isCreatePostOpen={isCreatePostOpen}
-        setIsCreatePostOpen={setIsCreatePostOpen}
-      />
+      <Sidebar />
       <div className="ml-64">
         <div className="flex flex-col items-center justify-center min-h-screen">
           <p className="text-muted-foreground mb-4">

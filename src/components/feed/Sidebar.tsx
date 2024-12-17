@@ -1,75 +1,147 @@
-import { Link, useLocation } from "react-router-dom";
-import { Home, PlusCircle, Bell, Sparkles, CreditCard } from "lucide-react";
-import { SidebarNavItem } from "./sidebar/SidebarNavItem";
+import { useLocation } from "react-router-dom";
+import {
+  PlayCircle,
+  PlusCircle,
+  Bell,
+  User,
+  Paintbrush,
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { SidebarLogo } from "./sidebar/SidebarLogo";
+import { SidebarNavItem } from "./sidebar/SidebarNavItem";
 import { SidebarOptionsMenu } from "./sidebar/SidebarOptionsMenu";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SidebarProps {
-  isCreatePostOpen: boolean;
-  setIsCreatePostOpen: (open: boolean) => void;
+  isCreatePostOpen?: boolean;
+  setIsCreatePostOpen?: (open: boolean) => void;
 }
 
-export function Sidebar({ isCreatePostOpen, setIsCreatePostOpen }: SidebarProps) {
+export function Sidebar({ 
+  isCreatePostOpen = false, 
+  setIsCreatePostOpen = () => {} 
+}: SidebarProps) {
   const location = useLocation();
+  const [username, setUsername] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
-  const isActive = (path: string) => location.pathname === path;
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (data) {
+          setUsername(data.username);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
+
+  const mobileNavItems = [
+    {
+      to: "/generate",
+      icon: Paintbrush,
+      label: "Generate",
+      isActive: location.pathname === "/generate"
+    },
+    {
+      to: "/",
+      icon: PlayCircle,
+      label: "Social Streaming",
+      isActive: location.pathname === "/"
+    },
+    {
+      to: "#",
+      icon: PlusCircle,
+      label: "Create Post",
+      asButton: true,
+      onClick: () => setIsCreatePostOpen(true)
+    },
+    {
+      to: "/notifications",
+      icon: Bell,
+      label: "Notifications",
+      isActive: location.pathname === "/notifications"
+    },
+    {
+      to: username ? `/profile/${username}` : "/",
+      icon: User,
+      label: "Profile",
+      isActive: location.pathname.startsWith("/profile")
+    }
+  ];
+
+  if (isMobile) {
+    return (
+      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm border-t border-border/10 z-50">
+        <div className="flex items-center justify-around h-full px-2">
+          {mobileNavItems.map((item) => (
+            <SidebarNavItem
+              key={item.label}
+              {...item}
+              className="!w-12 !h-12"
+            />
+          ))}
+        </div>
+      </nav>
+    );
+  }
 
   return (
-    <aside
-      className={`fixed ${
-        isMobile ? "bottom-0 left-0 right-0 h-16" : "left-0 top-0 h-screen w-16"
-      } z-30 flex ${
-        isMobile ? "flex-row" : "flex-col"
-      } items-center border-r bg-background pb-4`}
-    >
-      {!isMobile && (
-        <>
-          <SidebarLogo />
-          <div className="h-4" />
-        </>
-      )}
+    <aside className="fixed left-0 top-0 h-screen w-16 flex flex-col bg-background border-r border-border/10">
+      <div className="flex-none">
+        <SidebarLogo />
+      </div>
 
-      <div
-        className={`flex ${
-          isMobile ? "flex-row justify-around w-full" : "flex-col space-y-2"
-        }`}
-      >
-        <SidebarNavItem to="/" icon={Home} label="Home" isActive={isActive("/")} />
+      <nav className="flex-1 flex flex-col items-center justify-center gap-2">
+        <SidebarNavItem
+          to="/generate"
+          icon={Paintbrush}
+          label="Generate"
+          isActive={location.pathname === "/generate"}
+        />
+
+        <SidebarNavItem
+          to="/"
+          icon={PlayCircle}
+          label="Social Streaming"
+          isActive={location.pathname === "/"}
+        />
+
         <SidebarNavItem
           to="#"
           icon={PlusCircle}
           label="Create Post"
-          isActive={isCreatePostOpen}
-          onClick={() => setIsCreatePostOpen(true)}
           asButton
+          onClick={() => setIsCreatePostOpen(true)}
         />
+
         <SidebarNavItem
           to="/notifications"
           icon={Bell}
           label="Notifications"
-          isActive={isActive("/notifications")}
+          isActive={location.pathname === "/notifications"}
         />
-        <SidebarNavItem
-          to="/generate"
-          icon={Sparkles}
-          label="Generate"
-          isActive={isActive("/generate")}
-        />
-        <SidebarNavItem
-          to="/subscriptions"
-          icon={CreditCard}
-          label="Subscriptions"
-          isActive={isActive("/subscriptions")}
-        />
-      </div>
 
-      {!isMobile && (
-        <div className="mt-auto">
-          <SidebarOptionsMenu />
-        </div>
-      )}
+        <SidebarNavItem
+          to={username ? `/profile/${username}` : "/"}
+          icon={User}
+          label="Profile"
+          isActive={location.pathname.startsWith("/profile")}
+        />
+      </nav>
+
+      <div className="flex-none p-2">
+        <SidebarOptionsMenu />
+      </div>
     </aside>
   );
 }

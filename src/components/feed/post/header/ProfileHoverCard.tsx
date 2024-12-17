@@ -143,10 +143,15 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
     <HoverCard>
       <div className="flex items-center gap-2">
         <ProfileTrigger>
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={profile.avatar_url} alt={profile.username} />
-            <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
-          </Avatar>
+          <div className="flex items-center gap-2">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={profile.avatar_url} alt={profile.username} />
+              <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium hover:underline">
+              @{profile.username}
+            </span>
+          </div>
         </ProfileTrigger>
       </div>
       
@@ -184,7 +189,7 @@ export function ProfileHoverCard({ profile, currentUserId }: ProfileHoverCardPro
               {profile.bio}
             </p>
           )}
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-white">
             {followersCount} followers
           </p>
         </div>

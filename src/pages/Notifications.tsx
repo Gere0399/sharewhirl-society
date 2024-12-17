@@ -38,22 +38,15 @@ const Notifications = () => {
         .from("notifications")
         .select(`
           *,
-          actor:profiles!notifications_actor_id_fkey (
-            id,
+          actor:actor_id (
             user_id,
             username,
-            full_name,
-            avatar_url,
-            bio,
-            created_at,
-            updated_at
+            avatar_url
           ),
-          post:posts!notifications_post_id_fkey (
+          post:posts (
             id,
             title,
-            content,
-            created_at,
-            updated_at
+            content
           )
         `)
         .order("created_at", { ascending: false })

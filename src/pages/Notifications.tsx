@@ -5,6 +5,7 @@ import { AuthForm } from "@/components/auth/AuthForm";
 import { NotificationsList } from "@/components/notifications/NotificationsList";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { Sidebar } from "@/components/feed/Sidebar";
 
 const Notifications = () => {
   const { toast } = useToast();
@@ -43,13 +44,11 @@ const Notifications = () => {
         },
         (payload) => {
           console.log('Notification change received:', payload);
-          // Invalidate the query to refetch notifications
           queryClient.invalidateQueries({ queryKey: ["notification-groups", session.user.id] });
         }
       )
       .subscribe();
 
-    // Also subscribe to notification groups changes
     const groupsChannel = supabase
       .channel('notification-groups-channel')
       .on(
@@ -62,7 +61,6 @@ const Notifications = () => {
         },
         (payload) => {
           console.log('Notification group change received:', payload);
-          // Invalidate the query to refetch notifications
           queryClient.invalidateQueries({ queryKey: ["notification-groups", session.user.id] });
         }
       )
@@ -81,6 +79,8 @@ const Notifications = () => {
         return [];
       }
 
+      console.log("Fetching notifications for user:", session.user.id);
+
       const { data: groups, error: groupsError } = await supabase
         .from("notification_groups")
         .select("*")
@@ -88,6 +88,7 @@ const Notifications = () => {
         .order("created_at", { ascending: false });
 
       if (groupsError) {
+        console.error("Error fetching groups:", groupsError);
         toast({
           title: "Error fetching notifications",
           description: groupsError.message,
@@ -95,6 +96,8 @@ const Notifications = () => {
         });
         return [];
       }
+
+      console.log("Fetched groups:", groups);
 
       const notificationsPromises = (groups || []).map(async (group) => {
         const { data: notifications, error: notificationsError } = await supabase
@@ -147,6 +150,8 @@ const Notifications = () => {
           };
         }
 
+        console.log("Fetched notifications for group:", notifications);
+
         return {
           ...group,
           notifications: notifications || [],
@@ -164,7 +169,8 @@ const Notifications = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+      <Sidebar />
+      <div className="container mx-auto px-4 py-8 pl-20">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-2xl font-bold mb-6">Notifications</h1>
           <NotificationsList 

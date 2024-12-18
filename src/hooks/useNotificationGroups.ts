@@ -26,36 +26,48 @@ export const useNotificationGroups = (userId: string | undefined) => {
 
       console.log("Fetching notification groups for user:", userId);
 
-      // Fetch all notification groups for the user, ordered by most recent first
-      const { data: groups, error: groupsError } = await supabase
-        .from("notification_groups")
+      // First, get all notifications with their related data
+      const { data: notifications, error: notificationsError } = await supabase
+        .from("notifications")
         .select(`
           *,
-          notifications (
-            *,
-            actor:profiles!notifications_actor_id_fkey (*),
-            post:posts (*)
-          )
+          actor:profiles!notifications_actor_id_fkey (*),
+          post:posts (*),
+          group:notification_groups!inner (*)
         `)
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
-      if (groupsError) {
-        console.error("Error fetching notification groups:", groupsError);
-        throw groupsError;
+      if (notificationsError) {
+        console.error("Error fetching notifications:", notificationsError);
+        throw notificationsError;
       }
 
-      console.log("Fetched notification groups with notifications:", groups);
+      // Group notifications by their group_id
+      const groupedNotifications = notifications.reduce((acc: { [key: string]: NotificationGroup }, notification) => {
+        if (!notification.group) return acc;
+        
+        const group = notification.group;
+        if (!acc[group.id]) {
+          acc[group.id] = {
+            id: group.id,
+            type: group.type,
+            post_id: group.post_id,
+            comment_id: group.comment_id,
+            notifications: []
+          };
+        }
+        
+        // Add the notification to its group, excluding the group property
+        const { group: _, ...notificationWithoutGroup } = notification;
+        acc[group.id].notifications.push(notificationWithoutGroup as NotificationWithProfiles);
+        
+        return acc;
+      }, {});
 
-      // Transform the data to match our expected format
-      const results = groups.map(group => ({
-        id: group.id,
-        type: group.type,
-        post_id: group.post_id,
-        comment_id: group.comment_id,
-        notifications: group.notifications || []
-      }));
-
+      // Convert the grouped notifications object to an array
+      const results = Object.values(groupedNotifications);
+      
       console.log("Final notification groups:", results);
       return results;
     },

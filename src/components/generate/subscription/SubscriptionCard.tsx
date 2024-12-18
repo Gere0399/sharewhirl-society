@@ -33,7 +33,7 @@ export function SubscriptionCard({
 }: SubscriptionCardProps) {
   return (
     <Card className={cn(
-      "relative flex flex-col bg-[#1A1F2C]/90 backdrop-blur-sm border-[#2A2F3C] h-full",
+      "relative flex flex-col bg-[#1A1F2C]/90 border-[#2A2F3C] h-full",
       isCurrentPlan && "border-primary",
       isBestDeal && "ring-3 ring-[#9b87f5] shadow-lg scale-[1.02] mt-4 mb-8 md:mb-0"
     )}>

@@ -99,7 +99,7 @@ export function Sidebar({
   if (isMobile) {
     return (
       <nav className="fixed bottom-0 left-0 right-0 h-14 bg-background/95 backdrop-blur-sm border-t border-border/10 z-50">
-        <div className="flex items-center justify-between h-full px-2">
+        <div className="flex items-center justify-between h-full px-1">
           {mobileNavItems.map((item) => (
             <SidebarNavItem
               key={item.label}
@@ -155,7 +155,7 @@ export function Sidebar({
         />
       </nav>
 
-      <div className="flex-none p-2">
+      <div className="flex items-center justify-center">
         <SidebarOptionsMenu />
       </div>
     </aside>

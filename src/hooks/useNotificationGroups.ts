@@ -29,7 +29,14 @@ export const useNotificationGroups = (userId: string | undefined) => {
       // Fetch all notification groups for the user, ordered by most recent first
       const { data: groups, error: groupsError } = await supabase
         .from("notification_groups")
-        .select("*")
+        .select(`
+          *,
+          notifications (
+            *,
+            actor:profiles!notifications_actor_id_fkey (*),
+            post:posts (*)
+          )
+        `)
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
@@ -38,37 +45,17 @@ export const useNotificationGroups = (userId: string | undefined) => {
         throw groupsError;
       }
 
-      console.log("Fetched notification groups:", groups);
+      console.log("Fetched notification groups with notifications:", groups);
 
-      // For each group, fetch its notifications with related data
-      const notificationPromises = groups.map(async (group) => {
-        const { data: notifications, error: notificationsError } = await supabase
-          .from("notifications")
-          .select(`
-            *,
-            actor:profiles!notifications_actor_id_fkey (*),
-            post:posts (*)
-          `)
-          .eq("group_id", group.id)
-          .order("created_at", { ascending: false });
+      // Transform the data to match our expected format
+      const results = groups.map(group => ({
+        id: group.id,
+        type: group.type,
+        post_id: group.post_id,
+        comment_id: group.comment_id,
+        notifications: group.notifications || []
+      }));
 
-        if (notificationsError) {
-          console.error("Error fetching notifications for group:", notificationsError);
-          throw notificationsError;
-        }
-
-        console.log(`Fetched notifications for group ${group.id}:`, notifications);
-
-        return {
-          id: group.id,
-          type: group.type,
-          post_id: group.post_id,
-          comment_id: group.comment_id,
-          notifications: notifications as NotificationWithProfiles[]
-        };
-      });
-
-      const results = await Promise.all(notificationPromises);
       console.log("Final notification groups:", results);
       return results;
     },

@@ -26,7 +26,7 @@ export function PostHeader({
   if (!profile) return null;
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col space-y-4">
       <div className="flex gap-3">
         <div className="shrink-0">
           <ProfileHoverCard 
@@ -35,7 +35,7 @@ export function PostHeader({
             showAvatar={true} 
           />
         </div>
-        <div className="flex-1 flex items-center justify-between">
+        <div className="flex flex-col justify-between py-1.5">
           <div className="flex items-center gap-2">
             <ProfileHoverCard 
               profile={profile} 
@@ -46,26 +46,26 @@ export function PostHeader({
             <span className="text-muted-foreground text-sm">
               {formatTimeAgo(createdAt)}
             </span>
+            {isAiGenerated && (
+              <span className="text-xs bg-primary px-1.5 py-0.5 rounded text-primary-foreground">
+                AI generated
+              </span>
+            )}
           </div>
-          {isAiGenerated && (
-            <span className="text-xs bg-primary px-1.5 py-0.5 rounded text-primary-foreground ml-auto">
-              AI generated
-            </span>
+          {repostedFromUsername && (
+            <div className="text-sm text-muted-foreground mt-1">
+              Reposted from{" "}
+              <Link
+                to={`/profile/${repostedFromUsername}`}
+                className="hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                @{repostedFromUsername}
+              </Link>
+            </div>
           )}
         </div>
       </div>
-      {repostedFromUsername && (
-        <div className="text-sm text-muted-foreground mt-1 ml-[60px]">
-          Reposted from{" "}
-          <Link
-            to={`/profile/${repostedFromUsername}`}
-            className="hover:underline"
-            onClick={(e) => e.stopPropagation()}
-          >
-            @{repostedFromUsername}
-          </Link>
-        </div>
-      )}
     </div>
   );
 }

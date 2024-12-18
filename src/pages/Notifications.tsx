@@ -6,27 +6,20 @@ import { NotificationItem } from "@/components/notifications/NotificationItem";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Loader } from "lucide-react";
+import { Tables } from "@/integrations/supabase/types";
 
-interface NotificationGroup {
+type NotificationGroup = {
   id: string;
   type: string;
   post_id?: string;
   comment_id?: string;
   created_at: string;
   user_id: string;
-}
-
-interface Notification {
-  id: string;
-  type: string;
-  actor_id: string;
-  post_id?: string;
-  created_at: string;
-  profiles?: {
-    username: string;
-    avatar_url?: string;
-  };
-}
+  notifications: Array<Tables<"notifications"> & {
+    actor: Tables<"profiles">;
+    post?: Tables<"posts">;
+  }>;
+};
 
 const Notifications = () => {
   const { toast } = useToast();
@@ -76,9 +69,12 @@ const Notifications = () => {
           .from("notifications")
           .select(`
             *,
-            profiles:actor_id (
+            actor:actor_id (
               username,
               avatar_url
+            ),
+            post:post_id (
+              title
             )
           `)
           .eq("user_id", session.user.id)
@@ -123,11 +119,11 @@ const Notifications = () => {
             ) : (
               <div className="space-y-4">
                 {notificationGroups?.map((group) => (
-                  group.notifications?.map((notification: Notification) => (
+                  group.notifications?.map((notification) => (
                     <NotificationItem
                       key={notification.id}
                       notification={notification}
-                      isMobile={isMobile}
+                      groupId={group.id}
                     />
                   ))
                 ))}

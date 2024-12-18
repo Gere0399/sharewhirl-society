@@ -26,7 +26,6 @@ export const useNotificationGroups = (userId: string | undefined) => {
 
       console.log("Fetching notification groups for user:", userId);
 
-      // Fetch all unread notifications with their related data
       const { data: notifications, error: notificationsError } = await supabase
         .from("notifications")
         .select(`
@@ -47,30 +46,25 @@ export const useNotificationGroups = (userId: string | undefined) => {
         return [];
       }
 
-      // Group notifications by type and context (post_id or actor_id)
       const groups: NotificationGroup[] = [];
       const processedKeys = new Set<string>();
 
       notifications.forEach(notification => {
-        // Create a unique key for each group based on type and context
         const contextKey = `${notification.type}-${notification.post_id || ''}-${notification.actor_id}`;
         
         if (!processedKeys.has(contextKey)) {
           processedKeys.add(contextKey);
           
-          // Find all related notifications
           const relatedNotifications = notifications.filter(n => 
             n.type === notification.type && 
             n.post_id === notification.post_id &&
-            // For follows, group by actor
             (notification.type === 'follow' ? 
               n.actor_id === notification.actor_id : 
               true)
           );
 
-          // Create a new group
           groups.push({
-            id: notification.id, // Use first notification's ID as group ID
+            id: notification.id,
             type: notification.type,
             post_id: notification.post_id,
             comment_id: null,
@@ -79,15 +73,7 @@ export const useNotificationGroups = (userId: string | undefined) => {
         }
       });
 
-      // Sort groups by most recent notification
-      const sortedGroups = groups.sort((a, b) => {
-        const aDate = new Date(a.notifications[0]?.created_at || 0);
-        const bDate = new Date(b.notifications[0]?.created_at || 0);
-        return bDate.getTime() - aDate.getTime();
-      });
-
-      console.log("Final notification groups:", sortedGroups);
-      return sortedGroups;
+      return groups;
     },
     enabled: !!userId,
     staleTime: 0,

@@ -29,7 +29,6 @@ const Notifications = () => {
   useEffect(() => {
     if (!session?.user?.id) return;
     
-    // Listen for changes in notifications table
     const notificationsChannel = supabase
       .channel('notifications-changes')
       .on(
@@ -47,7 +46,6 @@ const Notifications = () => {
       )
       .subscribe();
 
-    // Listen for changes in notification_groups table
     const groupsChannel = supabase
       .channel('notification-groups-changes')
       .on(
@@ -80,15 +78,15 @@ const Notifications = () => {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="container mx-auto px-4 py-8 pl-20">
-        <div className="max-w-3xl mx-auto">
+      <main className="pl-16 md:pl-20 w-full">
+        <div className="container max-w-3xl mx-auto px-4 py-8">
           <h1 className="text-2xl font-bold mb-6 text-center">Notifications</h1>
           <NotificationsList 
             isLoading={isLoading} 
             groups={notificationGroups} 
           />
         </div>
-      </div>
+      </main>
     </div>
   );
 };

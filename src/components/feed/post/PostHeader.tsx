@@ -32,7 +32,7 @@ export function PostHeader({
         currentUserId={currentUserId} 
         showAvatar={true} 
       />
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex flex-col justify-center">
         <div className="flex items-center gap-2">
           <ProfileHoverCard 
             profile={profile} 

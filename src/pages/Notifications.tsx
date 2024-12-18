@@ -66,9 +66,7 @@ const Notifications = () => {
         return [];
       }
 
-      if (!groups) return [];
-
-      const notificationsPromises = groups.map(async (group) => {
+      const notificationsPromises = (groups || []).map(async (group) => {
         const { data: notifications, error: notificationsError } = await supabase
           .from("notifications")
           .select(`
@@ -86,7 +84,22 @@ const Notifications = () => {
               has_subscription
             ),
             post:post_id (
-              title
+              id,
+              title,
+              content,
+              media_url,
+              created_at,
+              updated_at,
+              media_type,
+              tags,
+              is_ai_generated,
+              reposted_from_id,
+              reposted_from_user_id,
+              likes_count,
+              comments_count,
+              views_count,
+              repost_count,
+              thumbnail_url
             )
           `)
           .eq("user_id", session.user.id)
@@ -130,7 +143,7 @@ const Notifications = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {notificationGroups?.map((group) => (
+                {notificationGroups?.map((group) => 
                   group.notifications?.map((notification) => (
                     <NotificationItem
                       key={notification.id}
@@ -138,7 +151,7 @@ const Notifications = () => {
                       groupId={group.id}
                     />
                   ))
-                ))}
+                )}
                 {(!notificationGroups || notificationGroups.length === 0) && (
                   <p className="text-center text-muted-foreground">
                     No notifications yet

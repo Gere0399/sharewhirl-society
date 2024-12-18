@@ -55,7 +55,7 @@ export const useNotificationGroups = (userId: string | undefined) => {
           id: group.id,
           type: group.type,
           post_id: group.post_id,
-          notifications: notifications as NotificationWithProfiles[] || []
+          notifications: notifications as NotificationWithProfiles[]
         } satisfies NotificationGroup;
       });
 

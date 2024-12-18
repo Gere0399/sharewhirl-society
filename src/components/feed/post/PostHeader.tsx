@@ -26,7 +26,7 @@ export function PostHeader({
   if (!profile) return null;
 
   return (
-    <div className="flex items-start gap-3">
+    <div className="flex gap-3">
       <div className="shrink-0">
         <ProfileHoverCard 
           profile={profile} 
@@ -34,7 +34,7 @@ export function PostHeader({
           showAvatar={true} 
         />
       </div>
-      <div className="flex flex-col justify-between min-h-[40px]">
+      <div className="flex flex-col justify-between py-1 h-12">
         <div className="flex items-center gap-2">
           <ProfileHoverCard 
             profile={profile} 

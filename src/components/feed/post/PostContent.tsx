@@ -6,7 +6,7 @@ interface PostContentProps {
 
 export function PostContent({ title, content }: PostContentProps) {
   return (
-    <div className="-mt-5">
+    <div className="-mt-[52px] ml-[60px]">
       <h3 className="text-sm font-normal break-words">{title}</h3>
     </div>
   );

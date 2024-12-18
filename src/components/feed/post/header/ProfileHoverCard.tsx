@@ -21,7 +21,7 @@ export function ProfileHoverCard({ profile, currentUserId, showAvatar = true }: 
   const { isFollowing, followersCount, handleFollow } = useFollowUser(profile.user_id, currentUserId);
 
   const content = showAvatar ? (
-    <Avatar className="h-10 w-10">
+    <Avatar className="h-12 w-12">
       <AvatarImage src={profile.avatar_url} alt={profile.username} />
       <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
     </Avatar>

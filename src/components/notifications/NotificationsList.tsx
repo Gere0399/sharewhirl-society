@@ -11,6 +11,7 @@ type NotificationGroup = {
   id: string;
   type: string;
   post_id?: string | null;
+  comment_id?: string | null;
   notifications: NotificationWithProfiles[];
 };
 

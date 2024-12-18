@@ -11,6 +11,7 @@ interface NotificationGroup {
   id: string;
   type: string;
   post_id?: string | null;
+  comment_id?: string | null;
   notifications: NotificationWithProfiles[];
 }
 
@@ -33,7 +34,7 @@ export const useNotificationGroups = (userId: string | undefined) => {
 
       if (groupsError) {
         console.error("Error fetching notification groups:", groupsError);
-        return [];
+        throw groupsError;
       }
 
       console.log("Fetched notification groups:", groups);
@@ -51,7 +52,7 @@ export const useNotificationGroups = (userId: string | undefined) => {
 
         if (notificationsError) {
           console.error("Error fetching notifications for group:", notificationsError);
-          return null;
+          throw notificationsError;
         }
 
         console.log(`Fetched notifications for group ${group.id}:`, notifications);
@@ -60,20 +61,13 @@ export const useNotificationGroups = (userId: string | undefined) => {
           id: group.id,
           type: group.type,
           post_id: group.post_id,
+          comment_id: group.comment_id,
           notifications: notifications as NotificationWithProfiles[]
         };
       });
 
       const results = await Promise.all(notificationPromises);
-      const validGroups = results.filter((group): group is NotificationGroup => 
-        group !== null && 
-        typeof group.id === 'string' && 
-        typeof group.type === 'string' && 
-        Array.isArray(group.notifications)
-      );
-
-      console.log("Final processed notification groups:", validGroups);
-      return validGroups;
+      return results;
     },
     enabled: !!userId,
   });

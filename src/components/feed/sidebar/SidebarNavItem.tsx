@@ -22,7 +22,7 @@ export function SidebarNavItem({
   onClick,
   asButton,
   className,
-  hasNotification
+  hasNotification = false
 }: SidebarNavItemProps) {
   const ButtonOrLink = asButton ? Button : Link;
   
@@ -47,7 +47,7 @@ export function SidebarNavItem({
       <ButtonOrLink to={to}>
         <Icon 
           className="h-5 w-5" 
-          style={{ transform: 'scale(1.2)' }}
+          style={{ transform: 'scale(1.2)', strokeLinecap: 'round' }}
         />
         {hasNotification && (
           <span className="absolute top-3 right-3 h-2.5 w-2.5 rounded-full bg-red-500" />

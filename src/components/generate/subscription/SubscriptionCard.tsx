@@ -37,11 +37,11 @@ export function SubscriptionCard({
       !isBestDeal && "bg-[#1A1F2C]/90",
       isBestDeal && "bg-[#1A1F2C]/90",
       isCurrentPlan && "border-primary",
-      isBestDeal ? "ring-[5px] ring-[#9b87f5] shadow-lg scale-[1.02] mt-4 mb-8 md:mb-0" : "border-2 border-[#D6BCFA]"
+      isBestDeal ? "ring-[4px] ring-[#9b87f5] shadow-lg scale-[1.02] mt-4 mb-8 md:mb-0" : "border-2 border-[#D6BCFA]"
     )}>
       {isBestDeal && (
         <>
-          <div className="absolute -top-8 left-[-3px] right-[-3px]">
+          <div className="absolute -top-8 left-[-2px] right-[-2px]">
             <div className="bg-[#9b87f5] text-white px-6 py-2 rounded-t-lg flex items-center justify-center gap-2 mx-auto">
               <span className="font-medium">Most Popular</span>
             </div>

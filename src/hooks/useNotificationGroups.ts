@@ -7,12 +7,12 @@ type NotificationWithProfiles = Tables<"notifications"> & {
   post?: Tables<"posts">;
 };
 
-type NotificationGroup = {
+interface NotificationGroup {
   id: string;
   type: string;
   post_id?: string | null;
   notifications: NotificationWithProfiles[];
-};
+}
 
 export const useNotificationGroups = (userId: string | undefined) => {
   return useQuery({

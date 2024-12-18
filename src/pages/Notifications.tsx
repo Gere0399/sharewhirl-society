@@ -2,32 +2,11 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/auth/AuthForm";
-import { NotificationItem } from "@/components/notifications/NotificationItem";
+import { NotificationsList } from "@/components/notifications/NotificationsList";
 import { useToast } from "@/hooks/use-toast";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Loader } from "lucide-react";
-import { Tables } from "@/integrations/supabase/types";
-
-type NotificationWithProfiles = Tables<"notifications"> & {
-  actor: Tables<"profiles">;
-  post?: Tables<"posts">;
-};
-
-type NotificationGroup = {
-  id: string;
-  type: string;
-  post_id?: string | null;
-  comment_id?: string | null;
-  created_at: string;
-  user_id: string;
-  read: boolean;
-  updated_at: string;
-  notifications: NotificationWithProfiles[];
-};
 
 const Notifications = () => {
   const { toast } = useToast();
-  const isMobile = useIsMobile();
   const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
@@ -128,48 +107,19 @@ const Notifications = () => {
     enabled: !!session?.user?.id,
   });
 
-  // Move the content rendering logic outside of the main return statement
-  const content = () => {
-    if (!session) {
-      return <AuthForm />;
-    }
+  if (!session) {
+    return <AuthForm />;
+  }
 
-    if (isLoading) {
-      return (
-        <div className="flex justify-center items-center min-h-[200px]">
-          <Loader className="h-6 w-6 animate-spin" />
-        </div>
-      );
-    }
-
-    const notifications = notificationGroups?.flatMap(group => 
-      group.notifications?.map(notification => (
-        <NotificationItem
-          key={notification.id}
-          notification={notification}
-          groupId={group.id}
-        />
-      )) || []
-    );
-
-    return (
-      <div className="space-y-4">
-        {notifications.length > 0 ? notifications : (
-          <p className="text-center text-muted-foreground">
-            No notifications yet
-          </p>
-        )}
-      </div>
-    );
-  };
-
-  // Main render with consistent hook calls
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-2xl font-bold mb-6">Notifications</h1>
-          {content()}
+          <NotificationsList 
+            isLoading={isLoading} 
+            groups={notificationGroups} 
+          />
         </div>
       </div>
     </div>

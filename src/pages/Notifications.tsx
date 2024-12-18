@@ -128,47 +128,48 @@ const Notifications = () => {
     enabled: !!session?.user?.id,
   });
 
-  if (!session) {
-    return <AuthForm />;
-  }
+  // Move the content rendering logic outside of the main return statement
+  const content = () => {
+    if (!session) {
+      return <AuthForm />;
+    }
 
-  const renderNotifications = () => {
-    if (!notificationGroups) return null;
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center min-h-[200px]">
+          <Loader className="h-6 w-6 animate-spin" />
+        </div>
+      );
+    }
 
-    return notificationGroups.map((group) => {
-      if (!group.notifications?.length) return null;
-      
-      return group.notifications.map((notification) => (
+    const notifications = notificationGroups?.flatMap(group => 
+      group.notifications?.map(notification => (
         <NotificationItem
           key={notification.id}
           notification={notification}
           groupId={group.id}
         />
-      ));
-    });
+      )) || []
+    );
+
+    return (
+      <div className="space-y-4">
+        {notifications.length > 0 ? notifications : (
+          <p className="text-center text-muted-foreground">
+            No notifications yet
+          </p>
+        )}
+      </div>
+    );
   };
 
+  // Main render with consistent hook calls
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-2xl font-bold mb-6">Notifications</h1>
-          <div className="space-y-4">
-            {isLoading ? (
-              <div className="flex justify-center items-center min-h-[200px]">
-                <Loader className="h-6 w-6 animate-spin" />
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {renderNotifications()}
-                {(!notificationGroups || notificationGroups.length === 0) && (
-                  <p className="text-center text-muted-foreground">
-                    No notifications yet
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+          {content()}
         </div>
       </div>
     </div>

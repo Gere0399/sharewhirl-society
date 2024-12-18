@@ -25,36 +25,7 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
     queryKey: ["notification-actors", notification.type, notification.post_id],
     queryFn: async () => {
       try {
-        // For follow notifications, we don't need post_id
-        if (notification.type === "follow") {
-          const { data, error } = await supabase
-            .from("notifications")
-            .select(`
-              actor:actor_id (
-                id,
-                user_id,
-                username,
-                avatar_url,
-                bio,
-                followers_count,
-                created_at,
-                updated_at,
-                full_name,
-                has_subscription
-              )
-            `)
-            .eq("type", notification.type)
-            .eq("user_id", notification.user_id)
-            .order("created_at", { ascending: false });
-
-          if (error) throw error;
-          return data?.map(n => n.actor) || [];
-        }
-        
-        // For other notifications that require post_id
-        if (!notification.post_id) return [];
-        
-        const { data, error } = await supabase
+        const query = supabase
           .from("notifications")
           .select(`
             actor:actor_id (
@@ -71,8 +42,15 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
             )
           `)
           .eq("type", notification.type)
-          .eq("post_id", notification.post_id)
+          .eq("user_id", notification.user_id)
           .order("created_at", { ascending: false });
+
+        // Only add post_id filter for non-follow notifications
+        if (notification.type !== "follow" && notification.post_id) {
+          query.eq("post_id", notification.post_id);
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
         return data?.map(n => n.actor) || [];
@@ -81,7 +59,7 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
         return [];
       }
     },
-    enabled: !!notification.type
+    enabled: !!notification.type && !!notification.user_id
   });
 
   const handleNotificationClick = useCallback(async () => {

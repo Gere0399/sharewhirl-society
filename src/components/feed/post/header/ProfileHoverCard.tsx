@@ -21,12 +21,12 @@ export function ProfileHoverCard({ profile, currentUserId, showAvatar = true }: 
   const { isFollowing, followersCount, handleFollow } = useFollowUser(profile.user_id, currentUserId);
 
   const content = showAvatar ? (
-    <Avatar className="h-8 w-8">
+    <Avatar className="h-10 w-10">
       <AvatarImage src={profile.avatar_url} alt={profile.username} />
       <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
     </Avatar>
   ) : (
-    <span className="hover:underline">@{profile.username}</span>
+    <span className="font-medium hover:underline">@{profile.username}</span>
   );
 
   return (

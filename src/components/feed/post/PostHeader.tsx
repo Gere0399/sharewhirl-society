@@ -26,7 +26,7 @@ export function PostHeader({
   if (!profile) return null;
 
   return (
-    <div className="flex items-start gap-2">
+    <div className="flex items-start gap-3">
       <div className="shrink-0">
         <ProfileHoverCard 
           profile={profile} 
@@ -34,7 +34,7 @@ export function PostHeader({
           showAvatar={true} 
         />
       </div>
-      <div className="flex-1 min-w-0 flex flex-col justify-between h-8">
+      <div className="flex flex-col justify-between min-h-[40px]">
         <div className="flex items-center gap-2">
           <ProfileHoverCard 
             profile={profile} 
@@ -45,13 +45,11 @@ export function PostHeader({
           <span className="text-muted-foreground text-sm">
             {formatTimeAgo(createdAt)}
           </span>
-          <div className="flex items-center gap-2 ml-auto">
-            {isAiGenerated && (
-              <span className="text-xs bg-primary px-1.5 py-0.5 rounded text-primary-foreground">
-                AI generated
-              </span>
-            )}
-          </div>
+          {isAiGenerated && (
+            <span className="text-xs bg-primary px-1.5 py-0.5 rounded text-primary-foreground">
+              AI generated
+            </span>
+          )}
         </div>
         {repostedFromUsername && (
           <div className="text-sm text-muted-foreground">

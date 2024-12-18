@@ -24,6 +24,32 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
   const { data: groupedActors } = useQuery({
     queryKey: ["notification-actors", notification.type, notification.post_id],
     queryFn: async () => {
+      // For follow notifications, we don't need post_id
+      if (notification.type === "follow") {
+        const { data } = await supabase
+          .from("notifications")
+          .select(`
+            actor:actor_id (
+              id,
+              user_id,
+              username,
+              avatar_url,
+              bio,
+              followers_count,
+              created_at,
+              updated_at,
+              full_name,
+              has_subscription
+            )
+          `)
+          .eq("type", notification.type)
+          .eq("user_id", notification.user_id)
+          .order("created_at", { ascending: false });
+        
+        return data?.map(n => n.actor) || [];
+      }
+      
+      // For other notifications that require post_id
       if (!notification.post_id) return [];
       
       const { data } = await supabase
@@ -48,7 +74,7 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
       
       return data?.map(n => n.actor) || [];
     },
-    enabled: !!notification.type && !!notification.post_id
+    enabled: !!notification.type
   });
 
   const handleNotificationClick = useCallback(async () => {
@@ -57,7 +83,9 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
       .update({ read: true })
       .eq("id", groupId);
 
-    if (notification.type === "comment" || notification.type === "comment_reply") {
+    if (notification.type === "follow") {
+      navigate(`/profile/${notification.actor.username}`);
+    } else if (notification.type === "comment" || notification.type === "comment_reply") {
       const { data } = await supabase
         .from("comments")
         .select("id")

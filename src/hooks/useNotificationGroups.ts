@@ -26,7 +26,7 @@ export const useNotificationGroups = (userId: string | undefined) => {
 
       console.log("Fetching notification groups for user:", userId);
 
-      // First, get all notifications with their related data
+      // Get all notifications with their related data
       const { data: notifications, error: notificationsError } = await supabase
         .from("notifications")
         .select(`
@@ -43,55 +43,66 @@ export const useNotificationGroups = (userId: string | undefined) => {
           )
         `)
         .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(100); // Add a reasonable limit to prevent performance issues
 
       if (notificationsError) {
         console.error("Error fetching notifications:", notificationsError);
         throw notificationsError;
       }
 
-      // Group notifications by their group_id
-      const groupedNotifications = notifications.reduce((acc: { [key: string]: NotificationGroup }, notification) => {
-        const group = notification.notification_groups;
-        if (!group) return acc;
+      // Create a map to store unique groups
+      const groupsMap = new Map<string, NotificationGroup>();
 
-        if (!acc[group.id]) {
-          acc[group.id] = {
+      // Process each notification
+      notifications?.forEach(notification => {
+        const group = notification.notification_groups;
+        if (!group) return;
+
+        // Get or create group
+        if (!groupsMap.has(group.id)) {
+          groupsMap.set(group.id, {
             id: group.id,
             type: group.type,
             post_id: group.post_id,
             comment_id: group.comment_id,
             notifications: []
-          };
+          });
         }
 
-        // Add the notification to its group
-        acc[group.id].notifications.push({
-          id: notification.id,
-          user_id: notification.user_id,
-          actor_id: notification.actor_id,
-          type: notification.type,
-          content: notification.content,
-          post_id: notification.post_id,
-          read: notification.read,
-          created_at: notification.created_at,
-          updated_at: notification.updated_at,
-          group_id: notification.group_id,
-          actor: notification.actor,
-          post: notification.post
+        // Add notification to group
+        const currentGroup = groupsMap.get(group.id);
+        if (currentGroup) {
+          currentGroup.notifications.push({
+            id: notification.id,
+            user_id: notification.user_id,
+            actor_id: notification.actor_id,
+            type: notification.type,
+            content: notification.content,
+            post_id: notification.post_id,
+            read: notification.read,
+            created_at: notification.created_at,
+            updated_at: notification.updated_at,
+            group_id: notification.group_id,
+            actor: notification.actor,
+            post: notification.post
+          });
+        }
+      });
+
+      // Convert map to array and sort by most recent notification
+      const groupsArray = Array.from(groupsMap.values())
+        .sort((a, b) => {
+          const aDate = new Date(a.notifications[0]?.created_at || 0);
+          const bDate = new Date(b.notifications[0]?.created_at || 0);
+          return bDate.getTime() - aDate.getTime();
         });
 
-        return acc;
-      }, {});
-
-      // Convert the grouped notifications object to an array
-      const groupsWithNotifications = Object.values(groupedNotifications);
-
-      console.log("Final notification groups:", groupsWithNotifications);
-      return groupsWithNotifications;
+      console.log("Final notification groups:", groupsArray);
+      return groupsArray;
     },
     enabled: !!userId,
     staleTime: 0,
-    refetchOnWindowFocus: true,
+    refetchInterval: 30000, // Refetch every 30 seconds
   });
 };

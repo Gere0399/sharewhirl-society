@@ -28,11 +28,16 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
         .from("notifications")
         .select(`
           actor:actor_id (
+            id,
             user_id,
             username,
             avatar_url,
             bio,
-            followers_count
+            followers_count,
+            created_at,
+            updated_at,
+            full_name,
+            has_subscription
           )
         `)
         .eq("type", notification.type)

@@ -167,7 +167,7 @@ const Index = () => {
         />
 
         <div className="container mx-auto px-4 pt-36 pb-8">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto space-y-4">
             {loading ? (
               <div className="flex justify-center items-center min-h-[200px]">
                 <Loader className="h-6 w-6 animate-spin" />

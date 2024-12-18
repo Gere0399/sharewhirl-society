@@ -77,10 +77,6 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
             repostedFromUsername={post.reposted_from_username}
             createdAt={post.created_at}
             currentUserId={currentUserId}
-            postId={post.id}
-            postTitle={post.title}
-            content={post.content}
-            tags={post.tags || []}
           />
         </CardHeader>
 

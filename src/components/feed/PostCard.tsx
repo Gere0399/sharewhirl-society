@@ -33,12 +33,16 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
   useEffect(() => {
     if (!postRef.current || hasBeenViewed || !currentUserId || !post?.id) return;
 
+    let timeoutId: NodeJS.Timeout;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            trackPostView(post.id, currentUserId);
-            setHasBeenViewed(true);
+          if (entry.isIntersecting && !hasBeenViewed) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+              trackPostView(post.id, currentUserId);
+              setHasBeenViewed(true);
+            }, 1000);
           }
         });
       },
@@ -46,7 +50,10 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
     );
 
     observer.observe(postRef.current);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeoutId);
+    };
   }, [post?.id, currentUserId, hasBeenViewed]);
 
   const handleNavigateToPost = (e: React.MouseEvent) => {
@@ -77,10 +84,6 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
             repostedFromUsername={post.reposted_from_username}
             createdAt={post.created_at}
             currentUserId={currentUserId}
-            postId={post.id}
-            postTitle={post.title}
-            content={post.content}
-            tags={post.tags || []}
           />
         </CardHeader>
 

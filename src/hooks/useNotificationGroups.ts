@@ -26,6 +26,7 @@ export const useNotificationGroups = (userId: string | undefined) => {
 
       console.log("Fetching notification groups for user:", userId);
 
+      // Fetch all notification groups for the user, ordered by most recent first
       const { data: groups, error: groupsError } = await supabase
         .from("notification_groups")
         .select("*")
@@ -39,6 +40,7 @@ export const useNotificationGroups = (userId: string | undefined) => {
 
       console.log("Fetched notification groups:", groups);
 
+      // For each group, fetch its notifications with related data
       const notificationPromises = groups.map(async (group) => {
         const { data: notifications, error: notificationsError } = await supabase
           .from("notifications")
@@ -67,8 +69,11 @@ export const useNotificationGroups = (userId: string | undefined) => {
       });
 
       const results = await Promise.all(notificationPromises);
+      console.log("Final notification groups:", results);
       return results;
     },
     enabled: !!userId,
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true, // Refetch when window regains focus
   });
 };

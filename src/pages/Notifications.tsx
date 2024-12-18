@@ -29,8 +29,9 @@ const Notifications = () => {
   useEffect(() => {
     if (!session?.user?.id) return;
     
-    const channel = supabase
-      .channel('notifications-channel')
+    // Listen for changes in notifications table
+    const notificationsChannel = supabase
+      .channel('notifications-changes')
       .on(
         'postgres_changes',
         {
@@ -39,14 +40,16 @@ const Notifications = () => {
           table: 'notifications',
           filter: `user_id=eq.${session.user.id}`
         },
-        () => {
+        (payload) => {
+          console.log('Notification change received:', payload);
           queryClient.invalidateQueries({ queryKey: ["notification-groups", session.user.id] });
         }
       )
       .subscribe();
 
+    // Listen for changes in notification_groups table
     const groupsChannel = supabase
-      .channel('notification-groups-channel')
+      .channel('notification-groups-changes')
       .on(
         'postgres_changes',
         {
@@ -55,14 +58,15 @@ const Notifications = () => {
           table: 'notification_groups',
           filter: `user_id=eq.${session.user.id}`
         },
-        () => {
+        (payload) => {
+          console.log('Notification group change received:', payload);
           queryClient.invalidateQueries({ queryKey: ["notification-groups", session.user.id] });
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(notificationsChannel);
       supabase.removeChannel(groupsChannel);
     };
   }, [session?.user?.id, queryClient]);

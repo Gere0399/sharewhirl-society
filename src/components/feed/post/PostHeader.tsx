@@ -26,42 +26,46 @@ export function PostHeader({
   if (!profile) return null;
 
   return (
-    <div className="flex gap-3">
-      <div className="shrink-0">
-        <ProfileHoverCard 
-          profile={profile} 
-          currentUserId={currentUserId} 
-          showAvatar={true} 
-        />
-      </div>
-      <div className="flex flex-col justify-between py-1.5 h-12">
-        <div className="flex items-center gap-2">
-          <ProfileHoverCard 
-            profile={profile} 
-            currentUserId={currentUserId} 
-            showAvatar={false} 
-          />
-          <span className="text-muted-foreground text-sm">·</span>
-          <span className="text-muted-foreground text-sm">
-            {formatTimeAgo(createdAt)}
-          </span>
-          {isAiGenerated && (
-            <span className="text-xs bg-primary px-1.5 py-0.5 rounded text-primary-foreground">
-              AI generated
-            </span>
-          )}
-        </div>
-        {repostedFromUsername && (
-          <div className="text-sm text-muted-foreground">
-            Reposted from{" "}
-            <Link
-              to={`/profile/${repostedFromUsername}`}
-              className="hover:underline"
-              onClick={(e) => e.stopPropagation()}
-            >
-              @{repostedFromUsername}
-            </Link>
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-between items-start">
+        <div className="flex gap-3">
+          <div className="shrink-0">
+            <ProfileHoverCard 
+              profile={profile} 
+              currentUserId={currentUserId} 
+              showAvatar={true} 
+            />
           </div>
+          <div className="flex flex-col justify-between py-1.5">
+            <div className="flex items-center gap-2">
+              <ProfileHoverCard 
+                profile={profile} 
+                currentUserId={currentUserId} 
+                showAvatar={false} 
+              />
+              <span className="text-muted-foreground text-sm">·</span>
+              <span className="text-muted-foreground text-sm">
+                {formatTimeAgo(createdAt)}
+              </span>
+            </div>
+            {repostedFromUsername && (
+              <div className="text-sm text-muted-foreground">
+                Reposted from{" "}
+                <Link
+                  to={`/profile/${repostedFromUsername}`}
+                  className="hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  @{repostedFromUsername}
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+        {isAiGenerated && (
+          <span className="text-xs bg-primary px-1.5 py-0.5 rounded text-primary-foreground">
+            AI generated
+          </span>
         )}
       </div>
     </div>

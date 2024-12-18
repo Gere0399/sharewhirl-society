@@ -14,6 +14,8 @@ import { trackPostView } from "@/utils/viewTracking";
 import { RepostDialog } from "@/components/feed/post/RepostDialog";
 import { usePostSubscription } from "@/components/feed/post/hooks/usePostSubscription";
 import { usePostActions } from "@/components/feed/post/hooks/usePostActions";
+import { ShareButton } from "./actions/ShareButton";
+import { PostMenu } from "./menu/PostMenu";
 
 interface PostCardProps {
   post: any;
@@ -71,16 +73,30 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
     <Card className="overflow-hidden border-0 bg-card transition-colors w-full">
       <div onClick={handleNavigateToPost} ref={postRef}>
         <CardHeader className="px-4 pt-4 pb-2">
-          <PostHeader 
-            profile={post.profiles}
-            isAiGenerated={post.is_ai_generated}
-            repostedFromUsername={post.reposted_from_username}
-            createdAt={post.created_at}
-            currentUserId={currentUserId}
-          />
+          <div className="flex justify-between items-start">
+            <PostHeader 
+              profile={post.profiles}
+              isAiGenerated={post.is_ai_generated}
+              repostedFromUsername={post.reposted_from_username}
+              createdAt={post.created_at}
+              currentUserId={currentUserId}
+            />
+            <div className="flex items-center gap-2">
+              <ShareButton postId={post.id} />
+              <PostMenu
+                postId={post.id}
+                postTitle={post.title}
+                content={post.content}
+                tags={post.tags}
+                isAiGenerated={post.is_ai_generated}
+                createdAt={post.created_at}
+                isOwnPost={post.user_id === currentUserId}
+              />
+            </div>
+          </div>
         </CardHeader>
 
-        <CardContent className="px-4 pb-2">
+        <CardContent className="px-4 pb-2 mt-4">
           <PostContent 
             title={post.title}
             content={post.content}

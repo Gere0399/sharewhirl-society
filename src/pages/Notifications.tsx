@@ -13,6 +13,10 @@ type NotificationWithProfiles = Tables<"notifications"> & {
   post?: Tables<"posts">;
 };
 
+type NotificationGroup = Tables<"notification_groups"> & {
+  notifications: NotificationWithProfiles[];
+};
+
 const Notifications = () => {
   const { toast } = useToast();
   const [session, setSession] = useState(null);
@@ -32,29 +36,16 @@ const Notifications = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const { data: notifications, isLoading } = useQuery({
-    queryKey: ["notifications"],
+  const { data: notificationGroups, isLoading } = useQuery({
+    queryKey: ["notification-groups"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select(`
-          *,
-          actor:actor_id (
-            user_id,
-            username,
-            avatar_url
-          ),
-          post:posts (
-            id,
-            title,
-            content
-          )
-        `)
-        .order("created_at", { ascending: false })
-        .returns<NotificationWithProfiles[]>();
+      const { data: groups, error: groupsError } = await supabase
+        .from("notification_groups")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching notifications:", error);
+      if (groupsError) {
+        console.error("Error fetching notification groups:", groupsError);
         toast({
           title: "Error",
           description: "Failed to fetch notifications",
@@ -63,7 +54,34 @@ const Notifications = () => {
         return [];
       }
 
-      return data;
+      const notificationsPromises = groups.map(async (group) => {
+        const { data: notifications } = await supabase
+          .from("notifications")
+          .select(`
+            *,
+            actor:actor_id (
+              user_id,
+              username,
+              avatar_url
+            ),
+            post:posts (
+              id,
+              title,
+              content
+            )
+          `)
+          .eq("type", group.type)
+          .eq("post_id", group.post_id)
+          .order("created_at", { ascending: false })
+          .returns<NotificationWithProfiles[]>();
+
+        return {
+          ...group,
+          notifications: notifications || [],
+        };
+      });
+
+      return Promise.all(notificationsPromises);
     },
     enabled: !!session,
   });
@@ -85,13 +103,16 @@ const Notifications = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {notifications?.map((notification) => (
-                  <NotificationItem
-                    key={notification.id}
-                    notification={notification}
-                  />
+                {notificationGroups?.map((group) => (
+                  group.notifications[0] && (
+                    <NotificationItem
+                      key={group.id}
+                      notification={group.notifications[0]}
+                      groupId={group.id}
+                    />
+                  )
                 ))}
-                {notifications?.length === 0 && (
+                {notificationGroups?.length === 0 && (
                   <p className="text-center text-muted-foreground">
                     No notifications yet
                   </p>

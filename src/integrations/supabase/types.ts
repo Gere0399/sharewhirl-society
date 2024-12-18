@@ -214,6 +214,54 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_groups: {
+        Row: {
+          comment_id: string | null
+          created_at: string | null
+          id: string
+          post_id: string | null
+          read: boolean | null
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          read?: boolean | null
+          type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          read?: boolean | null
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_groups_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_groups_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string

@@ -19,8 +19,11 @@ export const useNotificationGroups = (userId: string | undefined) => {
     queryKey: ["notification-groups", userId],
     queryFn: async () => {
       if (!userId) {
+        console.log("No user ID provided to useNotificationGroups");
         return [];
       }
+
+      console.log("Fetching notification groups for user:", userId);
 
       // First, fetch all notification groups
       const { data: groups, error: groupsError } = await supabase
@@ -33,6 +36,8 @@ export const useNotificationGroups = (userId: string | undefined) => {
         console.error("Error fetching notification groups:", groupsError);
         return [];
       }
+
+      console.log("Fetched notification groups:", groups);
 
       // Then, fetch notifications for these groups with their related data
       const notificationPromises = groups.map(async (group) => {
@@ -51,18 +56,23 @@ export const useNotificationGroups = (userId: string | undefined) => {
           return null;
         }
 
+        console.log(`Fetched notifications for group ${group.id}:`, notifications);
+
         return {
           id: group.id,
           type: group.type,
           post_id: group.post_id,
           notifications: notifications as NotificationWithProfiles[]
-        } satisfies NotificationGroup;
+        };
       });
 
       const results = await Promise.all(notificationPromises);
-      return results.filter((group): group is NotificationGroup => 
+      const validGroups = results.filter((group): group is NotificationGroup => 
         group !== null && group.notifications.length > 0
       );
+
+      console.log("Final processed notification groups:", validGroups);
+      return validGroups;
     },
     enabled: !!userId,
   });

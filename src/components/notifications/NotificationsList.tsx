@@ -40,11 +40,12 @@ export const NotificationsList = ({ isLoading, groups }: NotificationsListProps)
     <div className="space-y-4">
       {groups.map(group => (
         <div key={group.id} className="space-y-2">
-          {group.notifications.map(notification => (
+          {group.notifications.map((notification, index) => (
             <NotificationItem
               key={notification.id}
               notification={notification}
               groupId={group.id}
+              otherActors={index === 0 ? group.notifications.slice(1).map(n => n.actor) : []}
             />
           ))}
         </div>

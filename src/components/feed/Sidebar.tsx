@@ -31,17 +31,26 @@ export function Sidebar({
   const { data: unreadNotifications } = useQuery({
     queryKey: ["unreadNotifications"],
     queryFn: async () => {
+      console.log("Fetching unread notifications count");
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return 0;
+      if (!user) {
+        console.log("No user found for unread notifications");
+        return 0;
+      }
       
-      const { count } = await supabase
-        .from('notifications')
+      const { count, error } = await supabase
+        .from('notification_groups')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('read', false)
-        .neq('actor_id', user.id) // Don't count self notifications
-        .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()); // Only count notifications from the last 24 hours
+        .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
       
+      if (error) {
+        console.error("Error fetching unread notifications:", error);
+        return 0;
+      }
+      
+      console.log("Unread notifications count:", count);
       return count || 0;
     },
     refetchInterval: 30000 // Refetch every 30 seconds

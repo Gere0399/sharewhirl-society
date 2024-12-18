@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Play,
-  PlusCircle,
+  Plus,
   Bell,
   User,
   Paintbrush,
@@ -38,7 +38,8 @@ export function Sidebar({
         .from('notifications')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .eq('read', false);
+        .eq('read', false)
+        .neq('actor_id', user.id); // Don't count self notifications
       
       return count || 0;
     },
@@ -95,7 +96,7 @@ export function Sidebar({
     },
     {
       to: "#",
-      icon: PlusCircle,
+      icon: Plus,
       label: "Create Post",
       asButton: true,
       onClick: handleCreatePost
@@ -153,7 +154,7 @@ export function Sidebar({
 
         <SidebarNavItem
           to="#"
-          icon={PlusCircle}
+          icon={Plus}
           label="Create Post"
           asButton
           onClick={handleCreatePost}

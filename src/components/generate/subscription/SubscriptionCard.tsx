@@ -41,8 +41,8 @@ export function SubscriptionCard({
     )}>
       {isBestDeal && (
         <>
-          <div className="absolute -top-8 left-[-2px] right-[-2px]">
-            <div className="bg-[#9b87f5] text-white px-6 py-2 rounded-t-lg flex items-center justify-center gap-2 mx-auto">
+          <div className="absolute -top-8 inset-x-0">
+            <div className="bg-[#9b87f5] text-white px-6 py-2 rounded-t-lg flex items-center justify-center gap-2 mx-auto w-[calc(100%+8px)] -translate-x-[4px]">
               <span className="font-medium">Most Popular</span>
             </div>
           </div>
@@ -52,6 +52,7 @@ export function SubscriptionCard({
           <div className="absolute inset-y-0 -right-px w-[2px] bg-gradient-to-b from-transparent via-[#9b87f5] to-transparent" />
         </>
       )}
+      
       <CardHeader className="space-y-2">
         <div className="space-y-1">
           <h3 className="text-2xl font-semibold text-white">{name}</h3>

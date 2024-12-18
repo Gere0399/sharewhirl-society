@@ -94,7 +94,7 @@ export const NotificationItem = ({ notification, groupId, otherActors = [] }: No
   return (
     <>
       <div 
-        className={`p-4 rounded-lg border bg-card ${!notification.read && 'bg-[#1A1A1A]'} cursor-pointer`}
+        className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer mb-3"
         onClick={handleNotificationClick}
       >
         <div className="flex items-start gap-3">

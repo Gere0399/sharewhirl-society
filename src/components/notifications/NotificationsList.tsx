@@ -31,16 +31,18 @@ export const NotificationsList = ({ isLoading, groups }: NotificationsListProps)
 
   if (!groups?.length) {
     return (
-      <p className="text-center text-muted-foreground">
-        No notifications yet
-      </p>
+      <div className="flex justify-center items-center min-h-[200px]">
+        <p className="text-muted-foreground">
+          No notifications yet
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="w-full max-w-2xl mx-auto space-y-3">
       {groups.map(group => (
-        <div key={group.id} className="space-y-2">
+        <div key={group.id}>
           {group.notifications.map((notification, index) => (
             <NotificationItem
               key={notification.id}

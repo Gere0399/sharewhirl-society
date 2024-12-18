@@ -36,20 +36,18 @@ export function PostHeader({
           />
         </div>
         <div className="flex flex-col justify-between py-1.5">
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-2">
-              <ProfileHoverCard 
-                profile={profile} 
-                currentUserId={currentUserId} 
-                showAvatar={false} 
-              />
-              <span className="text-muted-foreground text-sm">·</span>
-              <span className="text-muted-foreground text-sm">
-                {formatTimeAgo(createdAt)}
-              </span>
-            </div>
+          <div className="flex items-center gap-2">
+            <ProfileHoverCard 
+              profile={profile} 
+              currentUserId={currentUserId} 
+              showAvatar={false} 
+            />
+            <span className="text-muted-foreground text-sm">·</span>
+            <span className="text-muted-foreground text-sm">
+              {formatTimeAgo(createdAt)}
+            </span>
             {isAiGenerated && (
-              <span className="text-xs bg-primary px-1.5 py-0.5 rounded text-primary-foreground ml-auto">
+              <span className="text-xs bg-primary px-1.5 py-0.5 rounded text-primary-foreground">
                 AI generated
               </span>
             )}

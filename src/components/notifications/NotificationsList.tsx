@@ -20,6 +20,8 @@ interface NotificationsListProps {
 }
 
 export const NotificationsList = ({ isLoading, groups }: NotificationsListProps) => {
+  console.log("[NotificationsList] Rendering with groups:", groups?.length);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -29,6 +31,7 @@ export const NotificationsList = ({ isLoading, groups }: NotificationsListProps)
   }
 
   if (!groups?.length) {
+    console.log("[NotificationsList] No notifications to display");
     return (
       <p className="text-center text-muted-foreground">
         No notifications yet
@@ -37,7 +40,13 @@ export const NotificationsList = ({ isLoading, groups }: NotificationsListProps)
   }
 
   // Filter out groups with no notifications
-  const validGroups = groups.filter(group => group.notifications?.length > 0);
+  const validGroups = groups.filter(group => {
+    const hasNotifications = group.notifications?.length > 0;
+    console.log(`[NotificationsList] Group ${group.id} has ${group.notifications?.length || 0} notifications`);
+    return hasNotifications;
+  });
+
+  console.log("[NotificationsList] Valid groups to display:", validGroups.length);
 
   return (
     <div className="space-y-4">

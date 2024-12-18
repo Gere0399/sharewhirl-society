@@ -68,13 +68,21 @@ export const useNotificationGroups = (userId: string | undefined) => {
         for (const [key, group] of Object.entries(groupedNotifications)) {
           console.log(`[NotificationGroups] Processing group ${key} with ${group.notifications.length} notifications`);
 
-          // Find or create group
-          const { data: existingGroups, error: findError } = await supabase
+          // Find existing groups
+          let query = supabase
             .from("notification_groups")
             .select("*")
             .eq("user_id", userId)
-            .eq("type", group.type)
-            .eq("post_id", group.post_id);
+            .eq("type", group.type);
+
+          // Handle post_id separately
+          if (group.post_id === null) {
+            query = query.is("post_id", null);
+          } else {
+            query = query.eq("post_id", group.post_id);
+          }
+
+          const { data: existingGroups, error: findError } = await query;
 
           if (findError) {
             console.error(`[NotificationGroups] Error finding groups:`, findError);
@@ -108,12 +116,20 @@ export const useNotificationGroups = (userId: string | undefined) => {
           // Update notifications with group_id
           console.log(`[NotificationGroups] Updating ${group.notifications.length} notifications with group ${groupId}`);
           
-          const { error: updateError } = await supabase
+          let updateQuery = supabase
             .from("notifications")
             .update({ group_id: groupId })
             .eq("user_id", userId)
-            .eq("type", group.type)
-            .eq("post_id", group.post_id);
+            .eq("type", group.type);
+
+          // Handle post_id separately for the update query
+          if (group.post_id === null) {
+            updateQuery = updateQuery.is("post_id", null);
+          } else {
+            updateQuery = updateQuery.eq("post_id", group.post_id);
+          }
+
+          const { error: updateError } = await updateQuery;
 
           if (updateError) {
             console.error(`[NotificationGroups] Error updating notifications:`, updateError);

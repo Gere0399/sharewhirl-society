@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { NotificationsList } from "@/components/notifications/NotificationsList";
+import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/feed/Sidebar";
 import { useNotificationGroups } from "@/hooks/useNotificationGroups";
 
 const Notifications = () => {
+  const { toast } = useToast();
   const [session, setSession] = useState<any>(null);
   const queryClient = useQueryClient();
 

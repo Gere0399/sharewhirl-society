@@ -147,7 +147,7 @@ const Index = () => {
     <div className="flex min-h-screen bg-background text-foreground">
       <Sidebar isCreatePostOpen={isCreatePostOpen} setIsCreatePostOpen={setIsCreatePostOpen} />
       <main className={`flex-1 ${isMobile ? 'mb-16' : 'ml-16'}`}>
-        <header className={`fixed top-0 z-10 border-b border-border/40 bg-background/95 backdrop-blur-sm ${isMobile ? 'right-0 left-0' : 'right-0 left-16'}`}>
+        <header className={`sticky top-0 z-10 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isMobile ? 'right-0 left-0' : 'right-0 left-16'}`}>
           <div className="container mx-auto px-4 py-2">
             <div className="flex flex-col gap-4 max-w-2xl mx-auto">
               <SearchBar />
@@ -166,7 +166,7 @@ const Index = () => {
           onOpenChange={setIsCreatePostOpen} 
         />
 
-        <div className="container mx-auto px-4 pt-36 pb-8">
+        <div className="container mx-auto px-4 pt-24 pb-8">
           <div className="max-w-2xl mx-auto space-y-4">
             {loading ? (
               <div className="flex justify-center items-center min-h-[200px]">

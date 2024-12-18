@@ -25,7 +25,6 @@ export const useNotificationGroups = (userId: string | undefined) => {
 
       console.log("Fetching notification groups for user:", userId);
 
-      // First, fetch all notification groups
       const { data: groups, error: groupsError } = await supabase
         .from("notification_groups")
         .select("*")
@@ -39,7 +38,6 @@ export const useNotificationGroups = (userId: string | undefined) => {
 
       console.log("Fetched notification groups:", groups);
 
-      // Then, fetch notifications for these groups with their related data
       const notificationPromises = groups.map(async (group) => {
         const { data: notifications, error: notificationsError } = await supabase
           .from("notifications")
@@ -63,12 +61,15 @@ export const useNotificationGroups = (userId: string | undefined) => {
           type: group.type,
           post_id: group.post_id,
           notifications: notifications as NotificationWithProfiles[]
-        } satisfies NotificationGroup;
+        };
       });
 
       const results = await Promise.all(notificationPromises);
       const validGroups = results.filter((group): group is NotificationGroup => 
-        group !== null && group.notifications.length > 0
+        group !== null && 
+        typeof group.id === 'string' && 
+        typeof group.type === 'string' && 
+        Array.isArray(group.notifications)
       );
 
       console.log("Final processed notification groups:", validGroups);

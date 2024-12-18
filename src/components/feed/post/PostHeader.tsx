@@ -35,7 +35,7 @@ export function PostHeader({
             showAvatar={true} 
           />
         </div>
-        <div className="flex flex-col justify-between py-0.5 h-11">
+        <div className="flex flex-col justify-between py-1 h-12">
           <div className="flex items-center gap-2">
             <ProfileHoverCard 
               profile={profile} 

@@ -24,9 +24,37 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
   const { data: groupedActors } = useQuery({
     queryKey: ["notification-actors", notification.type, notification.post_id],
     queryFn: async () => {
-      // For follow notifications, we don't need post_id
-      if (notification.type === "follow") {
-        const { data } = await supabase
+      try {
+        // For follow notifications, we don't need post_id
+        if (notification.type === "follow") {
+          const { data, error } = await supabase
+            .from("notifications")
+            .select(`
+              actor:actor_id (
+                id,
+                user_id,
+                username,
+                avatar_url,
+                bio,
+                followers_count,
+                created_at,
+                updated_at,
+                full_name,
+                has_subscription
+              )
+            `)
+            .eq("type", notification.type)
+            .eq("user_id", notification.user_id)
+            .order("created_at", { ascending: false });
+
+          if (error) throw error;
+          return data?.map(n => n.actor) || [];
+        }
+        
+        // For other notifications that require post_id
+        if (!notification.post_id) return [];
+        
+        const { data, error } = await supabase
           .from("notifications")
           .select(`
             actor:actor_id (
@@ -43,36 +71,15 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
             )
           `)
           .eq("type", notification.type)
-          .eq("user_id", notification.user_id)
+          .eq("post_id", notification.post_id)
           .order("created_at", { ascending: false });
-        
+
+        if (error) throw error;
         return data?.map(n => n.actor) || [];
+      } catch (error) {
+        console.error("Error fetching notification actors:", error);
+        return [];
       }
-      
-      // For other notifications that require post_id
-      if (!notification.post_id) return [];
-      
-      const { data } = await supabase
-        .from("notifications")
-        .select(`
-          actor:actor_id (
-            id,
-            user_id,
-            username,
-            avatar_url,
-            bio,
-            followers_count,
-            created_at,
-            updated_at,
-            full_name,
-            has_subscription
-          )
-        `)
-        .eq("type", notification.type)
-        .eq("post_id", notification.post_id)
-        .order("created_at", { ascending: false });
-      
-      return data?.map(n => n.actor) || [];
     },
     enabled: !!notification.type
   });
@@ -86,16 +93,22 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
     if (notification.type === "follow") {
       navigate(`/profile/${notification.actor.username}`);
     } else if (notification.type === "comment" || notification.type === "comment_reply") {
-      const { data } = await supabase
-        .from("comments")
-        .select("id")
-        .eq("post_id", notification.post_id)
-        .eq("user_id", notification.actor_id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-      
-      navigate(`/post/${notification.post_id}${data?.id ? `#comment-${data.id}` : ''}`);
+      try {
+        const { data, error } = await supabase
+          .from("comments")
+          .select("id")
+          .eq("post_id", notification.post_id)
+          .eq("user_id", notification.actor_id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (error) throw error;
+        navigate(`/post/${notification.post_id}${data?.id ? `#comment-${data.id}` : ''}`);
+      } catch (error) {
+        console.error("Error fetching comment:", error);
+        navigate(`/post/${notification.post_id}`);
+      }
     } else if (notification.post_id) {
       navigate(`/post/${notification.post_id}`);
     }
@@ -113,7 +126,7 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
       if (otherActorsCount === 1) {
         text += `${groupedActors[1].username || "someone"}`;
       } else {
-        text += `<button class="text-primary hover:underline" onclick="setIsActorsDialogOpen(true)">${otherActorsCount} others</button>`;
+        text += `${otherActorsCount} others`;
       }
     }
 
@@ -160,10 +173,7 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
           <div className="flex-1">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <div 
-                  className="text-sm"
-                  dangerouslySetInnerHTML={{ __html: notificationText }}
-                />
+                <div className="text-sm">{notificationText}</div>
                 {notification.post && (
                   <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
                     {notification.post.title}

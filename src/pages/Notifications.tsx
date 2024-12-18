@@ -1,26 +1,37 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { Sidebar } from "@/components/feed/Sidebar";
+import { AuthForm } from "@/components/auth/AuthForm";
 import { NotificationItem } from "@/components/notifications/NotificationItem";
-import { Tables } from "@/integrations/supabase/types";
+import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Loader } from "lucide-react";
 
-type NotificationWithProfiles = Tables<"notifications"> & {
-  actor: Tables<"profiles">;
-  post?: Tables<"posts">;
-};
+interface NotificationGroup {
+  id: string;
+  type: string;
+  post_id?: string;
+  comment_id?: string;
+  created_at: string;
+  user_id: string;
+}
 
-type NotificationGroup = Tables<"notification_groups"> & {
-  notifications: NotificationWithProfiles[];
-};
+interface Notification {
+  id: string;
+  type: string;
+  actor_id: string;
+  post_id?: string;
+  created_at: string;
+  profiles?: {
+    username: string;
+    avatar_url?: string;
+  };
+}
 
 const Notifications = () => {
   const { toast } = useToast();
-  const [session, setSession] = useState<any>(null);
   const isMobile = useIsMobile();
+  const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -37,7 +48,7 @@ const Notifications = () => {
   }, []);
 
   const { data: notificationGroups, isLoading } = useQuery({
-    queryKey: ["notification-groups"],
+    queryKey: ["notification-groups", session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) {
         return [];
@@ -50,35 +61,39 @@ const Notifications = () => {
         .order("created_at", { ascending: false });
 
       if (groupsError) {
-        console.error("Error fetching notification groups:", groupsError);
         toast({
-          title: "Error",
-          description: "Failed to fetch notifications",
+          title: "Error fetching notifications",
+          description: groupsError.message,
           variant: "destructive",
         });
         return [];
       }
 
-      const notificationsPromises = groups.map(async (group) => {
-        const { data: notifications } = await supabase
+      if (!groups) return [];
+
+      const notificationsPromises = groups.map(async (group: NotificationGroup) => {
+        const { data: notifications, error: notificationsError } = await supabase
           .from("notifications")
           .select(`
             *,
-            actor:actor_id (
-              user_id,
+            profiles:actor_id (
               username,
               avatar_url
-            ),
-            post:posts (
-              id,
-              title,
-              content
             )
           `)
+          .eq("user_id", session.user.id)
           .eq("type", group.type)
-          .eq("post_id", group.post_id)
+          .eq(group.post_id ? "post_id" : "id", group.post_id || "no-match")
           .order("created_at", { ascending: false })
-          .returns<NotificationWithProfiles[]>();
+          .limit(3);
+
+        if (notificationsError) {
+          console.error("Error fetching notifications:", notificationsError);
+          return {
+            ...group,
+            notifications: [],
+          };
+        }
 
         return {
           ...group,
@@ -92,16 +107,15 @@ const Notifications = () => {
   });
 
   if (!session) {
-    return null;
+    return <AuthForm />;
   }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <Sidebar />
-      <main className={`flex-1 ${isMobile ? 'mb-16' : 'ml-16'}`}>
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-2xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6">Notifications</h1>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-2xl font-bold mb-6">Notifications</h1>
+          <div className="space-y-4">
             {isLoading ? (
               <div className="flex justify-center items-center min-h-[200px]">
                 <Loader className="h-6 w-6 animate-spin" />
@@ -109,13 +123,13 @@ const Notifications = () => {
             ) : (
               <div className="space-y-4">
                 {notificationGroups?.map((group) => (
-                  group.notifications[0] && (
+                  group.notifications?.map((notification: Notification) => (
                     <NotificationItem
-                      key={group.id}
-                      notification={group.notifications[0]}
-                      groupId={group.id}
+                      key={notification.id}
+                      notification={notification}
+                      isMobile={isMobile}
                     />
-                  )
+                  ))
                 ))}
                 {(!notificationGroups || notificationGroups.length === 0) && (
                   <p className="text-center text-muted-foreground">
@@ -126,7 +140,7 @@ const Notifications = () => {
             )}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

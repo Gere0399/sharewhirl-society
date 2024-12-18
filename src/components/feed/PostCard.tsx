@@ -77,7 +77,7 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
   return (
     <Card className="overflow-hidden border-0 bg-card transition-colors w-full">
       <div onClick={handleNavigateToPost} ref={postRef}>
-        <CardHeader className="px-4 pt-4 pb-2">
+        <CardHeader className="px-4 pt-3 pb-2">
           <PostHeader 
             profile={post.profiles}
             isAiGenerated={post.is_ai_generated}
@@ -106,7 +106,7 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
           )}
         </CardContent>
 
-        <CardFooter className="flex justify-between px-4 pt-2 pb-4">
+        <CardFooter className="flex justify-between px-4 pt-2 pb-3">
           <PostActions 
             postId={post.id}
             postTitle={post.title}

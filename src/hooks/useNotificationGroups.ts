@@ -5,7 +5,7 @@ import { Tables } from "@/integrations/supabase/types";
 type NotificationGroup = {
   id: string;
   type: string;
-  post_id?: string;
+  post_id?: string | null;
   notifications: Array<Tables<"notifications"> & {
     actor: Tables<"profiles">;
     post?: Tables<"posts">;
@@ -69,13 +69,20 @@ export const useNotificationGroups = (userId: string | undefined) => {
           console.log(`[NotificationGroups] Processing group ${key} with ${group.notifications.length} notifications`);
 
           // Find or create group
-          const { data: existingGroup, error: findError } = await supabase
+          let query = supabase
             .from("notification_groups")
             .select("*")
             .eq("user_id", userId)
-            .eq("type", group.type)
-            .is("post_id", group.post_id || null)
-            .single();
+            .eq("type", group.type);
+
+          // Handle post_id separately
+          if (group.post_id === null) {
+            query = query.is("post_id", null);
+          } else {
+            query = query.eq("post_id", group.post_id);
+          }
+
+          const { data: existingGroup, error: findError } = await query.single();
 
           if (findError && findError.code !== 'PGRST116') {
             console.error(`[NotificationGroups] Error finding group:`, findError);
@@ -109,12 +116,20 @@ export const useNotificationGroups = (userId: string | undefined) => {
           // Update notifications with group_id
           console.log(`[NotificationGroups] Updating ${group.notifications.length} notifications with group ${groupId}`);
           
-          const { error: updateError } = await supabase
+          let updateQuery = supabase
             .from("notifications")
             .update({ group_id: groupId })
             .eq("user_id", userId)
-            .eq("type", group.type)
-            .is("post_id", group.post_id || null);
+            .eq("type", group.type);
+
+          // Handle post_id separately for the update query
+          if (group.post_id === null) {
+            updateQuery = updateQuery.is("post_id", null);
+          } else {
+            updateQuery = updateQuery.eq("post_id", group.post_id);
+          }
+
+          const { error: updateError } = await updateQuery;
 
           if (updateError) {
             console.error(`[NotificationGroups] Error updating notifications:`, updateError);

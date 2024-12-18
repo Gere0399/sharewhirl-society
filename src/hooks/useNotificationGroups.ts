@@ -14,14 +14,15 @@ export const useNotificationGroups = (userId: string | undefined) => {
       console.log("Fetching notifications for user:", userId);
 
       try {
+        // First fetch notification groups
         const { data: groups, error: groupsError } = await supabase
           .from("notification_groups")
           .select(`
             *,
-            notifications!notifications_group_id_fkey (
+            notifications (
               *,
-              actor:actor_id(*),
-              post:post_id(*)
+              actor:profiles!notifications_actor_id_fkey (*),
+              post:posts (*)
             )
           `)
           .eq("user_id", userId)
@@ -32,7 +33,15 @@ export const useNotificationGroups = (userId: string | undefined) => {
           throw groupsError;
         }
 
-        console.log("Fetched notification groups:", groups);
+        console.log("Raw notification groups data:", groups);
+
+        // Log each group's notifications for debugging
+        groups?.forEach(group => {
+          console.log(`Group ${group.id} has ${group.notifications?.length || 0} notifications:`, 
+            group.notifications
+          );
+        });
+
         return groups || [];
       } catch (error) {
         console.error("Error in useNotificationGroups:", error);

@@ -14,12 +14,12 @@ export const useNotificationGroups = (userId: string | undefined) => {
       console.log("Fetching notifications for user:", userId);
 
       try {
-        // First fetch notification groups
+        // First fetch notification groups with their notifications
         const { data: groups, error: groupsError } = await supabase
           .from("notification_groups")
           .select(`
             *,
-            notifications (
+            notifications!notifications_group_id_fkey (
               *,
               actor:profiles!notifications_actor_id_fkey (*),
               post:posts (*)

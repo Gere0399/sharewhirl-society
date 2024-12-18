@@ -19,7 +19,7 @@ type NotificationGroup = Tables<"notification_groups"> & {
 
 const Notifications = () => {
   const { toast } = useToast();
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<any>(null);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -39,9 +39,14 @@ const Notifications = () => {
   const { data: notificationGroups, isLoading } = useQuery({
     queryKey: ["notification-groups"],
     queryFn: async () => {
+      if (!session?.user?.id) {
+        return [];
+      }
+
       const { data: groups, error: groupsError } = await supabase
         .from("notification_groups")
         .select("*")
+        .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
 
       if (groupsError) {
@@ -83,7 +88,7 @@ const Notifications = () => {
 
       return Promise.all(notificationsPromises);
     },
-    enabled: !!session,
+    enabled: !!session?.user?.id,
   });
 
   if (!session) {
@@ -112,7 +117,7 @@ const Notifications = () => {
                     />
                   )
                 ))}
-                {notificationGroups?.length === 0 && (
+                {(!notificationGroups || notificationGroups.length === 0) && (
                   <p className="text-center text-muted-foreground">
                     No notifications yet
                   </p>

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
 
 export const useNotificationGroups = (userId: string | undefined) => {
   return useQuery({
@@ -14,7 +15,14 @@ export const useNotificationGroups = (userId: string | undefined) => {
 
       const { data: groups, error: groupsError } = await supabase
         .from("notification_groups")
-        .select("*")
+        .select(`
+          *,
+          notifications:notifications(
+            *,
+            actor:actor_id(*),
+            post:post_id(*)
+          )
+        `)
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 

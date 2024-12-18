@@ -7,9 +7,8 @@ type NotificationWithProfiles = Tables<"notifications"> & {
   post?: Tables<"posts">;
 };
 
-type NotificationGroup = {
-  id: string;
-  notifications: NotificationWithProfiles[];
+type NotificationGroup = Tables<"notification_groups"> & {
+  notifications?: NotificationWithProfiles[];
 };
 
 interface NotificationsListProps {
@@ -36,17 +35,17 @@ export const NotificationsList = ({ isLoading, groups }: NotificationsListProps)
 
   return (
     <div className="space-y-4">
-      {groups.map(group => {
-        if (!group.notifications?.length) return null;
-        
-        return group.notifications.map(notification => (
-          <NotificationItem
-            key={notification.id}
-            notification={notification}
-            groupId={group.id}
-          />
-        ));
-      })}
+      {groups.map(group => (
+        <div key={group.id}>
+          {group.notifications?.map(notification => (
+            <NotificationItem
+              key={notification.id}
+              notification={notification}
+              groupId={group.id}
+            />
+          ))}
+        </div>
+      ))}
     </div>
   );
 };

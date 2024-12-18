@@ -55,8 +55,8 @@ export const useNotificationGroups = (userId: string | undefined) => {
           id: group.id,
           type: group.type,
           post_id: group.post_id,
-          notifications: notifications || []
-        };
+          notifications: notifications as NotificationWithProfiles[] || []
+        } satisfies NotificationGroup;
       });
 
       const results = await Promise.all(notificationPromises);

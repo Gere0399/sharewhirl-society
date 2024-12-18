@@ -2,14 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 
+type NotificationWithProfiles = Tables<"notifications"> & {
+  actor: Tables<"profiles">;
+  post?: Tables<"posts">;
+};
+
 type NotificationGroup = {
   id: string;
   type: string;
   post_id?: string | null;
-  notifications: Array<Tables<"notifications"> & {
-    actor: Tables<"profiles">;
-    post?: Tables<"posts">;
-  }>;
+  notifications: NotificationWithProfiles[];
 };
 
 export const useNotificationGroups = (userId: string | undefined) => {

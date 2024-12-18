@@ -85,6 +85,7 @@ const Notifications = () => {
             ),
             post:post_id (
               id,
+              user_id,
               title,
               content,
               media_url,

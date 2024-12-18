@@ -14,24 +14,35 @@ export const useNotificationGroups = (userId: string | undefined) => {
       console.log("Fetching notifications for user:", userId);
 
       try {
-        // First, let's check if there are any notifications for this user
+        // First, check raw notifications
         const { data: notifications, error: notificationsError } = await supabase
           .from("notifications")
-          .select("*")
+          .select(`
+            *,
+            actor:profiles!notifications_actor_id_fkey (*),
+            post:posts (*)
+          `)
           .eq("user_id", userId);
         
-        console.log("Raw notifications before grouping:", notifications);
+        console.log("Raw notifications:", notifications);
+        console.log("Notifications with group_ids:", notifications?.map(n => ({
+          id: n.id,
+          type: n.type,
+          group_id: n.group_id,
+          actor_id: n.actor_id,
+          actor: n.actor
+        })));
         
         if (notificationsError) {
           console.error("Error fetching notifications:", notificationsError);
         }
 
-        // Then fetch notification groups with their notifications
+        // Then check groups
         const { data: groups, error: groupsError } = await supabase
           .from("notification_groups")
           .select(`
             *,
-            notifications!inner (
+            notifications (
               *,
               actor:profiles!notifications_actor_id_fkey (*),
               post:posts (*)
@@ -45,13 +56,19 @@ export const useNotificationGroups = (userId: string | undefined) => {
           throw groupsError;
         }
 
-        console.log("Raw notification groups data:", groups);
-
-        // Log each group's notifications for debugging
+        console.log("Raw notification groups:", groups);
+        
+        // Log detailed group information
         groups?.forEach(group => {
           console.log(`Group ${group.id} details:`, {
             type: group.type,
-            notifications: group.notifications,
+            notifications_count: group.notifications?.length || 0,
+            notifications: group.notifications?.map(n => ({
+              id: n.id,
+              type: n.type,
+              actor: n.actor?.username,
+              created_at: n.created_at
+            })),
             post_id: group.post_id,
             created_at: group.created_at
           });

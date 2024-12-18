@@ -36,15 +36,17 @@ export const NotificationsList = ({ isLoading, groups }: NotificationsListProps)
 
   return (
     <div className="space-y-4">
-      {groups.map(group => (
-        group.notifications?.map(notification => (
+      {groups.map(group => {
+        if (!group.notifications?.length) return null;
+        
+        return group.notifications.map(notification => (
           <NotificationItem
             key={notification.id}
             notification={notification}
             groupId={group.id}
           />
-        ))
-      ))}
+        ));
+      })}
     </div>
   );
 };

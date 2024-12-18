@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,6 +24,8 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
   const { data: groupedActors } = useQuery({
     queryKey: ["notification-actors", notification.type, notification.post_id],
     queryFn: async () => {
+      if (!notification.post_id) return [];
+      
       const { data } = await supabase
         .from("notifications")
         .select(`
@@ -71,7 +73,7 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
     }
   }, [groupId, notification, navigate]);
 
-  const getNotificationText = useCallback(() => {
+  const notificationText = useMemo(() => {
     if (!groupedActors?.length || !notification.actor?.username) return "";
     
     const otherActorsCount = groupedActors.length - 1;
@@ -132,7 +134,7 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
               <div>
                 <div 
                   className="text-sm"
-                  dangerouslySetInnerHTML={{ __html: getNotificationText() }}
+                  dangerouslySetInnerHTML={{ __html: notificationText }}
                 />
                 {notification.post && (
                   <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">

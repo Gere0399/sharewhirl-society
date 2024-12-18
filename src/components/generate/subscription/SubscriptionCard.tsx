@@ -37,7 +37,7 @@ export function SubscriptionCard({
       !isBestDeal && "bg-[#1A1F2C]/90",
       isBestDeal && "bg-[#1A1F2C]/90",
       isCurrentPlan && "border-primary",
-      isBestDeal ? "ring-7 ring-[#9b87f5] shadow-lg scale-[1.02] mt-4 mb-8 md:mb-0" : "border-2 border-[#D6BCFA]"
+      isBestDeal ? "ring-[5px] ring-[#9b87f5] shadow-lg scale-[1.02] mt-4 mb-8 md:mb-0" : "border-2 border-[#D6BCFA]"
     )}>
       {isBestDeal && (
         <>

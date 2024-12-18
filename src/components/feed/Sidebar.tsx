@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  PlayCircle,
+  Play,
   PlusCircle,
   Bell,
   User,
@@ -12,6 +12,7 @@ import { SidebarLogo } from "./sidebar/SidebarLogo";
 import { SidebarNavItem } from "./sidebar/SidebarNavItem";
 import { SidebarOptionsMenu } from "./sidebar/SidebarOptionsMenu";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useQuery } from "@tanstack/react-query";
 
 interface SidebarProps {
   isCreatePostOpen?: boolean;
@@ -26,6 +27,23 @@ export function Sidebar({
   const navigate = useNavigate();
   const [username, setUsername] = useState<string | null>(null);
   const isMobile = useIsMobile();
+
+  const { data: unreadNotifications } = useQuery({
+    queryKey: ["unreadNotifications"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 0;
+      
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
+      
+      return count || 0;
+    },
+    refetchInterval: 30000 // Refetch every 30 seconds
+  });
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -71,7 +89,7 @@ export function Sidebar({
     },
     {
       to: "/",
-      icon: PlayCircle,
+      icon: Play,
       label: "Social Streaming",
       isActive: location.pathname === "/"
     },
@@ -86,7 +104,8 @@ export function Sidebar({
       to: "/notifications",
       icon: Bell,
       label: "Notifications",
-      isActive: location.pathname === "/notifications"
+      isActive: location.pathname === "/notifications",
+      hasNotification: unreadNotifications && unreadNotifications > 0
     },
     {
       to: username ? `/profile/${username}` : "/",
@@ -127,7 +146,7 @@ export function Sidebar({
 
         <SidebarNavItem
           to="/"
-          icon={PlayCircle}
+          icon={Play}
           label="Social Streaming"
           isActive={location.pathname === "/"}
         />
@@ -145,6 +164,7 @@ export function Sidebar({
           icon={Bell}
           label="Notifications"
           isActive={location.pathname === "/notifications"}
+          hasNotification={unreadNotifications && unreadNotifications > 0}
         />
 
         <SidebarNavItem

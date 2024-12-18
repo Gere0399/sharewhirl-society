@@ -11,6 +11,7 @@ interface SidebarNavItemProps {
   onClick?: () => void;
   asButton?: boolean;
   className?: string;
+  hasNotification?: boolean;
 }
 
 export function SidebarNavItem({ 
@@ -20,7 +21,8 @@ export function SidebarNavItem({
   isActive,
   onClick,
   asButton,
-  className
+  className,
+  hasNotification
 }: SidebarNavItemProps) {
   const ButtonOrLink = asButton ? Button : Link;
   
@@ -32,11 +34,8 @@ export function SidebarNavItem({
       onClick={onClick}
       className={cn(
         "relative h-14 w-14 hover:bg-secondary/70",
-        // Default unselected state - lighter gray color except for post/logo
         label !== "Create Post" && !isActive && "text-[#aaadb0]",
-        // Hover and active states
         label === "Create Post" && "hover:bg-[hsl(262,83%,74%)] hover:text-white",
-        // Selected state - white for regular icons, purple for post
         isActive && (
           label === "Create Post" 
             ? "bg-[hsl(262,83%,74%)] text-white" 
@@ -48,8 +47,11 @@ export function SidebarNavItem({
       <ButtonOrLink to={to}>
         <Icon 
           className="h-5 w-5" 
-          style={{ transform: 'scale(1.2)' }}  // Reduced from 1.5 to 1.2 for mobile menu icons
+          style={{ transform: 'scale(1.2)' }}
         />
+        {hasNotification && (
+          <span className="absolute top-3 right-3 h-2.5 w-2.5 rounded-full bg-red-500" />
+        )}
         <span className="sr-only">{label}</span>
       </ButtonOrLink>
     </Button>

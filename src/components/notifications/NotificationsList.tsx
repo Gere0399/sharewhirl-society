@@ -10,13 +10,6 @@ type NotificationWithProfiles = Tables<"notifications"> & {
 type NotificationGroup = {
   id: string;
   notifications: NotificationWithProfiles[];
-  type: string;
-  post_id: string | null;
-  comment_id: string | null;
-  read: boolean;
-  created_at: string | null;
-  updated_at: string | null;
-  user_id: string;
 };
 
 interface NotificationsListProps {
@@ -43,13 +36,17 @@ export const NotificationsList = ({ isLoading, groups }: NotificationsListProps)
 
   return (
     <div className="space-y-4">
-      {groups.map(group => (
-        <NotificationItem
-          key={group.id}
-          notification={group.notifications?.[0]}
-          groupId={group.id}
-        />
-      ))}
+      {groups.map(group => {
+        if (!group.notifications?.length) return null;
+        
+        return group.notifications.map(notification => (
+          <NotificationItem
+            key={notification.id}
+            notification={notification}
+            groupId={group.id}
+          />
+        ));
+      })}
     </div>
   );
 };

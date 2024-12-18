@@ -39,7 +39,8 @@ export function Sidebar({
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('read', false)
-        .neq('actor_id', user.id); // Don't count self notifications
+        .neq('actor_id', user.id) // Don't count self notifications
+        .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()); // Only count notifications from the last 24 hours
       
       return count || 0;
     },

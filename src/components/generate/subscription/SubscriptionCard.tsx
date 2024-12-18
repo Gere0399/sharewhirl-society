@@ -42,7 +42,7 @@ export function SubscriptionCard({
       {isBestDeal && (
         <>
           <div className="absolute -top-8 inset-x-0">
-            <div className="bg-[#9b87f5] text-white px-6 py-2 rounded-t-lg flex items-center justify-center gap-2 mx-auto w-[calc(100%+8px)] -translate-x-[4px]">
+            <div className="bg-[#9b87f5] text-white px-6 py-2 rounded-t-lg flex items-center justify-center gap-2 mx-auto w-[calc(100%+10px)] -translate-x-[5px]">
               <span className="font-medium">Most Popular</span>
             </div>
           </div>

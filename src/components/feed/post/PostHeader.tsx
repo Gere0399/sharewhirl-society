@@ -27,12 +27,14 @@ export function PostHeader({
 
   return (
     <div className="flex items-start gap-2">
-      <ProfileHoverCard 
-        profile={profile} 
-        currentUserId={currentUserId} 
-        showAvatar={true} 
-      />
-      <div className="flex-1 min-w-0 flex flex-col justify-center">
+      <div className="shrink-0">
+        <ProfileHoverCard 
+          profile={profile} 
+          currentUserId={currentUserId} 
+          showAvatar={true} 
+        />
+      </div>
+      <div className="flex-1 min-w-0 flex flex-col justify-between h-8">
         <div className="flex items-center gap-2">
           <ProfileHoverCard 
             profile={profile} 

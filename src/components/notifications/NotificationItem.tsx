@@ -45,7 +45,8 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
         .order("created_at", { ascending: false });
       
       return data?.map(n => n.actor) || [];
-    }
+    },
+    enabled: !!notification.type && !!notification.post_id
   });
 
   const handleNotificationClick = async () => {
@@ -81,16 +82,16 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
   };
 
   const getNotificationText = () => {
-    if (!groupedActors?.length) return "";
+    if (!groupedActors?.length || !notification.actor?.username) return "";
     
     const otherActorsCount = groupedActors.length - 1;
     const mainActor = groupedActors[0];
     
-    let text = mainActor.username;
+    let text = mainActor.username || "Someone";
     if (otherActorsCount > 0) {
       text += ` and `;
       if (otherActorsCount === 1) {
-        text += `${groupedActors[1].username}`;
+        text += `${groupedActors[1].username || "someone"}`;
       } else {
         text += `<button class="text-primary hover:underline" onclick="setIsActorsDialogOpen(true)">${otherActorsCount} others</button>`;
       }
@@ -114,6 +115,10 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
     }
   };
 
+  if (!notification.actor) {
+    return null;
+  }
+
   return (
     <>
       <div 
@@ -128,7 +133,7 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
             <Avatar>
               <AvatarImage src={notification.actor.avatar_url || ""} />
               <AvatarFallback>
-                {notification.actor.username?.[0]?.toUpperCase()}
+                {notification.actor.username?.[0]?.toUpperCase() || "?"}
               </AvatarFallback>
             </Avatar>
           </Link>

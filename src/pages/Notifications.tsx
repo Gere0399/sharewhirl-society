@@ -8,17 +8,21 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Loader } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
+type NotificationWithProfiles = Tables<"notifications"> & {
+  actor: Tables<"profiles">;
+  post?: Tables<"posts">;
+};
+
 type NotificationGroup = {
   id: string;
   type: string;
-  post_id?: string;
-  comment_id?: string;
+  post_id?: string | null;
+  comment_id?: string | null;
   created_at: string;
   user_id: string;
-  notifications: Array<Tables<"notifications"> & {
-    actor: Tables<"profiles">;
-    post?: Tables<"posts">;
-  }>;
+  read: boolean;
+  updated_at: string;
+  notifications?: NotificationWithProfiles[];
 };
 
 const Notifications = () => {
@@ -64,14 +68,22 @@ const Notifications = () => {
 
       if (!groups) return [];
 
-      const notificationsPromises = groups.map(async (group: NotificationGroup) => {
+      const notificationsPromises = groups.map(async (group) => {
         const { data: notifications, error: notificationsError } = await supabase
           .from("notifications")
           .select(`
             *,
             actor:actor_id (
+              id,
+              user_id,
               username,
-              avatar_url
+              avatar_url,
+              bio,
+              followers_count,
+              created_at,
+              updated_at,
+              full_name,
+              has_subscription
             ),
             post:post_id (
               title

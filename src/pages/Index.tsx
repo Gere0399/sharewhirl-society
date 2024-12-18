@@ -11,14 +11,19 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
 
 const Index = () => {
-  const [session, setSession] = useState(null);
-  const [posts, setPosts] = useState([]);
+  const [session, setSession] = useState<any>(null);
+  const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState("for you");
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [userTags, setUserTags] = useState<string[]>(() => {
-    const savedTags = localStorage.getItem('userTags');
-    return savedTags ? JSON.parse(savedTags) : [];
+    try {
+      const savedTags = localStorage.getItem('userTags');
+      return savedTags ? JSON.parse(savedTags) : [];
+    } catch (error) {
+      console.error('Error parsing userTags from localStorage:', error);
+      return [];
+    }
   });
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -67,14 +72,22 @@ const Index = () => {
     if (!userTags.includes(tag) && tag !== "for you" && tag !== "following") {
       const newTags = [...userTags, tag];
       setUserTags(newTags);
-      localStorage.setItem('userTags', JSON.stringify(newTags));
+      try {
+        localStorage.setItem('userTags', JSON.stringify(newTags));
+      } catch (error) {
+        console.error('Error saving userTags to localStorage:', error);
+      }
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
     const newTags = userTags.filter(tag => tag !== tagToRemove);
     setUserTags(newTags);
-    localStorage.setItem('userTags', JSON.stringify(newTags));
+    try {
+      localStorage.setItem('userTags', JSON.stringify(newTags));
+    } catch (error) {
+      console.error('Error saving userTags to localStorage:', error);
+    }
     if (activeTag === tagToRemove) {
       setActiveTag("for you");
     }

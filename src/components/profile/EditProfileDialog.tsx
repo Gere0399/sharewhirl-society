@@ -35,6 +35,13 @@ export function EditProfileDialog({
   });
   const { toast } = useToast();
 
+  const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    if (value.length <= 150) {
+      setFormData(prev => ({ ...prev, bio: value }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -173,11 +180,13 @@ export function EditProfileDialog({
             <Textarea
               id="bio"
               value={formData.bio}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, bio: e.target.value }))
-              }
+              onChange={handleBioChange}
+              maxLength={150}
               rows={4}
             />
+            <div className="text-xs text-muted-foreground text-right">
+              {formData.bio.length}/150
+            </div>
           </div>
 
           <div className="flex justify-end gap-4">

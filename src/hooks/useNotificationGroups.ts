@@ -26,16 +26,16 @@ export const useNotificationGroups = (userId: string | undefined) => {
 
       console.log("Fetching notification groups for user:", userId);
 
-      // First, get all notification groups with their notifications
+      // First, get all notification groups
       const { data: groups, error: groupsError } = await supabase
         .from("notification_groups")
         .select(`
-          *,
-          notifications!notification_groups_id_fkey (
-            *,
-            actor:profiles!notifications_actor_id_fkey (*),
-            post:posts (*)
-          )
+          id,
+          type,
+          post_id,
+          comment_id,
+          created_at,
+          read
         `)
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
@@ -45,22 +45,38 @@ export const useNotificationGroups = (userId: string | undefined) => {
         throw groupsError;
       }
 
-      console.log("Fetched notification groups with notifications:", groups);
+      // Then, for each group, fetch its notifications separately
+      const groupsWithNotifications = await Promise.all(
+        groups.map(async (group) => {
+          const { data: notifications, error: notificationsError } = await supabase
+            .from("notifications")
+            .select(`
+              *,
+              actor:profiles!notifications_actor_id_fkey (*),
+              post:posts (*)
+            `)
+            .eq("group_id", group.id);
 
-      // Transform the data to match our expected format
-      const results = groups.map(group => ({
-        id: group.id,
-        type: group.type,
-        post_id: group.post_id,
-        comment_id: group.comment_id,
-        notifications: group.notifications || []
-      }));
+          if (notificationsError) {
+            console.error("Error fetching notifications for group:", notificationsError);
+            return {
+              ...group,
+              notifications: []
+            };
+          }
 
-      console.log("Final notification groups:", results);
-      return results;
+          return {
+            ...group,
+            notifications: notifications || []
+          };
+        })
+      );
+
+      console.log("Final notification groups:", groupsWithNotifications);
+      return groupsWithNotifications;
     },
     enabled: !!userId,
-    staleTime: 0, // Always fetch fresh data
-    refetchOnWindowFocus: true, // Refetch when window regains focus
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 };

@@ -33,16 +33,12 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
   useEffect(() => {
     if (!postRef.current || hasBeenViewed || !currentUserId || !post?.id) return;
 
-    let timeoutId: NodeJS.Timeout;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && !hasBeenViewed) {
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-              trackPostView(post.id, currentUserId);
-              setHasBeenViewed(true);
-            }, 1000);
+          if (entry.isIntersecting) {
+            trackPostView(post.id, currentUserId);
+            setHasBeenViewed(true);
           }
         });
       },
@@ -50,10 +46,7 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
     );
 
     observer.observe(postRef.current);
-    return () => {
-      observer.disconnect();
-      clearTimeout(timeoutId);
-    };
+    return () => observer.disconnect();
   }, [post?.id, currentUserId, hasBeenViewed]);
 
   const handleNavigateToPost = (e: React.MouseEvent) => {
@@ -77,20 +70,19 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
   return (
     <Card className="overflow-hidden border-0 bg-card transition-colors w-full">
       <div onClick={handleNavigateToPost} ref={postRef}>
-
-<CardHeader className="px-4 pt-4 pb-2">
-  <PostHeader 
-    profile={post.profiles}
-    isAiGenerated={post.is_ai_generated}
-    repostedFromUsername={post.reposted_from_username}
-    createdAt={post.created_at}
-    currentUserId={currentUserId}
-    postId={post.id}
-    postTitle={post.title}
-    content={post.content}
-    tags={post.tags}
-  />
-</CardHeader>
+        <CardHeader className="px-4 pt-4 pb-2">
+          <PostHeader 
+            profile={post.profiles}
+            isAiGenerated={post.is_ai_generated}
+            repostedFromUsername={post.reposted_from_username}
+            createdAt={post.created_at}
+            currentUserId={currentUserId}
+            postId={post.id}
+            postTitle={post.title}
+            content={post.content}
+            tags={post.tags || []}
+          />
+        </CardHeader>
 
         <CardContent className="px-4 pb-2">
           <PostContent 

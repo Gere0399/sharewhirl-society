@@ -22,7 +22,7 @@ type NotificationGroup = {
   user_id: string;
   read: boolean;
   updated_at: string;
-  notifications?: NotificationWithProfiles[];
+  notifications: NotificationWithProfiles[];
 };
 
 const Notifications = () => {
@@ -132,6 +132,22 @@ const Notifications = () => {
     return <AuthForm />;
   }
 
+  const renderNotifications = () => {
+    if (!notificationGroups) return null;
+
+    return notificationGroups.map((group) => {
+      if (!group.notifications?.length) return null;
+      
+      return group.notifications.map((notification) => (
+        <NotificationItem
+          key={notification.id}
+          notification={notification}
+          groupId={group.id}
+        />
+      ));
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -144,15 +160,7 @@ const Notifications = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {notificationGroups?.map((group) => 
-                  group.notifications?.map((notification) => (
-                    <NotificationItem
-                      key={notification.id}
-                      notification={notification}
-                      groupId={group.id}
-                    />
-                  ))
-                )}
+                {renderNotifications()}
                 {(!notificationGroups || notificationGroups.length === 0) && (
                   <p className="text-center text-muted-foreground">
                     No notifications yet

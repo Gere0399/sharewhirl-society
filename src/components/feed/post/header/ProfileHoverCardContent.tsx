@@ -38,7 +38,7 @@ export function ProfileHoverCardContent({
       <div className="flex justify-between items-start">
         <Avatar className="h-12 w-12">
           <AvatarImage src={profile.avatar_url} />
-          <AvatarFallback>{getInitials(profile.username)}</AvatarFallback>
+          <AvatarFallback>{profile.username?.[0]?.toUpperCase()}</AvatarFallback>
         </Avatar>
         {currentUserId && currentUserId !== profile.user_id && (
           <Button 
@@ -71,7 +71,7 @@ export function ProfileHoverCardContent({
             {profile.bio}
           </p>
         )}
-        <div className="flex items-center text-sm text-muted-foreground">
+        <div className="flex items-center text-sm text-white">
           <span>{followersCount} followers</span>
         </div>
       </div>

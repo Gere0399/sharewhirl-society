@@ -101,7 +101,7 @@ export function ProfileHeader({ profile, isOwnProfile, isFollowing, onFollowTogg
             {profile.bio && (
               <p className="text-sm text-muted-foreground max-w-md">{profile.bio}</p>
             )}
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-4 text-sm text-white">
               <span>{followersCount} followers</span>
             </div>
           </div>

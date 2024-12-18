@@ -149,7 +149,7 @@ const Index = () => {
       <main className={`flex-1 ${isMobile ? 'mb-16' : 'ml-16'} overflow-x-hidden`}>
         <header className={`fixed top-0 z-10 border-b border-border/40 bg-background/95 backdrop-blur-sm ${isMobile ? 'right-0 left-0' : 'right-0 left-16'}`}>
           <div className="container mx-auto px-4 py-2">
-            <div className="flex flex-col gap-4 max-w-2xl mx-auto">
+            <div className="flex flex-col gap-2 max-w-2xl mx-auto pt-2">
               <SearchBar />
               <TagsBar
                 tags={userTags}

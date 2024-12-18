@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { NotificationsList } from "@/components/notifications/NotificationsList";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/feed/Sidebar";
+import { useNotificationGroups } from "@/hooks/useNotificationGroups";
 
 const Notifications = () => {
   const { toast } = useToast();
@@ -15,7 +15,6 @@ const Notifications = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      console.log("Current session user:", session?.user?.id);
     });
 
     const {
@@ -27,11 +26,8 @@ const Notifications = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Subscribe to real-time notifications
   useEffect(() => {
     if (!session?.user?.id) return;
-
-    console.log("Subscribing to notifications channel for user:", session.user.id);
     
     const channel = supabase
       .channel('notifications-channel')
@@ -43,8 +39,7 @@ const Notifications = () => {
           table: 'notifications',
           filter: `user_id=eq.${session.user.id}`
         },
-        (payload) => {
-          console.log('Notification change received:', payload);
+        () => {
           queryClient.invalidateQueries({ queryKey: ["notification-groups", session.user.id] });
         }
       )
@@ -60,8 +55,7 @@ const Notifications = () => {
           table: 'notification_groups',
           filter: `user_id=eq.${session.user.id}`
         },
-        (payload) => {
-          console.log('Notification group change received:', payload);
+        () => {
           queryClient.invalidateQueries({ queryKey: ["notification-groups", session.user.id] });
         }
       )
@@ -73,112 +67,7 @@ const Notifications = () => {
     };
   }, [session?.user?.id, queryClient]);
 
-  const { data: notificationGroups, isLoading } = useQuery({
-    queryKey: ["notification-groups", session?.user?.id],
-    queryFn: async () => {
-      if (!session?.user?.id) {
-        console.log("No user session found");
-        return [];
-      }
-
-      console.log("Fetching notifications for user:", session.user.id);
-
-      // First, let's check if there are any notifications for this user
-      const { count: notificationsCount, error: countError } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', session.user.id);
-
-      if (countError) {
-        console.error("Error checking notifications count:", countError);
-      } else {
-        console.log("Total notifications count:", notificationsCount);
-      }
-
-      // Now fetch the notification groups
-      const { data: groups, error: groupsError } = await supabase
-        .from("notification_groups")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .order("created_at", { ascending: false });
-
-      if (groupsError) {
-        console.error("Error fetching groups:", groupsError);
-        toast({
-          title: "Error fetching notifications",
-          description: groupsError.message,
-          variant: "destructive",
-        });
-        return [];
-      }
-
-      console.log("Fetched groups:", groups);
-
-      const notificationsPromises = (groups || []).map(async (group) => {
-        console.log("Fetching notifications for group:", group);
-
-        const { data: notifications, error: notificationsError } = await supabase
-          .from("notifications")
-          .select(`
-            *,
-            actor:actor_id (
-              id,
-              user_id,
-              username,
-              avatar_url,
-              bio,
-              followers_count,
-              created_at,
-              updated_at,
-              full_name,
-              has_subscription
-            ),
-            post:post_id (
-              id,
-              user_id,
-              title,
-              content,
-              media_url,
-              created_at,
-              updated_at,
-              media_type,
-              tags,
-              is_ai_generated,
-              reposted_from_id,
-              reposted_from_user_id,
-              likes_count,
-              comments_count,
-              views_count,
-              repost_count,
-              thumbnail_url
-            )
-          `)
-          .eq("user_id", session.user.id)
-          .eq("type", group.type)
-          .eq(group.post_id ? "post_id" : "id", group.post_id || "no-match")
-          .order("created_at", { ascending: false })
-          .limit(3);
-
-        if (notificationsError) {
-          console.error("Error fetching notifications for group:", notificationsError);
-          return {
-            ...group,
-            notifications: [],
-          };
-        }
-
-        console.log("Fetched notifications for group:", notifications);
-
-        return {
-          ...group,
-          notifications: notifications || [],
-        };
-      });
-
-      return Promise.all(notificationsPromises);
-    },
-    enabled: !!session?.user?.id,
-  });
+  const { data: notificationGroups, isLoading } = useNotificationGroups(session?.user?.id);
 
   if (!session) {
     return <AuthForm />;

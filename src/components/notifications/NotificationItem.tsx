@@ -1,11 +1,11 @@
 import { useState, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tables } from "@/integrations/supabase/types";
 import { NotificationActorsDialog } from "./NotificationActorsDialog";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { NotificationContent } from "./NotificationContent";
+import { useNotificationActors } from "@/hooks/useNotificationActors";
 
 type NotificationWithProfiles = Tables<"notifications"> & {
   actor: Tables<"profiles">;
@@ -21,46 +21,7 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
   const [isActorsDialogOpen, setIsActorsDialogOpen] = useState(false);
   const navigate = useNavigate();
 
-  const { data: groupedActors } = useQuery({
-    queryKey: ["notification-actors", notification.type, notification.post_id],
-    queryFn: async () => {
-      try {
-        const query = supabase
-          .from("notifications")
-          .select(`
-            actor:actor_id (
-              id,
-              user_id,
-              username,
-              avatar_url,
-              bio,
-              followers_count,
-              created_at,
-              updated_at,
-              full_name,
-              has_subscription
-            )
-          `)
-          .eq("type", notification.type)
-          .eq("user_id", notification.user_id)
-          .order("created_at", { ascending: false });
-
-        // Only add post_id filter for non-follow notifications
-        if (notification.type !== "follow" && notification.post_id) {
-          query.eq("post_id", notification.post_id);
-        }
-
-        const { data, error } = await query;
-
-        if (error) throw error;
-        return data?.map(n => n.actor) || [];
-      } catch (error) {
-        console.error("Error fetching notification actors:", error);
-        return [];
-      }
-    },
-    enabled: !!notification.type && !!notification.user_id
-  });
+  const { data: groupedActors } = useNotificationActors(notification, true);
 
   const handleNotificationClick = useCallback(async () => {
     await supabase
@@ -148,23 +109,10 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
               </AvatarFallback>
             </Avatar>
           </Link>
-          <div className="flex-1">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <div className="text-sm">{notificationText}</div>
-                {notification.post && (
-                  <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
-                    {notification.post.title}
-                  </p>
-                )}
-              </div>
-              <span className="text-sm text-muted-foreground whitespace-nowrap">
-                {formatDistanceToNow(new Date(notification.created_at), {
-                  addSuffix: true,
-                })}
-              </span>
-            </div>
-          </div>
+          <NotificationContent 
+            notification={notification}
+            notificationText={notificationText}
+          />
         </div>
       </div>
 

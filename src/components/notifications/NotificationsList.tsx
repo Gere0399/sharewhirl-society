@@ -17,7 +17,7 @@ interface NotificationsListProps {
 }
 
 export const NotificationsList = ({ isLoading, groups }: NotificationsListProps) => {
-  console.log("NotificationsList received groups:", groups);
+  console.log("[NotificationsList] Received groups:", groups?.length);
 
   if (isLoading) {
     return (
@@ -28,7 +28,7 @@ export const NotificationsList = ({ isLoading, groups }: NotificationsListProps)
   }
 
   if (!groups?.length) {
-    console.log("No notifications to display");
+    console.log("[NotificationsList] No notifications to display");
     return (
       <p className="text-center text-muted-foreground">
         No notifications yet
@@ -39,7 +39,13 @@ export const NotificationsList = ({ isLoading, groups }: NotificationsListProps)
   return (
     <div className="space-y-4">
       {groups.map(group => {
-        console.log("Rendering group:", group.id, "with notifications:", group.notifications);
+        console.log("[NotificationsList] Rendering group:", group.id, "with notifications:", group.notifications?.length || 0);
+        
+        if (!group.notifications?.length) {
+          console.log("[NotificationsList] Skipping empty group:", group.id);
+          return null;
+        }
+
         return (
           <div key={group.id}>
             {group.notifications?.map(notification => (

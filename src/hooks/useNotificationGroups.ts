@@ -7,7 +7,7 @@ export const useNotificationGroups = (userId: string | undefined) => {
     queryKey: ["notification-groups", userId],
     queryFn: async () => {
       if (!userId) {
-        console.log("[Notifications] No user ID found");
+        console.log("[Notifications] No user ID provided");
         return [];
       }
 
@@ -32,7 +32,9 @@ export const useNotificationGroups = (userId: string | undefined) => {
         }
 
         console.log("[Notifications] Raw notifications count:", notifications?.length);
-        console.log("[Notifications] First notification:", notifications?.[0]);
+        if (notifications?.length) {
+          console.log("[Notifications] First notification:", notifications[0]);
+        }
 
         // Then fetch groups with their notifications
         const { data: groups, error: groupsError } = await supabase
@@ -53,27 +55,26 @@ export const useNotificationGroups = (userId: string | undefined) => {
           throw groupsError;
         }
 
-        console.log("[Notifications] Groups count:", groups?.length);
+        console.log("[Notifications] Initial groups count:", groups?.length);
         if (groups?.length) {
-          console.log("[Notifications] First group:", {
+          console.log("[Notifications] First group details:", {
             id: groups[0].id,
             type: groups[0].type,
             notifications_count: groups[0].notifications?.length,
-            notifications: groups[0].notifications?.map(n => ({
-              id: n.id,
-              type: n.type,
-              actor: n.actor?.username
-            }))
+            first_notification: groups[0].notifications?.[0]?.id
           });
         }
 
         // If we have notifications but they're not grouped
         if (notifications?.length && notifications.some(n => !n.group_id)) {
-          console.log("[Notifications] Found notifications without groups, creating groups...");
+          console.log("[Notifications] Found ungrouped notifications, creating groups...");
           
           // Group notifications by type and post_id
           const notificationsByGroup = notifications.reduce((acc, notification) => {
-            if (notification.group_id) return acc; // Skip already grouped notifications
+            if (notification.group_id) {
+              console.log(`[Notifications] Skipping already grouped notification: ${notification.id}`);
+              return acc;
+            }
             
             const key = `${notification.type}_${notification.post_id || 'null'}`;
             if (!acc[key]) {
@@ -82,6 +83,8 @@ export const useNotificationGroups = (userId: string | undefined) => {
             acc[key].push(notification);
             return acc;
           }, {} as Record<string, any[]>);
+
+          console.log("[Notifications] Created groups mapping:", Object.keys(notificationsByGroup));
 
           // Create groups and update notifications
           for (const [key, groupNotifications] of Object.entries(notificationsByGroup)) {

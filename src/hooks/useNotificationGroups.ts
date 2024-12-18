@@ -13,25 +13,31 @@ export const useNotificationGroups = (userId: string | undefined) => {
 
       console.log("Fetching notifications for user:", userId);
 
-      const { data: groups, error: groupsError } = await supabase
-        .from("notification_groups")
-        .select(`
-          *,
-          notifications:notifications(
+      try {
+        const { data: groups, error: groupsError } = await supabase
+          .from("notification_groups")
+          .select(`
             *,
-            actor:actor_id(*),
-            post:post_id(*)
-          )
-        `)
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+            notifications!notifications_group_id_fkey (
+              *,
+              actor:actor_id(*),
+              post:post_id(*)
+            )
+          `)
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
 
-      if (groupsError) {
-        console.error("Error fetching groups:", groupsError);
-        throw groupsError;
+        if (groupsError) {
+          console.error("Error fetching groups:", groupsError);
+          throw groupsError;
+        }
+
+        console.log("Fetched notification groups:", groups);
+        return groups || [];
+      } catch (error) {
+        console.error("Error in useNotificationGroups:", error);
+        throw error;
       }
-
-      return groups || [];
     },
     enabled: !!userId,
   });

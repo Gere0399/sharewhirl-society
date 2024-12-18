@@ -8,7 +8,7 @@ type NotificationWithProfiles = Tables<"notifications"> & {
 };
 
 type NotificationGroup = Tables<"notification_groups"> & {
-  notifications?: NotificationWithProfiles[];
+  notifications: NotificationWithProfiles[];
 };
 
 interface NotificationsListProps {
@@ -17,6 +17,8 @@ interface NotificationsListProps {
 }
 
 export const NotificationsList = ({ isLoading, groups }: NotificationsListProps) => {
+  console.log("NotificationsList received groups:", groups);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
@@ -26,6 +28,7 @@ export const NotificationsList = ({ isLoading, groups }: NotificationsListProps)
   }
 
   if (!groups?.length) {
+    console.log("No notifications to display");
     return (
       <p className="text-center text-muted-foreground">
         No notifications yet
@@ -35,17 +38,20 @@ export const NotificationsList = ({ isLoading, groups }: NotificationsListProps)
 
   return (
     <div className="space-y-4">
-      {groups.map(group => (
-        <div key={group.id}>
-          {group.notifications?.map(notification => (
-            <NotificationItem
-              key={notification.id}
-              notification={notification}
-              groupId={group.id}
-            />
-          ))}
-        </div>
-      ))}
+      {groups.map(group => {
+        console.log("Rendering group:", group.id, "with notifications:", group.notifications);
+        return (
+          <div key={group.id}>
+            {group.notifications?.map(notification => (
+              <NotificationItem
+                key={notification.id}
+                notification={notification}
+                groupId={group.id}
+              />
+            ))}
+          </div>
+        );
+      })}
     </div>
   );
 };

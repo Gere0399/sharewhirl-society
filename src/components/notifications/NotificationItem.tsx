@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -49,39 +49,29 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
     enabled: !!notification.type && !!notification.post_id
   });
 
-  const handleNotificationClick = async () => {
-    // Mark notification as read
+  const handleNotificationClick = useCallback(async () => {
     await supabase
       .from("notification_groups")
       .update({ read: true })
       .eq("id", groupId);
 
-    // Navigate based on notification type
     if (notification.type === "comment" || notification.type === "comment_reply") {
-      const commentId = notification.type === "comment_reply" 
-        ? await getCommentId()
-        : null;
+      const { data } = await supabase
+        .from("comments")
+        .select("id")
+        .eq("post_id", notification.post_id)
+        .eq("user_id", notification.actor_id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
       
-      navigate(`/post/${notification.post_id}${commentId ? `#comment-${commentId}` : ''}`);
+      navigate(`/post/${notification.post_id}${data?.id ? `#comment-${data.id}` : ''}`);
     } else if (notification.post_id) {
       navigate(`/post/${notification.post_id}`);
     }
-  };
+  }, [groupId, notification, navigate]);
 
-  const getCommentId = async () => {
-    const { data } = await supabase
-      .from("comments")
-      .select("id")
-      .eq("post_id", notification.post_id)
-      .eq("user_id", notification.actor_id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
-    
-    return data?.id;
-  };
-
-  const getNotificationText = () => {
+  const getNotificationText = useCallback(() => {
     if (!groupedActors?.length || !notification.actor?.username) return "";
     
     const otherActorsCount = groupedActors.length - 1;
@@ -113,7 +103,7 @@ export const NotificationItem = ({ notification, groupId }: NotificationItemProp
       default:
         return `${text} interacted with your content`;
     }
-  };
+  }, [groupedActors, notification.actor?.username, notification.type]);
 
   if (!notification.actor) {
     return null;

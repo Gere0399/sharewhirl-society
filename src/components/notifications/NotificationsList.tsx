@@ -26,17 +26,7 @@ export const NotificationsList = ({ isLoading, groups }: NotificationsListProps)
     );
   }
 
-  const notifications = groups?.flatMap(group => 
-    group.notifications?.map(notification => (
-      <NotificationItem
-        key={notification.id}
-        notification={notification}
-        groupId={group.id}
-      />
-    ))
-  ) || [];
-
-  if (notifications.length === 0) {
+  if (!groups?.length) {
     return (
       <p className="text-center text-muted-foreground">
         No notifications yet
@@ -44,5 +34,17 @@ export const NotificationsList = ({ isLoading, groups }: NotificationsListProps)
     );
   }
 
-  return <div className="space-y-4">{notifications}</div>;
+  return (
+    <div className="space-y-4">
+      {groups.map(group => (
+        group.notifications?.map(notification => (
+          <NotificationItem
+            key={notification.id}
+            notification={notification}
+            groupId={group.id}
+          />
+        ))
+      ))}
+    </div>
+  );
 };

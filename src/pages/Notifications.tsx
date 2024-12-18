@@ -15,6 +15,7 @@ const Notifications = () => {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      console.log("Current session user:", session?.user?.id);
     });
 
     const {
@@ -30,7 +31,7 @@ const Notifications = () => {
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    console.log("Subscribing to notifications channel");
+    console.log("Subscribing to notifications channel for user:", session.user.id);
     
     const channel = supabase
       .channel('notifications-channel')
@@ -76,11 +77,25 @@ const Notifications = () => {
     queryKey: ["notification-groups", session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) {
+        console.log("No user session found");
         return [];
       }
 
       console.log("Fetching notifications for user:", session.user.id);
 
+      // First, let's check if there are any notifications for this user
+      const { count: notificationsCount, error: countError } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', session.user.id);
+
+      if (countError) {
+        console.error("Error checking notifications count:", countError);
+      } else {
+        console.log("Total notifications count:", notificationsCount);
+      }
+
+      // Now fetch the notification groups
       const { data: groups, error: groupsError } = await supabase
         .from("notification_groups")
         .select("*")
@@ -100,6 +115,8 @@ const Notifications = () => {
       console.log("Fetched groups:", groups);
 
       const notificationsPromises = (groups || []).map(async (group) => {
+        console.log("Fetching notifications for group:", group);
+
         const { data: notifications, error: notificationsError } = await supabase
           .from("notifications")
           .select(`
@@ -143,7 +160,7 @@ const Notifications = () => {
           .limit(3);
 
         if (notificationsError) {
-          console.error("Error fetching notifications:", notificationsError);
+          console.error("Error fetching notifications for group:", notificationsError);
           return {
             ...group,
             notifications: [],

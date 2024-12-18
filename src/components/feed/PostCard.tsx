@@ -77,15 +77,20 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
   return (
     <Card className="overflow-hidden border-0 bg-card transition-colors w-full">
       <div onClick={handleNavigateToPost} ref={postRef}>
-        <CardHeader className="px-4 pt-4 pb-2">
-          <PostHeader 
-            profile={post.profiles}
-            isAiGenerated={post.is_ai_generated}
-            repostedFromUsername={post.reposted_from_username}
-            createdAt={post.created_at}
-            currentUserId={currentUserId}
-          />
-        </CardHeader>
+
+<CardHeader className="px-4 pt-4 pb-2">
+  <PostHeader 
+    profile={post.profiles}
+    isAiGenerated={post.is_ai_generated}
+    repostedFromUsername={post.reposted_from_username}
+    createdAt={post.created_at}
+    currentUserId={currentUserId}
+    postId={post.id}
+    postTitle={post.title}
+    content={post.content}
+    tags={post.tags}
+  />
+</CardHeader>
 
         <CardContent className="px-4 pb-2">
           <PostContent 

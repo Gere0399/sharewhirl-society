@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { formatTimeAgo } from "@/utils/dateUtils";
 import { ProfileHoverCard } from "./header/ProfileHoverCard";
+import { ShareButton } from "./actions/ShareButton";
+import { PostMenu } from "./menu/PostMenu";
 
 interface PostHeaderProps {
   profile: {
@@ -14,6 +16,10 @@ interface PostHeaderProps {
   repostedFromUsername?: string;
   createdAt: string;
   currentUserId?: string;
+  postId: string;
+  postTitle: string;
+  content: string;
+  tags: string[];
 }
 
 export function PostHeader({ 
@@ -21,7 +27,11 @@ export function PostHeader({
   isAiGenerated, 
   repostedFromUsername, 
   createdAt, 
-  currentUserId
+  currentUserId,
+  postId,
+  postTitle,
+  content,
+  tags
 }: PostHeaderProps) {
   if (!profile) return null;
 
@@ -34,25 +44,39 @@ export function PostHeader({
           showAvatar={true} 
         />
       </div>
-      <div className="flex flex-col justify-between py-1.5 h-12">
-        <div className="flex items-center gap-2">
-          <ProfileHoverCard 
-            profile={profile} 
-            currentUserId={currentUserId} 
-            showAvatar={false} 
-          />
-          <span className="text-muted-foreground text-sm">·</span>
-          <span className="text-muted-foreground text-sm">
-            {formatTimeAgo(createdAt)}
-          </span>
-          {isAiGenerated && (
-            <span className="text-xs bg-primary px-1.5 py-0.5 rounded text-primary-foreground">
-              AI generated
+      <div className="flex-1">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ProfileHoverCard 
+              profile={profile} 
+              currentUserId={currentUserId} 
+              showAvatar={false} 
+            />
+            <span className="text-muted-foreground text-sm">·</span>
+            <span className="text-muted-foreground text-sm">
+              {formatTimeAgo(createdAt)}
             </span>
-          )}
+            {isAiGenerated && (
+              <span className="text-xs bg-primary px-1.5 py-0.5 rounded text-primary-foreground">
+                AI generated
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <ShareButton postId={postId} />
+            <PostMenu
+              postId={postId}
+              postTitle={postTitle}
+              content={content}
+              tags={tags}
+              isAiGenerated={isAiGenerated}
+              createdAt={createdAt}
+              isOwnPost={currentUserId === profile.user_id}
+            />
+          </div>
         </div>
         {repostedFromUsername && (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground mt-1">
             Reposted from{" "}
             <Link
               to={`/profile/${repostedFromUsername}`}

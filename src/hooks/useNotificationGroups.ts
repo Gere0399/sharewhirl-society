@@ -68,7 +68,7 @@ export const useNotificationGroups = (userId: string | undefined) => {
         for (const [key, group] of Object.entries(groupedNotifications)) {
           console.log(`[NotificationGroups] Processing group ${key} with ${group.notifications.length} notifications`);
 
-          // Find or create group
+          // Find existing groups
           let query = supabase
             .from("notification_groups")
             .select("*")
@@ -82,17 +82,17 @@ export const useNotificationGroups = (userId: string | undefined) => {
             query = query.eq("post_id", group.post_id);
           }
 
-          const { data: existingGroup, error: findError } = await query.single();
+          const { data: existingGroups, error: findError } = await query;
 
-          if (findError && findError.code !== 'PGRST116') {
-            console.error(`[NotificationGroups] Error finding group:`, findError);
+          if (findError) {
+            console.error(`[NotificationGroups] Error finding groups:`, findError);
             continue;
           }
 
           let groupId: string;
-          if (existingGroup) {
-            console.log(`[NotificationGroups] Found existing group: ${existingGroup.id}`);
-            groupId = existingGroup.id;
+          if (existingGroups && existingGroups.length > 0) {
+            console.log(`[NotificationGroups] Found existing group: ${existingGroups[0].id}`);
+            groupId = existingGroups[0].id;
           } else {
             console.log(`[NotificationGroups] Creating new group for ${key}`);
             const { data: newGroup, error: createError } = await supabase

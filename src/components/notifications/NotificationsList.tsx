@@ -10,7 +10,7 @@ type NotificationWithProfiles = Tables<"notifications"> & {
 type NotificationGroup = {
   id: string;
   type: string;
-  post_id?: string;
+  post_id?: string | null;
   notifications: NotificationWithProfiles[];
 };
 

@@ -2,6 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 
+type NotificationGroup = {
+  id: string;
+  type: string;
+  post_id?: string;
+  notifications: Array<Tables<"notifications"> & {
+    actor: Tables<"profiles">;
+    post?: Tables<"posts">;
+  }>;
+};
+
 export const useNotificationGroups = (userId: string | undefined) => {
   return useQuery({
     queryKey: ["notification-groups", userId],
@@ -11,7 +21,7 @@ export const useNotificationGroups = (userId: string | undefined) => {
         return [];
       }
 
-      console.log("[NotificationGroups] Fetching notifications for user:", userId);
+      console.log("[NotificationGroups] Starting fetch for user:", userId);
 
       try {
         // First, fetch all notifications with their related data
@@ -32,41 +42,47 @@ export const useNotificationGroups = (userId: string | undefined) => {
         }
 
         console.log("[NotificationGroups] Found notifications:", notifications?.length);
-        
+
+        if (!notifications?.length) {
+          return [];
+        }
+
         // Group notifications by type and post_id
-        const notificationGroups = notifications?.reduce((groups, notification) => {
+        const groupedNotifications = notifications.reduce((groups, notification) => {
           const key = `${notification.type}_${notification.post_id || 'null'}`;
-          
           if (!groups[key]) {
-            console.log(`[NotificationGroups] Creating new group for ${key}`);
             groups[key] = {
               type: notification.type,
               post_id: notification.post_id,
               notifications: []
             };
           }
-          
           groups[key].notifications.push(notification);
           return groups;
-        }, {} as Record<string, any>);
+        }, {} as Record<string, Omit<NotificationGroup, "id">>);
 
-        console.log("[NotificationGroups] Created groups:", Object.keys(notificationGroups || {}).length);
+        console.log("[NotificationGroups] Created initial groups:", Object.keys(groupedNotifications).length);
 
-        // For each group, ensure it exists in the database
-        const finalGroups = [];
-        for (const [key, group] of Object.entries(notificationGroups || {})) {
+        // Process each group
+        const finalGroups: NotificationGroup[] = [];
+        for (const [key, group] of Object.entries(groupedNotifications)) {
           console.log(`[NotificationGroups] Processing group ${key} with ${group.notifications.length} notifications`);
-          
+
           // Find or create group
-          const { data: existingGroup } = await supabase
+          const { data: existingGroup, error: findError } = await supabase
             .from("notification_groups")
             .select("*")
             .eq("user_id", userId)
             .eq("type", group.type)
-            .eq("post_id", group.post_id)
+            .is("post_id", group.post_id || null)
             .single();
 
-          let groupId;
+          if (findError && findError.code !== 'PGRST116') {
+            console.error(`[NotificationGroups] Error finding group:`, findError);
+            continue;
+          }
+
+          let groupId: string;
           if (existingGroup) {
             console.log(`[NotificationGroups] Found existing group: ${existingGroup.id}`);
             groupId = existingGroup.id;
@@ -91,13 +107,14 @@ export const useNotificationGroups = (userId: string | undefined) => {
           }
 
           // Update notifications with group_id
-          const notificationIds = group.notifications.map((n: any) => n.id);
-          console.log(`[NotificationGroups] Updating ${notificationIds.length} notifications with group ${groupId}`);
+          console.log(`[NotificationGroups] Updating ${group.notifications.length} notifications with group ${groupId}`);
           
           const { error: updateError } = await supabase
             .from("notifications")
             .update({ group_id: groupId })
-            .in("id", notificationIds);
+            .eq("user_id", userId)
+            .eq("type", group.type)
+            .is("post_id", group.post_id || null);
 
           if (updateError) {
             console.error(`[NotificationGroups] Error updating notifications:`, updateError);
@@ -105,9 +122,8 @@ export const useNotificationGroups = (userId: string | undefined) => {
           }
 
           finalGroups.push({
-            ...group,
             id: groupId,
-            notifications: group.notifications
+            ...group
           });
         }
 

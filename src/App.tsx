@@ -13,6 +13,7 @@ import PostView from "./pages/PostView";
 import Notifications from "./pages/Notifications";
 import Generate from "./pages/Generate";
 import Subscriptions from "./pages/Subscriptions";
+import Search from "./pages/Search";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/generate" element={<Generate />} />
             <Route path="/subscriptions" element={<Subscriptions />} />
+            <Route path="/search" element={<Search />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

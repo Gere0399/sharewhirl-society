@@ -5,6 +5,7 @@ import {
   Bell,
   User,
   Paintbrush,
+  Search
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -105,6 +106,12 @@ export function Sidebar({
       isActive: location.pathname === "/"
     },
     {
+      to: "/search",
+      icon: Search,
+      label: "Search",
+      isActive: location.pathname === "/search"
+    },
+    {
       to: "#",
       icon: Plus,
       label: "Create Post",
@@ -160,6 +167,13 @@ export function Sidebar({
           icon={Play}
           label="Social Streaming"
           isActive={location.pathname === "/"}
+        />
+
+        <SidebarNavItem
+          to="/search"
+          icon={Search}
+          label="Search"
+          isActive={location.pathname === "/search"}
         />
 
         <SidebarNavItem

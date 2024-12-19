@@ -1,7 +1,5 @@
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { LucideIcon } from "lucide-react";
 
 interface SidebarNavItemProps {
@@ -29,9 +27,6 @@ export function SidebarNavItem({
         <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
       )}
       <Icon className="w-5 h-5" />
-      <span className="absolute left-full ml-2 px-2 py-1 text-sm bg-sidebar-background rounded-md scale-0 group-hover:scale-100 transition-all">
-        {label}
-      </span>
     </>
   );
 

@@ -6,9 +6,9 @@ interface PostActionButtonsProps {
   commentsCount: number;
   repostCount: number;
   isLiked?: boolean;
-  onLike: (e: React.MouseEvent) => void;
-  onComment: (e: React.MouseEvent) => void;
-  onRepost: (e: React.MouseEvent) => void;
+  onLike: () => void;
+  onComment: () => void;
+  onRepost: () => void;
 }
 
 export function PostActionButtons({

@@ -20,31 +20,19 @@ export function PostActionButtons({
   onComment,
   onRepost,
 }: PostActionButtonsProps) {
-  const handleLikeClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent, callback: () => void) => {
     e.preventDefault();
     e.stopPropagation();
-    onLike();
-  };
-
-  const handleCommentClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onComment();
-  };
-
-  const handleRepostClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onRepost();
+    callback();
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
       <Button
         variant="ghost"
         size="sm"
         className={`group px-2 ${isLiked ? 'text-red-500' : ''}`}
-        onClick={handleLikeClick}
+        onClick={(e) => handleClick(e, onLike)}
       >
         <Heart
           className={`mr-1 h-4 w-4 transition-all ${
@@ -58,7 +46,7 @@ export function PostActionButtons({
         variant="ghost"
         size="sm"
         className="group px-2"
-        onClick={handleCommentClick}
+        onClick={(e) => handleClick(e, onComment)}
       >
         <MessageCircle className="mr-1 h-4 w-4" />
         <span className="text-sm">{commentsCount}</span>
@@ -68,7 +56,7 @@ export function PostActionButtons({
         variant="ghost"
         size="sm"
         className="group px-2"
-        onClick={handleRepostClick}
+        onClick={(e) => handleClick(e, onRepost)}
       >
         <Repeat className="mr-1 h-4 w-4" />
         <span className="text-sm">{repostCount}</span>

@@ -58,6 +58,8 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
     const isClickingLink = clickedElement.closest('a');
     
     if (!isClickingMedia && !isClickingButton && !isClickingLink) {
+      e.preventDefault();
+      e.stopPropagation();
       const postUrl = `/post/${post.id}`;
       if (location.pathname !== postUrl) {
         navigate(postUrl);

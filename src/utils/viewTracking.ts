@@ -12,7 +12,7 @@ export const trackPostView = async (postId: string, userId?: string) => {
       .select('*')
       .eq('post_id', postId)
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     // Only insert if the view doesn't exist
     if (!existingView) {

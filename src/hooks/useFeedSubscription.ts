@@ -8,10 +8,12 @@ type Post = Database['public']['Tables']['posts']['Row'] & {
   likes?: { user_id: string }[];
 };
 
-type PostPayload = RealtimePostgresChangesPayload<{
+interface PostPayloadNew {
   [key: string]: any;
   id: string;
-}>;
+}
+
+type PostPayload = RealtimePostgresChangesPayload<PostPayloadNew>;
 
 export function useFeedSubscription(posts: Post[]) {
   const [feedPosts, setFeedPosts] = useState(posts);
@@ -35,13 +37,12 @@ export function useFeedSubscription(posts: Post[]) {
         },
         (payload: PostPayload) => {
           console.log('Feed post update received:', payload);
-          if (payload.new && 
-              typeof payload.new === 'object' && 
-              'id' in payload.new) {
+          const newData = payload.new as PostPayloadNew;
+          if (newData && typeof newData === 'object' && 'id' in newData) {
             setFeedPosts(currentPosts => 
               currentPosts.map(post => 
-                post.id === payload.new.id 
-                  ? { ...post, ...payload.new }
+                post.id === newData.id 
+                  ? { ...post, ...newData }
                   : post
               )
             );

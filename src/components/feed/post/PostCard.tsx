@@ -10,10 +10,10 @@ import { PostHeader } from "@/components/feed/post/PostHeader";
 import { PostContent } from "@/components/feed/post/PostContent";
 import { PostMedia } from "@/components/feed/post/PostMedia";
 import { PostActions } from "@/components/feed/post/PostActions";
-import { trackPostView } from "@/utils/viewTracking";
 import { RepostDialog } from "@/components/feed/post/RepostDialog";
 import { usePostSubscription } from "@/components/feed/post/hooks/usePostSubscription";
 import { usePostActions } from "@/components/feed/post/hooks/usePostActions";
+import { useViewTracking } from "@/components/feed/post/hooks/useViewTracking";
 
 interface PostCardProps {
   post: any;
@@ -25,29 +25,10 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
   const { post, setPost } = usePostSubscription(initialPost);
   const { handleLike } = usePostActions(currentUserId);
   const [isRepostOpen, setIsRepostOpen] = useState(false);
-  const [hasBeenViewed, setHasBeenViewed] = useState(false);
-  const postRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    if (!postRef.current || hasBeenViewed || !currentUserId || !post?.id) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            trackPostView(post.id, currentUserId);
-            setHasBeenViewed(true);
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(postRef.current);
-    return () => observer.disconnect();
-  }, [post?.id, currentUserId, hasBeenViewed]);
+  
+  const { ref } = useViewTracking(post?.id, currentUserId);
 
   const handleNavigateToPost = (e: React.MouseEvent) => {
     if (isFullView) return;
@@ -69,7 +50,7 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
 
   return (
     <Card className="overflow-hidden border-0 bg-card transition-colors w-full">
-      <div onClick={handleNavigateToPost} ref={postRef}>
+      <div onClick={handleNavigateToPost} ref={ref}>
         <CardHeader className="px-4 pt-4 pb-2">
           <PostHeader 
             profile={post.profiles}

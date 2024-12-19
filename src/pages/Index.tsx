@@ -9,10 +9,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CreatePostDialog } from "@/components/feed/CreatePostDialog";
+import { useFeedSubscription } from "@/hooks/useFeedSubscription";
 
 const Index = () => {
   const [session, setSession] = useState<any>(null);
-  const [posts, setPosts] = useState<any[]>([]);
+  const [rawPosts, setRawPosts] = useState<any[]>([]);
+  const { feedPosts } = useFeedSubscription(rawPosts);
   const [loading, setLoading] = useState(true);
   const [activeTag, setActiveTag] = useState("for you");
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
@@ -45,25 +47,6 @@ const Index = () => {
   useEffect(() => {
     if (session) {
       fetchPosts();
-
-      const channel = supabase
-        .channel('public:posts')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'posts'
-          },
-          () => {
-            fetchPosts();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
     }
   }, [session, activeTag]);
 
@@ -128,7 +111,7 @@ const Index = () => {
         if (followingIds.length > 0) {
           query = query.in("user_id", followingIds);
         } else {
-          setPosts([]);
+          setRawPosts([]);
           setLoading(false);
           return;
         }
@@ -139,7 +122,7 @@ const Index = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setPosts(data || []);
+      setRawPosts(data || []);
     } catch (error: any) {
       console.error("Error in fetchPosts:", error);
       toast({
@@ -185,13 +168,13 @@ const Index = () => {
               <div className="flex justify-center items-center min-h-[200px]">
                 <Loader className="h-6 w-6 animate-spin" />
               </div>
-            ) : posts.length === 0 ? (
+            ) : feedPosts.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 {activeTag === "following" ? "No posts from people you follow" : "No posts found"}
               </div>
             ) : (
               <div className="space-y-4">
-                {posts.map((post) => (
+                {feedPosts.map((post) => (
                   <PostCard
                     key={post.id}
                     post={post}

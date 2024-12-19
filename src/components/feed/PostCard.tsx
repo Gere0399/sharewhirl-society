@@ -11,7 +11,6 @@ import { PostContent } from "@/components/feed/post/PostContent";
 import { PostMedia } from "@/components/feed/post/PostMedia";
 import { PostActions } from "@/components/feed/post/PostActions";
 import { RepostDialog } from "@/components/feed/post/RepostDialog";
-import { usePostSubscription } from "@/components/feed/post/hooks/usePostSubscription";
 import { usePostActions } from "@/components/feed/post/hooks/usePostActions";
 import { useViewTracking } from "@/components/feed/post/hooks/useViewTracking";
 
@@ -21,8 +20,7 @@ interface PostCardProps {
   isFullView?: boolean;
 }
 
-export function PostCard({ post: initialPost, currentUserId, isFullView = false }: PostCardProps) {
-  const { post, setPost } = usePostSubscription(initialPost);
+export function PostCard({ post, currentUserId, isFullView = false }: PostCardProps) {
   const { handleLike } = usePostActions(currentUserId);
   const [isRepostOpen, setIsRepostOpen] = useState(false);
   const navigate = useNavigate();
@@ -99,7 +97,7 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
             repostCount={post.repost_count}
             isLiked={post.likes?.some((like: any) => like.user_id === currentUserId)}
             isOwnPost={post.user_id === currentUserId}
-            onLike={() => handleLike(post.id, setPost)}
+            onLike={() => handleLike(post.id)}
             onCommentClick={() => {
               if (!isFullView) {
                 navigate(`/post/${post.id}`);

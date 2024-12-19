@@ -1,11 +1,17 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
 type Post = Database['public']['Tables']['posts']['Row'] & {
   profiles?: Database['public']['Tables']['profiles']['Row'];
   likes?: { user_id: string }[];
 };
+
+type PostPayload = RealtimePostgresChangesPayload<{
+  [key: string]: any;
+  id: string;
+}>;
 
 export function useFeedSubscription(posts: Post[]) {
   const [feedPosts, setFeedPosts] = useState(posts);
@@ -27,7 +33,7 @@ export function useFeedSubscription(posts: Post[]) {
           table: 'posts',
           filter: `id=in.(${posts.map(p => p.id).join(',')})`,
         },
-        (payload) => {
+        (payload: PostPayload) => {
           console.log('Feed post update received:', payload);
           if (payload.new && 'id' in payload.new) {
             setFeedPosts(currentPosts => 

@@ -36,7 +36,7 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
+          if (entry.isIntersecting && !hasBeenViewed) {
             trackPostView(post.id, currentUserId);
             setHasBeenViewed(true);
           }
@@ -115,13 +115,23 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
             repostCount={post.repost_count}
             isLiked={post.likes?.some((like: any) => like.user_id === currentUserId)}
             isOwnPost={post.user_id === currentUserId}
-            onLike={() => handleLike(post.id, setPost)}
-            onCommentClick={() => {
+            onLike={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleLike(post.id, setPost);
+            }}
+            onCommentClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               if (!isFullView) {
                 navigate(`/post/${post.id}`);
               }
             }}
-            onRepostClick={() => setIsRepostOpen(true)}
+            onRepostClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsRepostOpen(true);
+            }}
             isFullView={isFullView}
           />
         </CardFooter>

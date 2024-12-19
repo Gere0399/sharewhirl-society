@@ -16,9 +16,9 @@ interface PostActionsProps {
   repostCount?: number;
   isLiked?: boolean;
   isOwnPost?: boolean;
-  onLike: (postId: string) => void;
-  onCommentClick: () => void;
-  onRepostClick: () => void;
+  onLike: (e: React.MouseEvent) => void;
+  onCommentClick: (e: React.MouseEvent) => void;
+  onRepostClick: (e: React.MouseEvent) => void;
   onDeleteClick?: () => void;
   isFullView?: boolean;
 }
@@ -51,21 +51,9 @@ export function PostActions({
         commentsCount={commentsCount}
         repostCount={repostCount}
         isLiked={isLiked}
-        onLike={(e: React.MouseEvent) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onLike(postId);
-        }}
-        onComment={(e: React.MouseEvent) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onCommentClick();
-        }}
-        onRepost={(e: React.MouseEvent) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onRepostClick();
-        }}
+        onLike={onLike}
+        onComment={onCommentClick}
+        onRepost={onRepostClick}
       />
 
       <div className="ml-auto flex items-center gap-2">

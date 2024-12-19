@@ -4,7 +4,6 @@ import { AuthForm } from "@/components/auth/AuthForm";
 import { Sidebar } from "@/components/feed/Sidebar";
 import { TagsBar } from "@/components/feed/TagsBar";
 import { PostCard } from "@/components/feed/PostCard";
-import { SearchBar } from "@/components/feed/SearchBar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -146,7 +145,6 @@ const Index = () => {
         <header className={`fixed top-0 z-10 border-b border-border/40 bg-background/95 backdrop-blur-sm ${isMobile ? 'right-0 left-0' : 'right-0 left-16'}`}>
           <div className="container mx-auto px-4 py-2">
             <div className="flex flex-col gap-2 max-w-2xl mx-auto pt-2">
-              <SearchBar />
               <TagsBar
                 tags={userTags}
                 activeTag={activeTag}
@@ -162,7 +160,7 @@ const Index = () => {
           onOpenChange={setIsCreatePostOpen} 
         />
 
-        <div className="container mx-auto px-4 pt-36 pb-8">
+        <div className="container mx-auto px-4 pt-24 pb-8">
           <div className="max-w-2xl mx-auto space-y-4 w-full">
             {loading ? (
               <div className="flex justify-center items-center min-h-[200px]">

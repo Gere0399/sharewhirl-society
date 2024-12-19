@@ -9,13 +9,14 @@ import { useSearch } from "@/components/feed/search/useSearch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useFollowUser } from "@/hooks/useFollowUser";
 import { Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Search() {
   const [search, setSearch] = useState("");
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { searchResults, isLoading } = useSearch(search);
-  const { followUser, unfollowUser, isFollowing } = useFollowUser();
+  const { user } = useAuth();
 
   const profiles = searchResults
     .filter(result => result.type === "profile")
@@ -55,34 +56,37 @@ export default function Search() {
                   <div className="space-y-4">
                     <h2 className="text-lg font-semibold">Profiles</h2>
                     <Separator />
-                    {profiles.map((profile) => (
-                      <div key={profile.id} className="flex items-start justify-between p-4 bg-card rounded-lg border hover:bg-accent/50 transition-colors">
-                        <div className="flex items-start gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={profile.avatar_url} />
-                            <AvatarFallback>{profile.username?.[0]?.toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-medium">{profile.username}</h3>
-                              <span className="text-sm text-muted-foreground">
-                                {profile.followers_count || 0} followers
-                              </span>
+                    {profiles.map((profile) => {
+                      const { isFollowing, handleFollow } = useFollowUser(profile.user_id, user?.id);
+                      return (
+                        <div key={profile.id} className="flex items-start justify-between p-4 bg-card rounded-lg border hover:bg-accent/50 transition-colors">
+                          <div className="flex items-start gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={profile.avatar_url} />
+                              <AvatarFallback>{profile.username?.[0]?.toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-medium">{profile.username}</h3>
+                                <span className="text-sm text-muted-foreground">
+                                  {profile.followers_count || 0} followers
+                                </span>
+                              </div>
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {profile.bio || "No bio available"}
+                              </p>
                             </div>
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {profile.bio || "No bio available"}
-                            </p>
                           </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleFollow}
+                          >
+                            {isFollowing ? "Unfollow" : "Follow"}
+                          </Button>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => isFollowing(profile.user_id) ? unfollowUser(profile.user_id) : followUser(profile.user_id)}
-                        >
-                          {isFollowing(profile.user_id) ? "Unfollow" : "Follow"}
-                        </Button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 

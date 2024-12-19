@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Card,
@@ -10,10 +10,11 @@ import { PostHeader } from "@/components/feed/post/PostHeader";
 import { PostContent } from "@/components/feed/post/PostContent";
 import { PostMedia } from "@/components/feed/post/PostMedia";
 import { PostActions } from "@/components/feed/post/PostActions";
-import { trackPostView } from "@/utils/viewTracking";
 import { RepostDialog } from "@/components/feed/post/RepostDialog";
 import { usePostSubscription } from "@/components/feed/post/hooks/usePostSubscription";
 import { usePostActions } from "@/components/feed/post/hooks/usePostActions";
+import { useViewTracking } from "@/components/feed/post/hooks/useViewTracking";
+import { useInView } from "react-intersection-observer";
 
 interface PostCardProps {
   post: any;
@@ -25,29 +26,15 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
   const { post, setPost } = usePostSubscription(initialPost);
   const { handleLike } = usePostActions(currentUserId);
   const [isRepostOpen, setIsRepostOpen] = useState(false);
-  const [hasBeenViewed, setHasBeenViewed] = useState(false);
-  const postRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { ref: postRef, inView } = useInView({
+    threshold: 0.1,
+    triggerOnce: true,
+  });
 
-  useEffect(() => {
-    if (!postRef.current || hasBeenViewed || !currentUserId || !post?.id) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !hasBeenViewed) {
-            trackPostView(post.id, currentUserId);
-            setHasBeenViewed(true);
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(postRef.current);
-    return () => observer.disconnect();
-  }, [post?.id, currentUserId, hasBeenViewed]);
+  // Track view when post comes into view
+  useViewTracking(post?.id, currentUserId);
 
   const handleNavigateToPost = (e: React.MouseEvent) => {
     if (isFullView) return;

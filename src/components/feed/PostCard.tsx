@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Card,
@@ -14,7 +14,6 @@ import { RepostDialog } from "@/components/feed/post/RepostDialog";
 import { usePostSubscription } from "@/components/feed/post/hooks/usePostSubscription";
 import { usePostActions } from "@/components/feed/post/hooks/usePostActions";
 import { useViewTracking } from "@/components/feed/post/hooks/useViewTracking";
-import { useInView } from "react-intersection-observer";
 
 interface PostCardProps {
   post: any;
@@ -28,13 +27,9 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
   const [isRepostOpen, setIsRepostOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { ref: postRef, inView } = useInView({
-    threshold: 0.1,
-    triggerOnce: true,
-  });
-
-  // Track view when post comes into view
-  useViewTracking(post?.id, currentUserId);
+  
+  // Use the optimized view tracking hook
+  const { ref } = useViewTracking(post?.id, currentUserId);
 
   const handleNavigateToPost = (e: React.MouseEvent) => {
     if (isFullView) return;
@@ -58,7 +53,7 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
 
   return (
     <Card className="overflow-hidden border-0 bg-card transition-colors w-full">
-      <div onClick={handleNavigateToPost} ref={postRef}>
+      <div onClick={handleNavigateToPost} ref={ref}>
         <CardHeader className="px-4 pt-3 pb-1">
           <PostHeader 
             profile={post.profiles}
@@ -88,7 +83,10 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
           )}
         </CardContent>
 
-        <CardFooter className="flex justify-between px-4 pt-1 pb-3">
+        <CardFooter 
+          className="flex justify-between px-4 pt-1 pb-3"
+          onClick={(e) => e.stopPropagation()}
+        >
           <PostActions 
             postId={post.id}
             postTitle={post.title}

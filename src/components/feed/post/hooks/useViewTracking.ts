@@ -9,14 +9,25 @@ export function useViewTracking(postId?: string, currentUserId?: string) {
 
     const trackView = async () => {
       try {
-        await supabase
+        // First check if the view already exists
+        const { data: existingView } = await supabase
           .from('post_views')
-          .insert({ post_id: postId, user_id: currentUserId })
-          .throwOnError();
+          .select('*')
+          .eq('post_id', postId)
+          .eq('user_id', currentUserId)
+          .maybeSingle();
+
+        // Only insert if the view doesn't exist
+        if (!existingView) {
+          await supabase
+            .from('post_views')
+            .insert({ post_id: postId, user_id: currentUserId })
+            .throwOnError();
+        }
           
         hasTrackedRef.current = true;
       } catch (error: any) {
-        // Ignore duplicate key violations (409 errors)
+        // Only log errors that aren't related to conflicts
         if (!error.message?.includes('duplicate key')) {
           console.error('Error tracking view:', error);
         }

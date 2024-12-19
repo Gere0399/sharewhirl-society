@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Card,
@@ -33,41 +33,24 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
     triggerOnce: true,
   });
 
-  useViewTracking(inView ? post?.id : undefined, currentUserId);
+  // Track view when post comes into view
+  useViewTracking(post?.id, currentUserId);
 
   const handleNavigateToPost = (e: React.MouseEvent) => {
-    console.log('[PostCard] Click event detected');
-    
-    if (isFullView) {
-      console.log('[PostCard] Preventing navigation (full view)');
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
+    if (isFullView) return;
     
     const clickedElement = e.target as HTMLElement;
     const isClickingMedia = clickedElement.closest('.post-media');
     const isClickingButton = clickedElement.closest('button');
     const isClickingLink = clickedElement.closest('a');
     
-    console.log('[PostCard] Click targets:', {
-      isClickingMedia,
-      isClickingButton,
-      isClickingLink
-    });
-    
     if (!isClickingMedia && !isClickingButton && !isClickingLink) {
-      console.log('[PostCard] Navigating to post detail');
       e.preventDefault();
       e.stopPropagation();
       const postUrl = `/post/${post.id}`;
       if (location.pathname !== postUrl) {
         navigate(postUrl);
       }
-    } else {
-      console.log('[PostCard] Preventing navigation (clicked on media/button/link)');
-      e.preventDefault();
-      e.stopPropagation();
     }
   };
 
@@ -75,39 +58,37 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
 
   return (
     <Card className="overflow-hidden border-0 bg-card transition-colors w-full">
-      <div ref={postRef}>
-        <div onClick={handleNavigateToPost}>
-          <CardHeader className="px-4 pt-3 pb-1">
-            <PostHeader 
-              profile={post.profiles}
-              isAiGenerated={post.is_ai_generated}
-              repostedFromUsername={post.reposted_from_username}
-              createdAt={post.created_at}
-              currentUserId={currentUserId}
-            />
-          </CardHeader>
+      <div onClick={handleNavigateToPost} ref={postRef}>
+        <CardHeader className="px-4 pt-3 pb-1">
+          <PostHeader 
+            profile={post.profiles}
+            isAiGenerated={post.is_ai_generated}
+            repostedFromUsername={post.reposted_from_username}
+            createdAt={post.created_at}
+            currentUserId={currentUserId}
+          />
+        </CardHeader>
 
-          <CardContent className="px-4 pb-2">
-            <PostContent 
-              title={post.title}
-              content={post.content}
-              tags={post.tags}
-            />
-            
-            {post.media_url && (
-              <div className="post-media -mx-4">
-                <PostMedia 
-                  mediaUrl={post.media_url}
-                  mediaType={post.media_type}
-                  title={post.title}
-                  thumbnailUrl={post.thumbnail_url}
-                />
-              </div>
-            )}
-          </CardContent>
-        </div>
+        <CardContent className="px-4 pb-2">
+          <PostContent 
+            title={post.title}
+            content={post.content}
+            tags={post.tags}
+          />
+          
+          {post.media_url && (
+            <div className="post-media -mx-4">
+              <PostMedia 
+                mediaUrl={post.media_url}
+                mediaType={post.media_type}
+                title={post.title}
+                thumbnailUrl={post.thumbnail_url}
+              />
+            </div>
+          )}
+        </CardContent>
 
-        <CardFooter className="flex justify-between px-4 pt-1 pb-3" onClick={(e) => e.stopPropagation()}>
+        <CardFooter className="flex justify-between px-4 pt-1 pb-3">
           <PostActions 
             postId={post.id}
             postTitle={post.title}
@@ -121,20 +102,13 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
             repostCount={post.repost_count}
             isLiked={post.likes?.some((like: any) => like.user_id === currentUserId)}
             isOwnPost={post.user_id === currentUserId}
-            onLike={() => {
-              console.log('[PostCard] Like action triggered');
-              handleLike(post.id, setPost);
-            }}
+            onLike={() => handleLike(post.id, setPost)}
             onCommentClick={() => {
-              console.log('[PostCard] Comment action triggered');
               if (!isFullView) {
                 navigate(`/post/${post.id}`);
               }
             }}
-            onRepostClick={() => {
-              console.log('[PostCard] Repost action triggered');
-              setIsRepostOpen(true);
-            }}
+            onRepostClick={() => setIsRepostOpen(true)}
             isFullView={isFullView}
           />
         </CardFooter>

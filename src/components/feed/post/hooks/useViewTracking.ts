@@ -1,15 +1,15 @@
-import { useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export function useViewTracking(postId?: string, currentUserId?: string) {
-  const hasTrackedRef = useRef(false);
+export function useViewTracking(postId: string, currentUserId?: string) {
+  const [hasTrackedView, setHasTrackedView] = useState(false);
 
   useEffect(() => {
-    if (!postId || !currentUserId || hasTrackedRef.current) return;
+    if (!postId || !currentUserId || hasTrackedView) return;
 
     const trackView = async () => {
       try {
-        // First check if the view already exists
+        // First check if view already exists
         const { data: existingView } = await supabase
           .from('post_views')
           .select('*')
@@ -17,23 +17,25 @@ export function useViewTracking(postId?: string, currentUserId?: string) {
           .eq('user_id', currentUserId)
           .maybeSingle();
 
-        // Only insert if the view doesn't exist
         if (!existingView) {
           await supabase
             .from('post_views')
             .insert({ post_id: postId, user_id: currentUserId })
-            .throwOnError();
+            .select()
+            .single();
         }
-          
-        hasTrackedRef.current = true;
-      } catch (error: any) {
-        // Only log errors that aren't related to conflicts
-        if (!error.message?.includes('duplicate key')) {
+        
+        setHasTrackedView(true);
+      } catch (error) {
+        // Ignore 409 Conflict errors as they indicate the view was already tracked
+        if (!(error as any)?.message?.includes('409')) {
           console.error('Error tracking view:', error);
         }
       }
     };
 
     trackView();
-  }, [postId, currentUserId]);
+  }, [postId, currentUserId, hasTrackedView]);
+
+  return { hasTrackedView };
 }

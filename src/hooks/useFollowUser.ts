@@ -34,7 +34,7 @@ export const useFollowUser = (profileUserId: string | undefined, currentUserId: 
     },
     enabled: !!profileUserId,
     staleTime: 30000, // Cache for 30 seconds
-    cacheTime: 60000, // Keep in cache for 1 minute
+    gcTime: 60000, // Keep in cache for 1 minute (formerly cacheTime)
   });
 
   useEffect(() => {

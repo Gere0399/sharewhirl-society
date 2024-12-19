@@ -6,11 +6,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/feed/Sidebar";
 import { useNotificationGroups } from "@/hooks/useNotificationGroups";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Notifications = () => {
   const { toast } = useToast();
   const [session, setSession] = useState<any>(null);
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -78,13 +80,17 @@ const Notifications = () => {
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <main className="pl-16 md:pl-20 w-full">
+      <main className={`${isMobile ? 'w-full' : 'pl-16 md:pl-20'}`}>
         <div className="container max-w-3xl mx-auto px-4 py-8">
           <h1 className="text-2xl font-bold mb-6 text-center">Notifications</h1>
-          <NotificationsList 
-            isLoading={isLoading} 
-            groups={notificationGroups} 
-          />
+          <div className="flex justify-center w-full">
+            <div className="w-full max-w-2xl">
+              <NotificationsList 
+                isLoading={isLoading} 
+                groups={notificationGroups} 
+              />
+            </div>
+          </div>
         </div>
       </main>
     </div>

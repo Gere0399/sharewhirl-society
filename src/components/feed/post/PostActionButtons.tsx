@@ -43,15 +43,15 @@ export function PostActionButtons({
       <Button
         variant="ghost"
         size="sm"
-        className={`group px-2 ${isLiked ? 'text-red-500' : ''}`}
+        className={`group px-2 hover:bg-red-500/10 ${isLiked ? 'text-red-500' : ''}`}
         onClick={handleLikeClick}
       >
         <Heart
           className={`mr-1 h-4 w-4 transition-all ${
-            isLiked ? "fill-current text-red-500" : "group-hover:scale-110"
+            isLiked ? "fill-red-500 text-red-500" : "group-hover:text-red-500"
           }`}
         />
-        <span className="text-sm">{likesCount}</span>
+        <span className={`text-sm ${isLiked ? 'text-red-500' : ''}`}>{likesCount}</span>
       </Button>
 
       <Button

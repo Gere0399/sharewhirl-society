@@ -35,12 +35,39 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
 
   useViewTracking(inView ? post?.id : undefined, currentUserId);
 
-  const navigateToPost = () => {
-    if (!isFullView) {
+  const handleNavigateToPost = (e: React.MouseEvent) => {
+    console.log('[PostCard] Click event detected');
+    
+    if (isFullView) {
+      console.log('[PostCard] Preventing navigation (full view)');
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    
+    const clickedElement = e.target as HTMLElement;
+    const isClickingMedia = clickedElement.closest('.post-media');
+    const isClickingButton = clickedElement.closest('button');
+    const isClickingLink = clickedElement.closest('a');
+    
+    console.log('[PostCard] Click targets:', {
+      isClickingMedia,
+      isClickingButton,
+      isClickingLink
+    });
+    
+    if (!isClickingMedia && !isClickingButton && !isClickingLink) {
+      console.log('[PostCard] Navigating to post detail');
+      e.preventDefault();
+      e.stopPropagation();
       const postUrl = `/post/${post.id}`;
       if (location.pathname !== postUrl) {
         navigate(postUrl);
       }
+    } else {
+      console.log('[PostCard] Preventing navigation (clicked on media/button/link)');
+      e.preventDefault();
+      e.stopPropagation();
     }
   };
 
@@ -49,7 +76,7 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
   return (
     <Card className="overflow-hidden border-0 bg-card transition-colors w-full">
       <div ref={postRef}>
-        <div role="button" tabIndex={0} onClick={navigateToPost} onKeyDown={(e) => e.key === 'Enter' && navigateToPost()}>
+        <div onClick={handleNavigateToPost}>
           <CardHeader className="px-4 pt-3 pb-1">
             <PostHeader 
               profile={post.profiles}
@@ -68,7 +95,7 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
             />
             
             {post.media_url && (
-              <div className="post-media -mx-4" onClick={(e) => e.stopPropagation()}>
+              <div className="post-media -mx-4">
                 <PostMedia 
                   mediaUrl={post.media_url}
                   mediaType={post.media_type}
@@ -94,13 +121,20 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
             repostCount={post.repost_count}
             isLiked={post.likes?.some((like: any) => like.user_id === currentUserId)}
             isOwnPost={post.user_id === currentUserId}
-            onLike={() => handleLike(post.id, setPost)}
+            onLike={() => {
+              console.log('[PostCard] Like action triggered');
+              handleLike(post.id, setPost);
+            }}
             onCommentClick={() => {
+              console.log('[PostCard] Comment action triggered');
               if (!isFullView) {
                 navigate(`/post/${post.id}`);
               }
             }}
-            onRepostClick={() => setIsRepostOpen(true)}
+            onRepostClick={() => {
+              console.log('[PostCard] Repost action triggered');
+              setIsRepostOpen(true);
+            }}
             isFullView={isFullView}
           />
         </CardFooter>

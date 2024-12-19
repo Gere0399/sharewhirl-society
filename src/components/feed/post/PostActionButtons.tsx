@@ -23,19 +23,19 @@ export function PostActionButtons({
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onLike(e);
+    onLike();
   };
 
   const handleCommentClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onComment(e);
+    onComment();
   };
 
   const handleRepostClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onRepost(e);
+    onRepost();
   };
 
   return (

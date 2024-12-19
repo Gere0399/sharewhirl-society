@@ -16,9 +16,9 @@ interface PostActionsProps {
   repostCount?: number;
   isLiked?: boolean;
   isOwnPost?: boolean;
-  onLike: (e: React.MouseEvent) => void;
-  onCommentClick: (e: React.MouseEvent) => void;
-  onRepostClick: (e: React.MouseEvent) => void;
+  onLike: () => void;
+  onCommentClick: () => void;
+  onRepostClick: () => void;
   onDeleteClick?: () => void;
   isFullView?: boolean;
 }

@@ -115,23 +115,13 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
             repostCount={post.repost_count}
             isLiked={post.likes?.some((like: any) => like.user_id === currentUserId)}
             isOwnPost={post.user_id === currentUserId}
-            onLike={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleLike(post.id, setPost);
-            }}
-            onCommentClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
+            onLike={() => handleLike(post.id, setPost)}
+            onCommentClick={() => {
               if (!isFullView) {
                 navigate(`/post/${post.id}`);
               }
             }}
-            onRepostClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsRepostOpen(true);
-            }}
+            onRepostClick={() => setIsRepostOpen(true)}
             isFullView={isFullView}
           />
         </CardFooter>

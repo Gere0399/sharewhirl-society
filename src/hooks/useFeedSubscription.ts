@@ -35,7 +35,9 @@ export function useFeedSubscription(posts: Post[]) {
         },
         (payload: PostPayload) => {
           console.log('Feed post update received:', payload);
-          if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
+          if (payload.new && 
+              typeof payload.new === 'object' && 
+              'id' in payload.new) {
             setFeedPosts(currentPosts => 
               currentPosts.map(post => 
                 post.id === payload.new.id 

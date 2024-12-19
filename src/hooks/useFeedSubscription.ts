@@ -1,12 +1,20 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
-export function useFeedSubscription(posts: any[]) {
+type Post = Database['public']['Tables']['posts']['Row'] & {
+  profiles?: Database['public']['Tables']['profiles']['Row'];
+  likes?: { user_id: string }[];
+};
+
+export function useFeedSubscription(posts: Post[]) {
   const [feedPosts, setFeedPosts] = useState(posts);
 
   useEffect(() => {
     // Set initial posts
     setFeedPosts(posts);
+    
+    if (posts.length === 0) return;
     
     // Subscribe to all posts changes in a single subscription
     const channel = supabase
@@ -21,7 +29,7 @@ export function useFeedSubscription(posts: any[]) {
         },
         (payload) => {
           console.log('Feed post update received:', payload);
-          if (payload.new) {
+          if (payload.new && 'id' in payload.new) {
             setFeedPosts(currentPosts => 
               currentPosts.map(post => 
                 post.id === payload.new.id 

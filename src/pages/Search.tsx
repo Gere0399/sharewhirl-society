@@ -16,7 +16,7 @@ export default function Search() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { searchResults, isLoading } = useSearch(search);
-  const { user } = useAuth();
+  const { session } = useAuth();
 
   const profiles = searchResults
     .filter(result => result.type === "profile")
@@ -57,7 +57,7 @@ export default function Search() {
                     <h2 className="text-lg font-semibold">Profiles</h2>
                     <Separator />
                     {profiles.map((profile) => {
-                      const { isFollowing, handleFollow } = useFollowUser(profile.user_id, user?.id);
+                      const { isFollowing, handleFollow } = useFollowUser(profile.user_id, session?.user?.id);
                       return (
                         <div key={profile.id} className="flex items-start justify-between p-4 bg-card rounded-lg border hover:bg-accent/50 transition-colors">
                           <div className="flex items-start gap-3">

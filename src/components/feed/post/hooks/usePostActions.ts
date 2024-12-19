@@ -6,7 +6,7 @@ export function usePostActions(currentUserId?: string) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleLike = async (postId: string, setPost: (post: any) => void) => {
+  const handleLike = async (postId: string) => {
     if (!currentUserId) {
       toast({
         title: "Authentication required",
@@ -20,78 +20,37 @@ export function usePostActions(currentUserId?: string) {
 
     try {
       setIsSubmitting(true);
+      console.log('Handling like for post:', postId);
 
-      // Check if the user has already liked the post
-      const { data: existingLike, error: likeCheckError } = await supabase
+      const { data: existingLike } = await supabase
         .from('likes')
         .select()
         .eq('post_id', postId)
         .eq('user_id', currentUserId)
         .maybeSingle();
 
-      if (likeCheckError && likeCheckError.code !== 'PGRST116') {
-        throw likeCheckError;
-      }
-
-      // Optimistic update
-      setPost((prevPost: any) => {
-        const isLiked = existingLike !== null;
-        const currentLikes = prevPost.likes || [];
-        
-        return {
-          ...prevPost,
-          likes_count: Math.max(0, prevPost.likes_count + (isLiked ? -1 : 1)),
-          likes: isLiked
-            ? currentLikes.filter((like: any) => like.user_id !== currentUserId)
-            : [...currentLikes, { user_id: currentUserId }]
-        };
-      });
-
       if (existingLike) {
-        const { error: deleteError } = await supabase
+        await supabase
           .from('likes')
           .delete()
           .eq('post_id', postId)
           .eq('user_id', currentUserId);
-
-        if (deleteError) throw deleteError;
+        
+        console.log('Like removed');
       } else {
-        const { error: insertError } = await supabase
+        await supabase
           .from('likes')
           .insert([{ post_id: postId, user_id: currentUserId }]);
-
-        if (insertError) throw insertError;
+        
+        console.log('Like added');
       }
     } catch (error: any) {
       console.error('Error handling like:', error);
       toast({
         title: "Error",
-        description: "Failed to update like status",
+        description: error.message,
         variant: "destructive",
       });
-      
-      // Revert optimistic update on error
-      const { data: currentPost } = await supabase
-        .from('posts')
-        .select(`
-          *,
-          profiles!posts_user_id_fkey (
-            username,
-            avatar_url,
-            created_at,
-            bio
-          ),
-          likes (
-            user_id,
-            created_at
-          )
-        `)
-        .eq('id', postId)
-        .single();
-
-      if (currentPost) {
-        setPost(currentPost);
-      }
     } finally {
       setIsSubmitting(false);
     }

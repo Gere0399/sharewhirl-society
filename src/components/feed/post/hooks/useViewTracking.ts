@@ -1,20 +1,21 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 import { useInView } from "react-intersection-observer";
+import { supabase } from "@/integrations/supabase/client";
 
 export function useViewTracking(postId?: string, currentUserId?: string) {
-  const [hasTrackedView, setHasTrackedView] = useState(false);
   const { ref, inView } = useInView({
     threshold: 0.1,
     triggerOnce: true,
   });
 
   useEffect(() => {
-    if (!postId || !currentUserId || !inView || hasTrackedView) return;
+    if (!postId || !currentUserId || !inView) return;
 
     const trackView = async () => {
       try {
-        // First check if view already exists to prevent duplicate tracking
+        console.log('Tracking view for post:', postId);
+        
+        // Check if view already exists
         const { data: existingView } = await supabase
           .from('post_views')
           .select('*')
@@ -25,21 +26,19 @@ export function useViewTracking(postId?: string, currentUserId?: string) {
         if (!existingView) {
           await supabase
             .from('post_views')
-            .insert({ post_id: postId, user_id: currentUserId })
-            .select()
-            .single();
+            .insert({ post_id: postId, user_id: currentUserId });
           
-          console.log('View tracked for post:', postId);
+          console.log('View tracked successfully');
+        } else {
+          console.log('View already tracked');
         }
-        
-        setHasTrackedView(true);
       } catch (error) {
         console.error('Error tracking view:', error);
       }
     };
 
     trackView();
-  }, [postId, currentUserId, inView, hasTrackedView]);
+  }, [postId, currentUserId, inView]);
 
-  return { ref, hasTrackedView };
+  return { ref };
 }

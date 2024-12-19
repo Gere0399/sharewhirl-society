@@ -6,7 +6,7 @@ export function usePostActions(currentUserId?: string) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleLike = async (postId: string) => {
+  const handleLike = async (postId: string, setPost?: (post: any) => void) => {
     if (!currentUserId) {
       toast({
         title: "Authentication required",
@@ -43,6 +43,17 @@ export function usePostActions(currentUserId?: string) {
           .insert([{ post_id: postId, user_id: currentUserId }]);
         
         console.log('Like added');
+      }
+
+      // If setPost function is provided, update the post state
+      if (setPost) {
+        setPost((prevPost: any) => ({
+          ...prevPost,
+          likes: existingLike 
+            ? (prevPost.likes || []).filter((like: any) => like.user_id !== currentUserId)
+            : [...(prevPost.likes || []), { user_id: currentUserId }],
+          likes_count: Math.max(0, prevPost.likes_count + (existingLike ? -1 : 1))
+        }));
       }
     } catch (error: any) {
       console.error('Error handling like:', error);

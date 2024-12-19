@@ -28,7 +28,6 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Use the optimized view tracking hook
   const { ref } = useViewTracking(post?.id, currentUserId);
 
   const handleNavigateToPost = (e: React.MouseEvent) => {

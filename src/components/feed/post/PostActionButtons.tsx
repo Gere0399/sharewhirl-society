@@ -20,7 +20,7 @@ export function PostActionButtons({
   onComment,
   onRepost,
 }: PostActionButtonsProps) {
-  const handleClick = (e: React.MouseEvent, callback: () => void) => {
+  const handleAction = (e: React.MouseEvent, callback: () => void) => {
     e.preventDefault();
     e.stopPropagation();
     callback();
@@ -32,7 +32,7 @@ export function PostActionButtons({
         variant="ghost"
         size="sm"
         className={`group px-2 ${isLiked ? 'text-red-500' : ''}`}
-        onClick={(e) => handleClick(e, onLike)}
+        onClick={(e) => handleAction(e, onLike)}
       >
         <Heart
           className={`mr-1 h-4 w-4 transition-all ${
@@ -46,7 +46,7 @@ export function PostActionButtons({
         variant="ghost"
         size="sm"
         className="group px-2"
-        onClick={(e) => handleClick(e, onComment)}
+        onClick={(e) => handleAction(e, onComment)}
       >
         <MessageCircle className="mr-1 h-4 w-4" />
         <span className="text-sm">{commentsCount}</span>
@@ -56,7 +56,7 @@ export function PostActionButtons({
         variant="ghost"
         size="sm"
         className="group px-2"
-        onClick={(e) => handleClick(e, onRepost)}
+        onClick={(e) => handleAction(e, onRepost)}
       >
         <Repeat className="mr-1 h-4 w-4" />
         <span className="text-sm">{repostCount}</span>

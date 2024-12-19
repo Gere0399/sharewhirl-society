@@ -37,7 +37,11 @@ export function PostCard({ post: initialPost, currentUserId, isFullView = false 
   useViewTracking(inView ? post?.id : undefined, currentUserId);
 
   const handleNavigateToPost = (e: React.MouseEvent) => {
-    if (isFullView) return;
+    if (isFullView) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     
     const clickedElement = e.target as HTMLElement;
     const isClickingMedia = clickedElement.closest('.post-media');

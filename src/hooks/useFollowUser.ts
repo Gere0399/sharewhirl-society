@@ -1,67 +1,47 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 export const useFollowUser = (profileUserId: string | undefined, currentUserId: string | undefined) => {
   const [isFollowing, setIsFollowing] = useState(false);
-  const [followersCount, setFollowersCount] = useState(0);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (!currentUserId || !profileUserId) return;
-
-    const checkFollowStatus = async () => {
-      try {
-        // Check follow status
-        const { data: followData, error: followError } = await supabase
+  // Use React Query to cache the followers count
+  const { data: followData } = useQuery({
+    queryKey: ['profile-follow', profileUserId],
+    queryFn: async () => {
+      if (!profileUserId) return null;
+      
+      const [followStatus, profileData] = await Promise.all([
+        currentUserId ? supabase
           .from('follows')
           .select()
           .eq('follower_id', currentUserId)
           .eq('following_id', profileUserId)
-          .maybeSingle();
-
-        if (followError) throw followError;
-        setIsFollowing(!!followData);
-
-        // Get followers count
-        const { data: profileData, error: profileError } = await supabase
+          .maybeSingle() : null,
+        supabase
           .from('profiles')
           .select('followers_count')
           .eq('user_id', profileUserId)
-          .single();
+          .single()
+      ]);
 
-        if (profileError) throw profileError;
-        setFollowersCount(profileData.followers_count || 0);
-      } catch (error) {
-        console.error('Error checking follow status:', error);
-      }
-    };
+      return {
+        isFollowing: !!followStatus?.data,
+        followersCount: profileData.data?.followers_count || 0
+      };
+    },
+    enabled: !!profileUserId,
+    staleTime: 30000, // Cache for 30 seconds
+    cacheTime: 60000, // Keep in cache for 1 minute
+  });
 
-    checkFollowStatus();
-
-    // Subscribe to changes
-    const channel = supabase
-      .channel(`profile_${profileUserId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles',
-          filter: `user_id=eq.${profileUserId}`
-        },
-        (payload: any) => {
-          if (payload.new) {
-            setFollowersCount(payload.new.followers_count || 0);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [profileUserId, currentUserId]);
+  useEffect(() => {
+    if (followData) {
+      setIsFollowing(followData.isFollowing);
+    }
+  }, [followData]);
 
   const handleFollow = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -95,7 +75,6 @@ export const useFollowUser = (profileUserId: string | undefined, currentUserId: 
 
         if (error) throw error;
         setIsFollowing(false);
-        setFollowersCount(prev => Math.max(0, prev - 1));
       } else {
         const { error } = await supabase
           .from("follows")
@@ -106,7 +85,6 @@ export const useFollowUser = (profileUserId: string | undefined, currentUserId: 
 
         if (error) throw error;
         setIsFollowing(true);
-        setFollowersCount(prev => prev + 1);
       }
     } catch (error: any) {
       console.error('Follow action error:', error);
@@ -118,5 +96,9 @@ export const useFollowUser = (profileUserId: string | undefined, currentUserId: 
     }
   };
 
-  return { isFollowing, followersCount, handleFollow };
+  return { 
+    isFollowing, 
+    followersCount: followData?.followersCount || 0, 
+    handleFollow 
+  };
 };
